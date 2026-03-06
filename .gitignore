@@ -1,0 +1,24 @@
+node_modules
+dist
+.next
+.next*
+.env
+data/evidence
+data/outbox
+.turbo
+*.tsbuildinfo
+apps/api/dist.bak*
+tools/moodle-sidecar/edge_profile*
+tools/moodle-sidecar/__pycache__
+tools/moodle-sidecar/CURSOS DISTANCIA 4.0.xlsx
+storage/archive
+storage/inputs
+storage/outputs
+storage/logs
+edge_profile_aulas_uniminuto
+*.log
+*.tmp
+*.pid
+cmm7tyq820000t2eo8tn50zll-2026-03-01T14-39-33.355Z.csv
+Thumbs.db
+.DS_Store

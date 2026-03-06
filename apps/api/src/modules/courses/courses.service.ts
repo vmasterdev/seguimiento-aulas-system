@@ -1,0 +1,849 @@
+import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
+import { z } from 'zod';
+import {
+  MoodleStatusSchema,
+  normalizeMoment,
+  normalizeTeacherId,
+  normalizeTemplate,
+  TemplateSchema,
+} from '@seguimiento/shared';
+import { Prisma } from '@prisma/client';
+import { PrismaService } from '../prisma.service';
+import { parseWithSchema } from '../common/zod.util';
+import { resolveProgramValue } from '../common/program.util';
+import { readBannerReview, readBannerReviewStatus } from '../common/banner-review.util';
+import { getCourseReviewExclusionReason, isCourseExcludedFromReview } from '../common/review-eligibility.util';
+
+const CoursesQuerySchema = z.object({
+  periodCode: z.string().trim().optional(),
+  status: MoodleStatusSchema.optional(),
+  q: z.string().trim().optional(),
+  limit: z.coerce.number().int().min(1).max(5000).default(100),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+const ManualUpdateSchema = z.object({
+  status: MoodleStatusSchema.optional(),
+  detectedTemplate: TemplateSchema.optional(),
+  notes: z.string().trim().max(2000).optional(),
+  errorCode: z.enum(['NO_EXISTE', 'SIN_ACCESO', 'TIMEOUT', 'OTRO']).optional(),
+});
+
+const MissingTeacherQuerySchema = z.object({
+  periodCode: z.string().trim().optional(),
+  moment: z.string().trim().optional(),
+  q: z.string().trim().optional(),
+  limit: z.coerce.number().int().min(1).max(500).default(100),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
+const AssignTeacherSchema = z.object({
+  teacherId: z.string().trim().min(1),
+  fullName: z.string().trim().max(200).optional(),
+  email: z.string().trim().email().optional(),
+});
+
+const DeactivateCourseSchema = z.object({
+  reason: z.string().trim().max(1000).optional(),
+});
+
+const ChecklistTemporalSchema = z.object({
+  active: z.coerce.boolean().optional().default(true),
+  reason: z.string().trim().max(1000).optional(),
+});
+
+@Injectable()
+export class CoursesService {
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
+
+  private asRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    return value as Record<string, unknown>;
+  }
+
+  private readChecklistTemporal(rawJson: unknown): { active: boolean; reason: string | null; at: string | null } {
+    const root = this.asRecord(rawJson);
+    const marker = this.asRecord(root.specialChecklistQueue);
+    return {
+      active: marker.active === true,
+      reason: typeof marker.reason === 'string' && marker.reason.trim() ? marker.reason.trim() : null,
+      at: typeof marker.at === 'string' && marker.at.trim() ? marker.at.trim() : null,
+    };
+  }
+
+  private withManualExclusion(rawJson: unknown, reason: string) {
+    const root =
+      rawJson && typeof rawJson === 'object' && !Array.isArray(rawJson)
+        ? ({ ...(rawJson as Record<string, unknown>) } as Record<string, unknown>)
+        : ({} as Record<string, unknown>);
+    root.manualExclusion = {
+      active: true,
+      reason,
+      at: new Date().toISOString(),
+    };
+    return root as Prisma.InputJsonValue;
+  }
+
+  private pickBestReplacement(
+    input: {
+      group: {
+        id: string;
+        teacherId: string;
+        periodId: string;
+        programCode: string;
+        template: string;
+      };
+      removedCourseId: string;
+      candidates: Array<{
+        id: string;
+        nrc: string;
+        programCode: string | null;
+        programName: string | null;
+        teacherId: string | null;
+        teacher: { costCenter: string | null } | null;
+        templateDeclared: string | null;
+        rawJson: unknown;
+        moodleCheck: { status: string; detectedTemplate: string | null; errorCode: string | null } | null;
+        evaluations: Array<{ replicatedFromCourseId: string | null }>;
+      }>;
+    },
+  ): string | null {
+    const groupTemplate = normalizeTemplate(input.group.template || 'UNKNOWN');
+    const targetProgramCode = input.group.programCode?.trim() || null;
+
+    const ranked = input.candidates
+      .filter((candidate) => candidate.id !== input.removedCourseId)
+      .filter(
+        (candidate) =>
+          !isCourseExcludedFromReview({
+            rawJson: candidate.rawJson,
+            template: candidate.moodleCheck?.detectedTemplate ?? candidate.templateDeclared ?? 'UNKNOWN',
+            moodleCheck: candidate.moodleCheck,
+          }),
+      )
+      .map((candidate) => {
+        const resolvedProgram = resolveProgramValue({
+          teacherCostCenter: candidate.teacher?.costCenter ?? null,
+          teacherLinked: !!candidate.teacherId,
+          courseProgramCode: candidate.programCode,
+          courseProgramName: candidate.programName,
+        });
+        const candidateProgramCode = resolvedProgram.programCode ?? null;
+        const candidateTemplate = normalizeTemplate(
+          candidate.moodleCheck?.detectedTemplate ?? candidate.templateDeclared ?? 'UNKNOWN',
+        );
+        const hasManualEvaluation = candidate.evaluations.some(
+          (evaluation) => !evaluation.replicatedFromCourseId,
+        );
+
+        let rank = 0;
+        if ((candidateProgramCode ?? 'SIN_PROGRAMA') === (targetProgramCode ?? 'SIN_PROGRAMA')) rank += 100;
+        if (candidateTemplate === groupTemplate) rank += 80;
+        if (hasManualEvaluation) rank += 20;
+        rank += Math.min(candidate.evaluations.length, 5);
+
+        return {
+          candidate,
+          rank,
+        };
+      })
+      .sort((left, right) => right.rank - left.rank || left.candidate.nrc.localeCompare(right.candidate.nrc));
+
+    return ranked[0]?.candidate.id ?? null;
+  }
+
+  async list(rawQuery: unknown) {
+    const query = parseWithSchema(CoursesQuerySchema, rawQuery, 'courses query');
+
+    const where = {
+      period: query.periodCode ? { code: query.periodCode } : undefined,
+      moodleCheck: query.status ? { status: query.status } : undefined,
+      OR: query.q
+        ? [
+            { nrc: { contains: query.q, mode: 'insensitive' as const } },
+            { subjectName: { contains: query.q, mode: 'insensitive' as const } },
+            { teacherId: { contains: query.q, mode: 'insensitive' as const } },
+            { teacher: { fullName: { contains: query.q, mode: 'insensitive' as const } } },
+            { teacher: { id: { contains: query.q, mode: 'insensitive' as const } } },
+            { teacher: { sourceId: { contains: query.q, mode: 'insensitive' as const } } },
+            { teacher: { documentId: { contains: query.q, mode: 'insensitive' as const } } },
+            { programName: { contains: query.q, mode: 'insensitive' as const } },
+            { programCode: { contains: query.q, mode: 'insensitive' as const } },
+            { teacher: { costCenter: { contains: query.q, mode: 'insensitive' as const } } },
+          ]
+        : undefined,
+    };
+
+    const [total, items] = await Promise.all([
+      this.prisma.course.count({ where }),
+      this.prisma.course.findMany({
+        where,
+        include: {
+          period: true,
+          teacher: true,
+          moodleCheck: true,
+          selectedInGroups: {
+            select: {
+              id: true,
+              moment: true,
+              template: true,
+              programCode: true,
+              modality: true,
+            },
+          },
+          evaluations: {
+            orderBy: { computedAt: 'desc' },
+            take: 2,
+          },
+        },
+        orderBy: [{ updatedAt: 'desc' }],
+        skip: query.offset,
+        take: query.limit,
+      }),
+    ]);
+
+    return {
+      total,
+      limit: query.limit,
+      offset: query.offset,
+      items: items.map((item) => {
+        const resolvedProgram = resolveProgramValue({
+          teacherCostCenter: item.teacher?.costCenter ?? null,
+          teacherLinked: !!item.teacherId,
+          courseProgramCode: item.programCode,
+          courseProgramName: item.programName,
+        });
+        const bannerReviewStatus = readBannerReviewStatus(item.rawJson);
+        const alistamiento = item.evaluations.find((evaluation) => evaluation.phase === 'ALISTAMIENTO') ?? null;
+        const ejecucion = item.evaluations.find((evaluation) => evaluation.phase === 'EJECUCION') ?? null;
+        const latestEvaluation = item.evaluations[0] ?? null;
+
+        return {
+          ...item,
+          programCode: resolvedProgram.programCode,
+          programName: resolvedProgram.programName,
+          bannerReviewStatus,
+          checklistTemporal: this.readChecklistTemporal(item.rawJson),
+          selectedForChecklist: item.selectedInGroups.length > 0,
+          selectedSampleGroups: item.selectedInGroups,
+          evaluationSummary: {
+            alistamientoScore: alistamiento?.score ?? null,
+            ejecucionScore: ejecucion?.score ?? null,
+            latestPhase: latestEvaluation?.phase ?? null,
+            latestScore: latestEvaluation?.score ?? null,
+            latestObservations: latestEvaluation?.observations ?? null,
+            latestComputedAt: latestEvaluation?.computedAt ?? null,
+            latestReplicatedFromCourseId: latestEvaluation?.replicatedFromCourseId ?? null,
+          },
+          reviewExcludedReason: getCourseReviewExclusionReason({
+            rawJson: item.rawJson,
+            template: item.moodleCheck?.detectedTemplate ?? item.templateDeclared ?? 'UNKNOWN',
+            moodleCheck: item.moodleCheck,
+          }),
+          reviewExcluded: isCourseExcludedFromReview({
+            rawJson: item.rawJson,
+            template: item.moodleCheck?.detectedTemplate ?? item.templateDeclared ?? 'UNKNOWN',
+            moodleCheck: item.moodleCheck,
+          }),
+        };
+      }),
+    };
+  }
+
+  async byId(id: string) {
+    const course = await this.prisma.course.findUnique({
+      where: { id },
+      include: {
+        period: true,
+        teacher: true,
+        moodleCheck: true,
+        selectedInGroups: {
+          select: {
+            id: true,
+            moment: true,
+            template: true,
+            programCode: true,
+            modality: true,
+            selectionSeed: true,
+            createdAt: true,
+          },
+        },
+        evaluations: { orderBy: { computedAt: 'desc' } },
+      },
+    });
+
+    if (!course) {
+      throw new NotFoundException('Curso no encontrado.');
+    }
+
+    const resolvedProgram = resolveProgramValue({
+      teacherCostCenter: course.teacher?.costCenter ?? null,
+      teacherLinked: !!course.teacherId,
+      courseProgramCode: course.programCode,
+      courseProgramName: course.programName,
+    });
+    const bannerReviewStatus = readBannerReviewStatus(course.rawJson);
+    const sourceIds = [
+      ...new Set(
+        course.evaluations
+          .map((evaluation) => evaluation.replicatedFromCourseId)
+          .filter((value): value is string => Boolean(value)),
+      ),
+    ];
+    const sourceCourses = sourceIds.length
+      ? await this.prisma.course.findMany({
+          where: { id: { in: sourceIds } },
+          select: { id: true, nrc: true },
+        })
+      : [];
+    const sourceNrcById = new Map(sourceCourses.map((source) => [source.id, source.nrc]));
+
+    return {
+      ...course,
+      programCode: resolvedProgram.programCode,
+      programName: resolvedProgram.programName,
+      bannerReviewStatus,
+      checklistTemporal: this.readChecklistTemporal(course.rawJson),
+      selectedForChecklist: course.selectedInGroups.length > 0,
+      selectedSampleGroups: course.selectedInGroups,
+      evaluations: course.evaluations.map((evaluation) => ({
+        ...evaluation,
+        evaluationType: evaluation.replicatedFromCourseId ? 'REPLICADA' : 'MANUAL',
+        replicatedFromNrc: evaluation.replicatedFromCourseId
+          ? sourceNrcById.get(evaluation.replicatedFromCourseId) ?? null
+          : null,
+      })),
+      reviewExcludedReason: getCourseReviewExclusionReason({
+        rawJson: course.rawJson,
+        template: course.moodleCheck?.detectedTemplate ?? course.templateDeclared ?? 'UNKNOWN',
+        moodleCheck: course.moodleCheck,
+      }),
+      reviewExcluded: isCourseExcludedFromReview({
+        rawJson: course.rawJson,
+        template: course.moodleCheck?.detectedTemplate ?? course.templateDeclared ?? 'UNKNOWN',
+        moodleCheck: course.moodleCheck,
+      }),
+    };
+  }
+
+  async manualUpdate(id: string, payload: unknown) {
+    const course = await this.prisma.course.findUnique({
+      where: { id },
+      select: { id: true },
+    });
+    if (!course) {
+      throw new NotFoundException('Curso no encontrado.');
+    }
+
+    const body = parseWithSchema(ManualUpdateSchema, payload, 'manual moodle update');
+
+    const updated = await this.prisma.moodleCheck.upsert({
+      where: { courseId: id },
+      create: {
+        courseId: id,
+        status: body.status ?? 'REVISAR_MANUAL',
+        detectedTemplate: body.detectedTemplate,
+        notes: body.notes,
+        errorCode: body.errorCode,
+      },
+      update: {
+        status: body.status,
+        detectedTemplate: body.detectedTemplate,
+        notes: body.notes,
+        errorCode: body.errorCode,
+      },
+    });
+
+    return { ok: true, moodleCheck: updated };
+  }
+
+  async missingTeacherList(rawQuery: unknown) {
+    const query = parseWithSchema(MissingTeacherQuerySchema, rawQuery, 'missing teacher query');
+    const offset = query.offset ?? 0;
+    const limit = query.limit ?? 100;
+    const normalizedMoment = query.moment ? normalizeMoment(query.moment) : undefined;
+
+    const where = {
+      period: query.periodCode ? { code: query.periodCode } : undefined,
+      moment: normalizedMoment,
+      OR: query.q
+        ? [
+            { nrc: { contains: query.q, mode: 'insensitive' as const } },
+            { subjectName: { contains: query.q, mode: 'insensitive' as const } },
+            { programName: { contains: query.q, mode: 'insensitive' as const } },
+            { programCode: { contains: query.q, mode: 'insensitive' as const } },
+            { teacher: { costCenter: { contains: query.q, mode: 'insensitive' as const } } },
+          ]
+        : undefined,
+    };
+
+    const items = await this.prisma.course.findMany({
+      where,
+      include: {
+        period: true,
+        teacher: true,
+        moodleCheck: true,
+      },
+      orderBy: [{ periodId: 'asc' }, { nrc: 'asc' }],
+    });
+
+    const mapped = items
+      .map((course) => {
+        const raw =
+          course.rawJson && typeof course.rawJson === 'object' ? (course.rawJson as Record<string, unknown>) : {};
+        const row =
+          raw.row && typeof raw.row === 'object'
+            ? (raw.row as Record<string, unknown>)
+            : ({} as Record<string, unknown>);
+        const bannerReview = readBannerReview(course.rawJson) ?? {};
+        const sourceTeacherId = String(row.id_docente ?? row.docente_id ?? row.id ?? '').trim();
+        const sourceDocumentId = String(
+          row.identificacion ?? row.cedula ?? row.identificacion_docente ?? row.cedula_docente ?? '',
+        ).trim();
+        const sourceTeacherName = String(
+          row.docente ?? row.nombre_docente ?? row.profesor ?? row.nombre_profesor ?? '',
+        ).trim();
+        const bannerTeacherId = String(bannerReview.teacherId ?? '').trim();
+        const bannerTeacherName = String(bannerReview.teacherName ?? '').trim();
+        const bannerStatus = readBannerReviewStatus(course.rawJson);
+        const bannerResolved = bannerStatus === 'ENCONTRADO' && !!course.teacherId;
+        const missingInSystemTeacher = !course.teacherId;
+        const missingInRpacaTeacherId = !sourceTeacherId && !sourceDocumentId;
+        const missingInRpacaTeacherName = !sourceTeacherName;
+        const missingReasons = [
+          ...(missingInRpacaTeacherId ? ['RPACA sin ID_DOCENTE/CEDULA'] : []),
+          ...(missingInRpacaTeacherName ? ['RPACA sin NOMBRE_DOCENTE'] : []),
+          ...(missingInSystemTeacher ? ['Sin docente asignado en sistema'] : []),
+        ];
+
+        const resolvedProgram = resolveProgramValue({
+          teacherCostCenter: course.teacher?.costCenter ?? null,
+          teacherLinked: !!course.teacherId,
+          courseProgramCode: course.programCode,
+          courseProgramName: course.programName,
+        });
+
+        const preferredTeacherName = bannerTeacherName || sourceTeacherName || course.teacher?.fullName || null;
+        const preferredTeacherId = bannerTeacherId || sourceTeacherId || sourceDocumentId || course.teacherId || null;
+        const preferredSource =
+          bannerTeacherId || bannerTeacherName ? 'BANNER' : sourceTeacherId || sourceTeacherName ? 'RPACA' : course.teacherId ? 'SISTEMA' : null;
+
+        return {
+          id: course.id,
+          nrc: course.nrc,
+          periodCode: course.period.code,
+          programCode: resolvedProgram.programCode,
+          programName: resolvedProgram.programName,
+          subjectName: course.subjectName,
+          moment: course.moment,
+          moodleStatus: course.moodleCheck?.status ?? null,
+          detectedTemplate: course.moodleCheck?.detectedTemplate ?? course.templateDeclared ?? null,
+          currentTeacherId: course.teacherId,
+          currentTeacherName: course.teacher?.fullName ?? null,
+          sourceTeacherId: sourceTeacherId || null,
+          sourceDocumentId: sourceDocumentId || null,
+          sourceTeacherName: sourceTeacherName || null,
+          bannerStatus,
+          bannerTeacherId: bannerTeacherId || null,
+          bannerTeacherName: bannerTeacherName || null,
+          preferredTeacherId,
+          preferredTeacherName,
+          preferredSource,
+          bannerResolved,
+          missingInSystemTeacher,
+          missingInRpacaTeacherId,
+          missingInRpacaTeacherName,
+          missingReasons,
+        };
+      })
+      .filter(
+        (item) =>
+          !item.bannerResolved &&
+          (item.missingInSystemTeacher || item.missingInRpacaTeacherId || item.missingInRpacaTeacherName),
+      );
+
+    const total = mapped.length;
+    const paged = mapped.slice(offset, offset + limit);
+
+    return {
+      ok: true,
+      total,
+      limit,
+      offset,
+      items: paged,
+    };
+  }
+
+  async assignTeacher(courseId: string, payload: unknown) {
+    const body = parseWithSchema(AssignTeacherSchema, payload, 'assign teacher payload');
+    const normalizedTeacherId = normalizeTeacherId(body.teacherId);
+    if (!normalizedTeacherId) {
+      throw new BadRequestException('El ID docente no es valido.');
+    }
+
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+      include: { period: true },
+    });
+    if (!course) {
+      throw new NotFoundException('Curso no encontrado.');
+    }
+
+    const existingTeacher =
+      (await this.prisma.teacher.findUnique({ where: { id: normalizedTeacherId } })) ??
+      (await this.prisma.teacher.findFirst({
+        where: {
+          OR: [{ sourceId: normalizedTeacherId }, { documentId: normalizedTeacherId }],
+        },
+      }));
+
+    const sourceRaw =
+      course.rawJson && typeof course.rawJson === 'object' ? (course.rawJson as Record<string, unknown>) : {};
+    const sourceRow =
+      sourceRaw.row && typeof sourceRaw.row === 'object'
+        ? (sourceRaw.row as Record<string, unknown>)
+        : ({} as Record<string, unknown>);
+    const fallbackName = String(
+      sourceRow.docente ??
+        sourceRow.nombre_docente ??
+        sourceRow.profesor ??
+        sourceRow.nombre_profesor ??
+        'Docente no identificado',
+    ).trim();
+    const fallbackEmail = String(
+      sourceRow.email_docente ?? sourceRow.correo_docente ?? sourceRow.email ?? sourceRow.correo ?? '',
+    ).trim();
+
+    const teacherIdToUse = existingTeacher?.id ?? normalizedTeacherId;
+
+    const upsertedTeacher = await this.prisma.teacher.upsert({
+      where: { id: teacherIdToUse },
+      create: {
+        id: teacherIdToUse,
+        sourceId: existingTeacher?.sourceId ?? normalizedTeacherId,
+        documentId: existingTeacher?.documentId ?? null,
+        fullName: body.fullName || existingTeacher?.fullName || fallbackName || 'Docente no identificado',
+        email: body.email || existingTeacher?.email || fallbackEmail || null,
+        campus: existingTeacher?.campus ?? null,
+        region: existingTeacher?.region ?? null,
+        costCenter: existingTeacher?.costCenter ?? null,
+        coordination: existingTeacher?.coordination ?? null,
+      },
+      update: {
+        fullName: body.fullName || existingTeacher?.fullName || fallbackName,
+        email: body.email || existingTeacher?.email || fallbackEmail || undefined,
+        sourceId: existingTeacher?.sourceId || normalizedTeacherId,
+      },
+    });
+
+    const raw =
+      course.rawJson && typeof course.rawJson === 'object'
+        ? ({ ...(course.rawJson as Record<string, unknown>) } as Record<string, unknown>)
+        : {};
+    const row =
+      raw.row && typeof raw.row === 'object'
+        ? ({ ...(raw.row as Record<string, unknown>) } as Record<string, unknown>)
+        : {};
+
+    // Persistimos correcciones manuales en el snapshot de origen para que el NRC deje de salir como faltante.
+    if (!String(row.id_docente ?? row.docente_id ?? row.id ?? '').trim()) {
+      row.id_docente = teacherIdToUse;
+    }
+    if (!String(row.docente ?? row.nombre_docente ?? row.profesor ?? row.nombre_profesor ?? '').trim()) {
+      row.docente = upsertedTeacher.fullName;
+    }
+    if (!String(row.email_docente ?? row.correo_docente ?? row.email ?? row.correo ?? '').trim()) {
+      row.email_docente = upsertedTeacher.email ?? '';
+    }
+    raw.row = row;
+
+    const updatedCourse = await this.prisma.course.update({
+      where: { id: course.id },
+      data: {
+        teacherId: teacherIdToUse,
+        programCode: resolveProgramValue({
+          teacherCostCenter: upsertedTeacher.costCenter,
+          teacherLinked: true,
+          courseProgramCode: course.programCode,
+          courseProgramName: course.programName,
+        }).programCode,
+        programName: resolveProgramValue({
+          teacherCostCenter: upsertedTeacher.costCenter,
+          teacherLinked: true,
+          courseProgramCode: course.programCode,
+          courseProgramName: course.programName,
+        }).programName,
+        rawJson: raw as unknown as Prisma.InputJsonValue,
+      },
+      include: {
+        period: true,
+        teacher: true,
+        moodleCheck: true,
+      },
+    });
+
+    return {
+      ok: true,
+      course: {
+        ...updatedCourse,
+        ...resolveProgramValue({
+          teacherCostCenter: upsertedTeacher.costCenter,
+          teacherLinked: true,
+          courseProgramCode: updatedCourse.programCode,
+          courseProgramName: updatedCourse.programName,
+        }),
+      },
+    };
+  }
+
+  async deactivate(courseId: string, payload: unknown) {
+    const body = parseWithSchema(DeactivateCourseSchema, payload, 'deactivate course payload');
+    const reason = body.reason?.trim() || 'NRC desactivado manualmente: docente ya no dicta este curso.';
+
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+      include: {
+        teacher: true,
+      },
+    });
+    if (!course) {
+      throw new NotFoundException('Curso no encontrado.');
+    }
+
+    const selectedGroups = await this.prisma.sampleGroup.findMany({
+      where: { selectedCourseId: course.id },
+      orderBy: [{ createdAt: 'asc' }],
+    });
+
+    const candidateCache = new Map<
+      string,
+      Array<{
+        id: string;
+        nrc: string;
+        programCode: string | null;
+        programName: string | null;
+        teacherId: string | null;
+        teacher: { costCenter: string | null } | null;
+        templateDeclared: string | null;
+        rawJson: unknown;
+        moodleCheck: { status: string; detectedTemplate: string | null; errorCode: string | null } | null;
+        evaluations: Array<{ replicatedFromCourseId: string | null }>;
+      }>
+    >();
+
+    const replacementByGroupId = new Map<string, string | null>();
+    for (const group of selectedGroups) {
+      const key = `${group.teacherId}|${group.periodId}|${group.moment}`;
+      let candidates = candidateCache.get(key);
+      if (!candidates) {
+        const rows = await this.prisma.course.findMany({
+          where: {
+            teacherId: group.teacherId,
+            periodId: group.periodId,
+            moment: group.moment,
+            id: { not: course.id },
+          },
+          include: {
+            teacher: { select: { costCenter: true } },
+            moodleCheck: {
+              select: {
+                status: true,
+                detectedTemplate: true,
+                errorCode: true,
+              },
+            },
+            evaluations: {
+              select: {
+                replicatedFromCourseId: true,
+              },
+            },
+          },
+          orderBy: [{ nrc: 'asc' }],
+        });
+        candidates = rows;
+        candidateCache.set(key, candidates);
+      }
+
+      const replacementId = this.pickBestReplacement({
+        group: {
+          id: group.id,
+          teacherId: group.teacherId,
+          periodId: group.periodId,
+          programCode: group.programCode,
+          template: group.template,
+        },
+        removedCourseId: course.id,
+        candidates,
+      });
+      replacementByGroupId.set(group.id, replacementId);
+    }
+
+    const uniqueReplacementIds = Array.from(
+      new Set(Array.from(replacementByGroupId.values()).filter((value): value is string => Boolean(value))),
+    );
+    const replicatedFromReplacementId = uniqueReplacementIds.length === 1 ? uniqueReplacementIds[0] : null;
+
+    const updated = await this.prisma.$transaction(async (tx) => {
+      const moodleCheck = await tx.moodleCheck.upsert({
+        where: { courseId: course.id },
+        create: {
+          courseId: course.id,
+          status: 'DESCARTADO_NO_EXISTE',
+          errorCode: 'NO_EXISTE',
+          notes: `[EXCLUIDO_MANUAL] ${reason}`,
+        },
+        update: {
+          status: 'DESCARTADO_NO_EXISTE',
+          errorCode: 'NO_EXISTE',
+          notes: `[EXCLUIDO_MANUAL] ${reason}`,
+        },
+      });
+
+      const updatedCourse = await tx.course.update({
+        where: { id: course.id },
+        data: {
+          rawJson: this.withManualExclusion(course.rawJson, reason),
+        },
+      });
+
+      let groupsReassigned = 0;
+      let groupsWithoutReplacement = 0;
+      for (const group of selectedGroups) {
+        const replacementId = replacementByGroupId.get(group.id) ?? null;
+        await tx.sampleGroup.update({
+          where: { id: group.id },
+          data: {
+            selectedCourseId: replacementId,
+          },
+        });
+        if (replacementId) groupsReassigned += 1;
+        else groupsWithoutReplacement += 1;
+      }
+
+      const replicatedUpdate = await tx.evaluation.updateMany({
+        where: {
+          replicatedFromCourseId: course.id,
+        },
+        data: {
+          replicatedFromCourseId: replicatedFromReplacementId,
+          computedAt: new Date(),
+        },
+      });
+
+      await tx.auditLog.create({
+        data: {
+          actor: 'SYSTEM',
+          action: 'COURSE_MANUAL_DEACTIVATE',
+          entityType: 'COURSE',
+          entityId: course.id,
+          details: {
+            courseId: course.id,
+            nrc: course.nrc,
+            periodId: course.periodId,
+            moment: course.moment,
+            teacherId: course.teacherId,
+            teacherName: course.teacher?.fullName ?? null,
+            reason,
+            groupsMatched: selectedGroups.length,
+            groupsReassigned,
+            groupsWithoutReplacement,
+            replicatedFromReplacementId,
+            replacementCourseIds: uniqueReplacementIds,
+            replicatedEvaluationsUpdated: replicatedUpdate.count,
+          },
+        },
+      });
+
+      return {
+        updatedCourse,
+        moodleCheck,
+        groupsMatched: selectedGroups.length,
+        groupsReassigned,
+        groupsWithoutReplacement,
+        replicatedEvaluationsUpdated: replicatedUpdate.count,
+      };
+    });
+
+    const replacementCourses = uniqueReplacementIds.length
+      ? await this.prisma.course.findMany({
+          where: { id: { in: uniqueReplacementIds } },
+          select: { id: true, nrc: true },
+          orderBy: [{ nrc: 'asc' }],
+        })
+      : [];
+
+    return {
+      ok: true,
+      deactivated: {
+        courseId: updated.updatedCourse.id,
+        nrc: course.nrc,
+        reason,
+      },
+      reassignment: {
+        groupsMatched: updated.groupsMatched,
+        groupsReassigned: updated.groupsReassigned,
+        groupsWithoutReplacement: updated.groupsWithoutReplacement,
+        replacementCourses,
+      },
+      replication: {
+        replicatedEvaluationsUpdated: updated.replicatedEvaluationsUpdated,
+        replicatedFromReplacementId,
+      },
+    };
+  }
+
+  async setChecklistTemporal(courseId: string, payload: unknown) {
+    const body = parseWithSchema(ChecklistTemporalSchema, payload, 'checklist temporal payload');
+    const course = await this.prisma.course.findUnique({
+      where: { id: courseId },
+      select: { id: true, nrc: true, rawJson: true, period: { select: { code: true } }, moment: true },
+    });
+    if (!course) {
+      throw new NotFoundException('Curso no encontrado.');
+    }
+
+    const root = this.asRecord(course.rawJson);
+    if (body.active) {
+      root.specialChecklistQueue = {
+        active: true,
+        reason:
+          body.reason?.trim() ||
+          'NRC agregado temporalmente para recalificacion (rezagado/caso especial).',
+        at: new Date().toISOString(),
+      };
+    } else {
+      delete root.specialChecklistQueue;
+    }
+
+    await this.prisma.course.update({
+      where: { id: course.id },
+      data: {
+        rawJson: root as unknown as Prisma.InputJsonValue,
+      },
+    });
+
+    await this.prisma.auditLog.create({
+      data: {
+        actor: 'SYSTEM',
+        action: body.active ? 'COURSE_CHECKLIST_TEMPORAL_ADD' : 'COURSE_CHECKLIST_TEMPORAL_REMOVE',
+        entityType: 'COURSE',
+        entityId: course.id,
+        details: {
+          courseId: course.id,
+          nrc: course.nrc,
+          periodCode: course.period.code,
+          moment: course.moment,
+          active: body.active,
+          reason: body.reason?.trim() || null,
+        },
+      },
+    });
+
+    return {
+      ok: true,
+      courseId: course.id,
+      nrc: course.nrc,
+      checklistTemporal: this.readChecklistTemporal(root),
+    };
+  }
+}

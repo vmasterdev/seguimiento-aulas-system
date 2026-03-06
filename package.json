@@ -1,0 +1,24 @@
+{
+  "name": "seguimiento-aulas-system",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "turbo build",
+    "lint": "turbo lint",
+    "test": "turbo test",
+    "db:generate": "pnpm -C apps/api prisma:generate",
+    "db:migrate": "pnpm -C apps/api prisma:migrate",
+    "db:seed": "pnpm -C apps/api prisma:seed",
+    "sidecar:classify": "python3 tools/moodle-sidecar/sidecar_runner.py classify",
+    "sidecar:revalidate": "python3 tools/moodle-sidecar/sidecar_runner.py revalidate --mode ambos",
+    "sidecar:backup": "python3 tools/moodle-sidecar/sidecar_runner.py backup",
+    "sidecar:gui": "python3 tools/moodle-sidecar/sidecar_runner.py gui",
+    "sidecar:adapter": "pnpm -C apps/api run sidecar:adapter",
+    "sidecar:adapter:dry": "pnpm -C apps/api run sidecar:adapter:dry"
+  },
+  "devDependencies": {
+    "turbo": "^2.1.2",
+    "typescript": "^5.6.2"
+  }
+}

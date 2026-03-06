@@ -1,0 +1,199 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+model Period {
+  id              String   @id @default(cuid())
+  code            String   @unique
+  label           String
+  semester        Int
+  modality        String
+  executionPolicy String   @default("APPLIES") // APPLIES | AUTO_PASS
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  courses         Course[]
+  sampleGroups    SampleGroup[]
+  outbox          OutboxMessage[]
+}
+
+model Teacher {
+  id         String   @id
+  sourceId   String?
+  documentId String?
+  fullName   String
+  email      String?
+  costCenter String?
+  coordination String?
+  campus     String?
+  region     String?
+  extraJson  Json?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  courses     Course[]
+  sampleGroups SampleGroup[]
+  outbox      OutboxMessage[]
+
+  @@index([sourceId])
+  @@index([documentId])
+  @@index([coordination])
+}
+
+model Coordinator {
+  id         String   @id @default(cuid())
+  programId  String
+  programKey String
+  fullName   String
+  email      String
+  campus     String?
+  region     String?
+  sourceSheet String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  outbox     OutboxMessage[]
+
+  @@unique([programKey, email])
+  @@index([programId])
+  @@index([programKey])
+}
+
+model Course {
+  id              String   @id @default(cuid())
+  nrc             String
+  periodId        String
+  period          Period   @relation(fields: [periodId], references: [id])
+  campusCode      String?
+  programCode     String?
+  programName     String?
+  subjectName     String?
+  moment          String?
+  salon           String?
+  salon1          String?
+  teacherId       String?
+  teacher         Teacher? @relation(fields: [teacherId], references: [id])
+  templateDeclared String?
+  d4FlagLegacy    Boolean  @default(false)
+  rawJson         Json?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  moodleCheck     MoodleCheck?
+  evaluations     Evaluation[]
+  selectedInGroups SampleGroup[] @relation("SelectedCourse")
+
+  @@unique([nrc, periodId])
+  @@index([periodId, nrc])
+  @@index([teacherId])
+}
+
+model MoodleCheck {
+  id        String   @id @default(cuid())
+  courseId  String   @unique
+  course    Course   @relation(fields: [courseId], references: [id])
+
+  status    String   @default("PENDIENTE")
+  detectedTemplate String?
+  errorCode String?
+  moodleCourseUrl String?
+  moodleCourseId String?
+  resolvedModality String?
+  resolvedBaseUrl String?
+  searchQuery String?
+  resolvedAt DateTime?
+  attempts  Int      @default(0)
+  lastAttemptAt DateTime?
+  evidenceScreenshotPath String?
+  evidenceHtmlPath String?
+  notes     String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model SampleGroup {
+  id        String   @id @default(cuid())
+  teacherId String
+  teacher   Teacher  @relation(fields: [teacherId], references: [id])
+  periodId  String
+  period    Period   @relation(fields: [periodId], references: [id])
+
+  programCode String
+  moment      String
+  modality    String
+  template    String
+
+  selectedCourseId String?
+  selectedCourse   Course? @relation("SelectedCourse", fields: [selectedCourseId], references: [id])
+
+  selectionSeed String
+  createdAt DateTime @default(now())
+
+  @@unique([teacherId, periodId, programCode, moment, modality, template])
+  @@index([periodId, moment])
+}
+
+model Evaluation {
+  id        String   @id @default(cuid())
+  courseId  String
+  course    Course   @relation(fields: [courseId], references: [id])
+
+  phase     String
+  checklist Json?
+  score     Float
+  observations String?
+  computedAt DateTime @default(now())
+  replicatedFromCourseId String?
+
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  @@unique([courseId, phase])
+  @@index([phase, computedAt])
+}
+
+model OutboxMessage {
+  id         String   @id @default(cuid())
+  audience   String
+  teacherId  String?
+  teacher    Teacher? @relation(fields: [teacherId], references: [id])
+  coordinatorId String?
+  coordinator Coordinator? @relation(fields: [coordinatorId], references: [id])
+
+  programCode String?
+  periodId    String
+  period      Period @relation(fields: [periodId], references: [id])
+
+  phase      String
+  moment     String
+  subject    String
+  recipientName String?
+  recipientEmail String?
+  htmlBody   String
+  emlPath    String?
+  status     String   @default("DRAFT")
+
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  @@index([periodId, phase, moment, status])
+  @@index([teacherId, status])
+  @@index([coordinatorId, status])
+  @@index([audience, recipientEmail])
+}
+
+model AuditLog {
+  id         String   @id @default(cuid())
+  actor      String
+  action     String
+  entityType String
+  entityId   String
+  details    Json?
+  createdAt  DateTime @default(now())
+}

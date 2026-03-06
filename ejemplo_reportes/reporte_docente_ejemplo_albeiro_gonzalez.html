@@ -1,0 +1,368 @@
+<!DOCTYPE html>
+<html lang="es">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>Reporte Docente - GONZALEZ VARGAS ALBEIRO</title>
+  <style>
+    body {
+      margin: 0;
+      background: linear-gradient(180deg, #edf3fb 0%, #f6f8fc 100%);
+      font-family: Segoe UI, Arial, sans-serif;
+      color: #1f2937;
+    }
+    .shell {
+      max-width: 780px;
+      margin: 28px auto;
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #d4d7dd;
+      box-shadow: 0 10px 28px rgba(4, 30, 66, 0.14);
+      overflow: hidden;
+    }
+    .top-strip {
+      height: 10px;
+      background: linear-gradient(90deg, #ffc300 0%, #ffd95c 100%);
+    }
+    .hero {
+      background: linear-gradient(120deg, #002b5c 0%, #0057a4 100%);
+      color: #ffffff;
+      padding: 20px 26px;
+      border-bottom: 1px solid #00244a;
+    }
+    .hero-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+    .hero-highlight {
+      color: #ffd000;
+    }
+    .hero-subtitle {
+      margin-top: 6px;
+      color: #dde9ff;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .body-wrap {
+      padding: 22px 26px;
+      font-size: 14px;
+      line-height: 1.65;
+    }
+    .intro-note {
+      margin: 0 0 12px 0;
+      font-size: 12px;
+      color: #46556a;
+      line-height: 1.55;
+      background: #f8fbff;
+      border: 1px solid #d4d7dd;
+      border-left: 4px solid #0057a4;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .panel {
+      margin: 12px 0 16px 0;
+      padding: 14px 16px;
+      background: #f8fafc;
+      border: 1px solid #d4d7dd;
+      border-radius: 14px;
+    }
+    .panel-warm {
+      background: #fffbef;
+      border-color: #f0df9e;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0057a4;
+      margin: 0 0 8px 0;
+      letter-spacing: 0.2px;
+    }
+    .kpi-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 8px 0 10px 0;
+    }
+    .kpi {
+      flex: 1 1 150px;
+      background: #ffffff;
+      border: 1px solid #d4d7dd;
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+    }
+    .kpi-success {
+      background: #dcfce7;
+      border-color: #cce8d6;
+    }
+    .kpi-info {
+      background: #dbeafe;
+      border-color: #c3d9fb;
+    }
+    .kpi-warning {
+      background: #ffedd5;
+      border-color: #f3c9a0;
+    }
+    .kpi-danger {
+      background: #fee2e2;
+      border-color: #f2c7cf;
+    }
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.35px;
+      color: #5c6c82;
+      margin-bottom: 2px;
+    }
+    .kpi-value {
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 800;
+      color: #002b5c;
+    }
+    .kpi-meta {
+      font-size: 11px;
+      color: #5c6c82;
+    }
+    .table-container {
+      border: 1px solid #d4d7dd;
+      border-radius: 12px;
+      overflow-x: auto;
+      background: #ffffff;
+    }
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 12px;
+    }
+    .report-table th {
+      background: #0057a4;
+      color: #ffffff;
+      padding: 10px 8px;
+      text-align: left;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .report-table td {
+      padding: 10px 8px;
+      border-top: 1px solid #e4e9f1;
+      vertical-align: top;
+      line-height: 1.45;
+      color: #1f2937;
+    }
+    .report-table tbody tr:nth-child(even) {
+      background: #f8fbff;
+    }
+    .obs-list {
+      margin: 8px 0 0 0;
+      padding-left: 18px;
+      color: #25364d;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .obs-list li {
+      margin-bottom: 6px;
+    }
+    .contact-box {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #2e3c50;
+    }
+    .cta-wrap {
+      text-align: center;
+      margin-top: 14px;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: #ffd000;
+      color: #002b5c;
+      text-decoration: none;
+      padding: 14px 26px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 800;
+      border: 2px solid #ffc300;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+      margin: 0 6px 10px 6px;
+    }
+    .cta-btn.alt {
+      background: #ffffff;
+      color: #0057a4;
+      border-color: #0057a4;
+      box-shadow: none;
+    }
+    .report-footer {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #e4e9f1;
+      color: #556175;
+      font-size: 12px;
+      text-align: right;
+    }
+  </style>
+</head>
+<body>
+  <div class="shell">
+    <div class="top-strip"></div>
+
+    <div class="hero">
+      <h2 class="hero-title">Reporte de seguimiento - <span class="hero-highlight">Campus Virtual RCS</span></h2>
+      <div class="hero-subtitle">Periodo 202615 | Semestre 1 | Fase de Alistamiento</div>
+    </div>
+
+    <div class="body-wrap">
+      <div class="intro-note">
+        <em>Este informe corresponde al seguimiento de la Fase de Alistamiento para sus aulas del semestre 1. Aqui se relacionan los criterios faltantes por NRC y se felicita cuando el aula cumple al 100% (50/50).</em>
+      </div>
+
+      <p><strong>Cordial saludo, GONZALEZ VARGAS ALBEIRO,</strong></p>
+      <p>Desde Campus Virtual compartimos el consolidado de sus aulas revisadas para el periodo 202615. A continuacion encontrara el resumen de desempeno, el detalle por NRC con su tipo de aula y los criterios faltantes cuando aplique.</p>
+
+      <div class="panel panel-warm">
+        <div class="section-title" style="color:#7a5b00;">Comunicado Campus Virtual</div>
+        <p style="margin:0;">Aqui puede consultar como se califica, por que se califica y cuales son los criterios que sustentan este seguimiento.</p>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Resumen de desempeno de sus aulas</div>
+        <div class="kpi-grid">
+          <div class="kpi">
+            <div class="kpi-label">Aulas revisadas</div>
+            <div class="kpi-value">6</div>
+          </div>
+          <div class="kpi">
+            <div class="kpi-label">Promedio final</div>
+            <div class="kpi-value">45.5</div>
+            <div class="kpi-meta">(0-50)</div>
+          </div>
+          <div class="kpi kpi-success">
+            <div class="kpi-label">Excelente</div>
+            <div class="kpi-value">2</div>
+            <div class="kpi-meta">33.3%</div>
+          </div>
+          <div class="kpi kpi-info">
+            <div class="kpi-label">Bueno</div>
+            <div class="kpi-value">3</div>
+            <div class="kpi-meta">50.0%</div>
+          </div>
+          <div class="kpi kpi-warning">
+            <div class="kpi-label">Aceptable</div>
+            <div class="kpi-value">1</div>
+            <div class="kpi-meta">16.7%</div>
+          </div>
+          <div class="kpi kpi-danger">
+            <div class="kpi-label">Insatisfactorio</div>
+            <div class="kpi-value">0</div>
+            <div class="kpi-meta">0%</div>
+          </div>
+        </div>
+      </div>
+
+      <div class="panel">
+        <div class="section-title">Resumen final de aulas revisadas</div>
+        <div class="table-container">
+          <table class="report-table">
+            <thead>
+              <tr>
+                <th style="width:10%;">NRC</th>
+                <th style="width:20%;">Asignatura</th>
+                <th style="width:17%;">Programa</th>
+                <th style="width:12%;">Tipo de aula</th>
+                <th style="width:13%;">Puntaje</th>
+                <th style="width:10%;">Desempeno</th>
+                <th style="width:18%;">Observaciones</th>
+              </tr>
+            </thead>
+            <tbody>
+              <tr>
+                <td>15-72622</td>
+                <td>Gerencia Estrategica</td>
+                <td>Administracion / Distancia</td>
+                <td>CRIBA</td>
+                <td><strong>50/50</strong></td>
+                <td>Excelente</td>
+                <td>Felicitaciones, el aula cumple completamente con los criterios de alistamiento.</td>
+              </tr>
+              <tr>
+                <td>15-72958</td>
+                <td>Estructura de un Plan Negocios</td>
+                <td>Administracion / Distancia</td>
+                <td>VACIO</td>
+                <td><strong>No aplica</strong></td>
+                <td>Sin calificacion</td>
+                <td>El aula se encuentra vacia, por lo tanto no corresponde asignar calificacion de alistamiento.</td>
+              </tr>
+              <tr>
+                <td>15-73146</td>
+                <td>Presupuestos</td>
+                <td>Administracion / Distancia</td>
+                <td>INNOVAME</td>
+                <td><strong>44/50</strong></td>
+                <td>Bueno</td>
+                <td>Falta ajustar la visibilidad de fechas y completar la publicacion de orientaciones en el aula.</td>
+              </tr>
+              <tr>
+                <td>15-79748</td>
+                <td>Resiliencia Empresarial</td>
+                <td>Administracion / Distancia</td>
+                <td>D4</td>
+                <td><strong>50/50</strong></td>
+                <td>Bueno</td>
+                <td>Felicitaciones, el aula cumple completamente con los criterios de alistamiento.</td>
+              </tr>
+              <tr>
+                <td>15-79756</td>
+                <td>Costos y presupuesto</td>
+                <td>Administracion / Distancia</td>
+                <td>INNOVAME</td>
+                <td><strong>39/50</strong></td>
+                <td>Aceptable</td>
+                <td>Falta publicar la rubrica de la actividad integradora y completar la seccion de recursos de apoyo.</td>
+              </tr>
+              <tr>
+                <td>15-85216</td>
+                <td>Formulacion y Evaluacion de Proyectos</td>
+                <td>Administracion / Distancia</td>
+                <td>CRIBA</td>
+                <td><strong>43/50</strong></td>
+                <td>Excelente</td>
+                <td>Falta fortalecer la seccion de presentacion del curso y dejar mas visibles los criterios de evaluacion.</td>
+              </tr>
+            </tbody>
+          </table>
+        </div>
+      </div>
+
+      <div class="panel panel-warm">
+        <div class="section-title" style="color:#7a5b00;">Observaciones priorizadas para siguiente ciclo</div>
+        <ul class="obs-list">
+          <li><strong>15-79756:</strong> publicar la rubrica de la actividad integradora y completar recursos de apoyo.</li>
+          <li><strong>15-73146:</strong> ajustar fechas visibles y orientaciones del aula.</li>
+          <li><strong>15-85216:</strong> reforzar presentacion del curso y criterios de evaluacion.</li>
+        </ul>
+      </div>
+
+      <div class="contact-box">
+        <strong>Contacto:</strong><br>
+        Profesional de Campus Virtual: Jaime Duvan Lozano Ardila<br>
+        Correo: <a href="mailto:jaime.lozano.a@uniminuto.edu" style="color:#0057a4;text-decoration:underline;">jaime.lozano.a@uniminuto.edu</a><br>
+        Ubicacion: Biblioteca - Sede Principal Chicala
+      </div>
+
+      <div class="cta-wrap">
+        <a class="cta-btn alt" href="https://comunicado2026.netlify.app/" target="_blank" rel="noopener">Ver comunicado Campus Virtual</a>
+        <a class="cta-btn" href="https://outlook.office.com/book/CampusVirtual1@uniminuto.edu/s/y4TJLlHIjkmqPphvip1Piw2?ismsaljsauthenabled" target="_blank" rel="noopener">Agendar llamada / videollamada</a>
+      </div>
+
+      <div style="margin-top:16px;text-align:center;color:#334155;font-size:13px;">Campus Virtual - Rectoria Centro Sur</div>
+      <div class="report-footer">Generado el 2026-03-04 - Ejemplo funcional basado en datos reales de alistamiento semestre 1</div>
+    </div>
+  </div>
+</body>
+</html>
