@@ -46,9 +46,13 @@ export const EvaluationReplicateSchema = z.object({
 
 export const OutboxGenerateSchema = z.object({
   periodCode: z.string().trim().min(3),
+  periodCodes: z.array(z.string().trim().min(3)).min(1).max(24).optional(),
   phase: EvaluationPhaseSchema,
   moment: MomentSchema.optional(),
+  moments: z.array(MomentSchema).min(1).max(6).optional(),
   audience: z.enum(["DOCENTE", "COORDINADOR", "GLOBAL"]).default("DOCENTE"),
+  recipientName: z.string().trim().min(1).max(160).optional(),
+  recipientEmails: z.array(z.string().trim().email()).min(1).max(20).optional(),
 });
 
 export const OutboxExportSchema = z.object({
@@ -58,8 +62,10 @@ export const OutboxExportSchema = z.object({
 export const OutboxSendSchema = z.object({
   ids: z.array(z.string().trim().min(1)).optional(),
   periodCode: z.string().trim().min(3).optional(),
+  periodCodes: z.array(z.string().trim().min(3)).min(1).max(24).optional(),
   phase: EvaluationPhaseSchema.optional(),
   moment: MomentSchema.optional(),
+  moments: z.array(MomentSchema).min(1).max(6).optional(),
   audience: z.enum(["DOCENTE", "COORDINADOR", "GLOBAL"]).optional(),
   status: OutboxStatusSchema.optional(),
   limit: z.coerce.number().int().min(1).max(1000).optional(),

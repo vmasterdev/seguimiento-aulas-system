@@ -89,6 +89,31 @@ type OverrideFormState = {
   status: string;
 };
 
+type OutboxPreviewResponse = {
+  id: string;
+  subject: string;
+  htmlBody: string;
+  recipientName: string | null;
+  recipientEmail: string | null;
+  status: string;
+  phase: string;
+  moment: string;
+  audience: string;
+  periodCode: string;
+  periodLabel: string;
+  updatedAt: string;
+  courseId?: string;
+  nrc?: string;
+  teacherId?: string | null;
+  teacherName?: string | null;
+};
+
+type PendingPreviewSend = {
+  courseId: string;
+  phase: 'ALISTAMIENTO' | 'EJECUCION';
+  nrc: string;
+};
+
 function normalizeText(value: string): string {
   return value
     .normalize('NFD')
@@ -165,6 +190,21 @@ function csvEscape(value: unknown): string {
   return text;
 }
 
+async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
+  const response = await fetch(url, {
+    cache: 'no-store',
+    ...init,
+  });
+  const data = (await response.json()) as T & { message?: string | string[] };
+  if (!response.ok) {
+    const message = Array.isArray(data?.message)
+      ? data.message.join('; ')
+      : (data?.message ?? `HTTP ${response.status}`);
+    throw new Error(message);
+  }
+  return data as T;
+}
+
 export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
   const [items, setItems] = useState<CourseItem[]>([]);
   const [loading, setLoading] = useState(false);
@@ -183,6 +223,12 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
   const [overrideById, setOverrideById] = useState<Record<string, OverrideFormState>>({});
   const [deletingById, setDeletingById] = useState<Record<string, boolean>>({});
   const [taggingTemporalById, setTaggingTemporalById] = useState<Record<string, boolean>>({});
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewSending, setPreviewSending] = useState(false);
+  const [previewError, setPreviewError] = useState('');
+  const [previewData, setPreviewData] = useState<OutboxPreviewResponse | null>(null);
+  const [pendingPreviewSend, setPendingPreviewSend] = useState<PendingPreviewSend | null>(null);
 
   useEffect(() => {
     async function load() {
@@ -551,6 +597,101 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
     }));
   }
 
+  function formatMomentLabel(value: string | null | undefined) {
+    if (value === 'MD1') return 'M1';
+    if (value === 'MD2') return 'M2';
+    if (value === '1') return 'RYC';
+    return value ?? '-';
+  }
+
+  function closePreviewModal() {
+    setPreviewOpen(false);
+    setPreviewLoading(false);
+    setPreviewError('');
+    setPreviewData(null);
+    setPendingPreviewSend(null);
+  }
+
+  async function openPreviewForCourse(course: CourseItem, phase: 'ALISTAMIENTO' | 'EJECUCION') {
+    setPreviewOpen(true);
+    setPreviewLoading(true);
+    setPreviewError('');
+    setPreviewData(null);
+    setPendingPreviewSend({
+      courseId: course.id,
+      phase,
+      nrc: course.nrc,
+    });
+
+    try {
+      const preview = await fetchJson<OutboxPreviewResponse>(`${apiBase}/outbox/preview-by-course`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: course.id,
+          phase,
+        }),
+      });
+      setPreviewData(preview);
+    } catch (error) {
+      setPreviewError(error instanceof Error ? error.message : String(error));
+      throw error;
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
+  async function confirmPreviewSend() {
+    if (!pendingPreviewSend) return;
+
+    try {
+      setPreviewSending(true);
+      setPreviewError('');
+      const resendData = await fetchJson<{
+        ok?: boolean;
+        sendResult?: {
+          sentCount?: number;
+          failedCount?: number;
+          failed?: Array<{ error?: string }>;
+        };
+      }>(`${apiBase}/outbox/resend-by-course`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          courseId: pendingPreviewSend.courseId,
+          phase: pendingPreviewSend.phase,
+        }),
+      });
+
+      const sentCount = resendData.sendResult?.sentCount ?? 0;
+      const failedCount = resendData.sendResult?.failedCount ?? 0;
+      const statusMessage =
+        sentCount > 0 && failedCount === 0
+          ? 'Reporte reenviado al docente.'
+          : sentCount > 0 && failedCount > 0
+            ? `Reenvio parcial (${sentCount} enviado(s), ${failedCount} fallido(s)).`
+            : failedCount > 0
+              ? `El reenvio fallo: ${resendData.sendResult?.failed?.[0]?.error ?? 'Sin detalle.'}`
+              : 'Reporte regenerado.';
+
+      updateOverrideState(pendingPreviewSend.courseId, (current) => ({
+        ...current,
+        status: `${current.status ? `${current.status} ` : ''}${statusMessage}`.trim(),
+      }));
+
+      closePreviewModal();
+    } catch (error) {
+      const message = error instanceof Error ? error.message : String(error);
+      setPreviewError(message);
+      updateOverrideState(pendingPreviewSend.courseId, (current) => ({
+        ...current,
+        status: `${current.status ? `${current.status} ` : ''}No fue posible reenviar: ${message}`.trim(),
+      }));
+    } finally {
+      setPreviewSending(false);
+    }
+  }
+
   async function saveManualOverride(
     course: CourseItem,
     options: { replicateToGroup: boolean; resendReport: boolean },
@@ -605,44 +746,10 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
 
       if (resendReport) {
         try {
-          const resendResponse = await fetch(`${apiBase}/outbox/resend-by-course`, {
-            method: 'POST',
-            headers: { 'Content-Type': 'application/json' },
-            body: JSON.stringify({
-              courseId: course.id,
-              phase: state.phase,
-            }),
-          });
-          const resendData = (await resendResponse.json()) as {
-            ok?: boolean;
-            message?: string | string[];
-            sendResult?: {
-              sentCount?: number;
-              failedCount?: number;
-              failed?: Array<{ error?: string }>;
-            };
-          };
-          if (!resendResponse.ok) {
-            const text = Array.isArray(resendData?.message)
-              ? resendData.message.join('; ')
-              : (resendData?.message ?? `HTTP ${resendResponse.status}`);
-            throw new Error(text);
-          }
-
-          const sentCount = resendData.sendResult?.sentCount ?? 0;
-          const failedCount = resendData.sendResult?.failedCount ?? 0;
-          if (sentCount > 0 && failedCount === 0) {
-            statusMessage += ' Reporte reenviado al docente.';
-          } else if (sentCount > 0 && failedCount > 0) {
-            statusMessage += ` Reenvio parcial (${sentCount} enviado(s), ${failedCount} fallido(s)).`;
-          } else if (failedCount > 0) {
-            const failure = resendData.sendResult?.failed?.[0]?.error ?? 'Sin detalle.';
-            statusMessage += ` Ajuste guardado, pero el reenvio fallo: ${failure}`;
-          } else {
-            statusMessage += ' Reporte regenerado.';
-          }
-        } catch (resendError) {
-          statusMessage += ` Ajuste guardado, pero no fue posible reenviar: ${resendError instanceof Error ? resendError.message : String(resendError)}`;
+          await openPreviewForCourse(course, state.phase);
+          statusMessage += ' Preview listo. Revisa el correo y confirma el envio.';
+        } catch (previewError) {
+          statusMessage += ` Ajuste guardado, pero no fue posible generar preview: ${previewError instanceof Error ? previewError.message : String(previewError)}`;
         }
       }
 
@@ -1053,12 +1160,12 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                                   title={
                                     item.teacherId
                                       ? detail.selectedForChecklist
-                                        ? 'Guarda, replica y reenvia el reporte del docente'
-                                        : 'Guarda y reenvia el reporte del docente'
+                                        ? 'Guarda, replica, abre preview y luego confirma el reenvio del reporte'
+                                        : 'Guarda, abre preview y luego confirma el reenvio del reporte'
                                       : 'No disponible para NRC sin docente vinculado'
                                   }
                                 >
-                                  {override?.saving ? 'Guardando...' : 'Guardar + reenviar reporte'}
+                                  {override?.saving ? 'Guardando...' : 'Guardar + preview + reenviar'}
                                 </button>
                                 <button
                                   type="button"
@@ -1109,6 +1216,89 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
           </tbody>
         </table>
       </div>
+
+      {previewOpen ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            zIndex: 1000,
+          }}
+        >
+          <div
+            className="panel"
+            style={{
+              width: 'min(1180px, 96vw)',
+              maxHeight: '92vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              margin: 0,
+              background: '#fff',
+            }}
+          >
+            <div className="controls" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
+              <div>
+                <strong>Preview antes de reenviar</strong>
+                {previewData ? ` | ${previewData.subject}` : ''}
+              </div>
+              <button type="button" onClick={closePreviewModal} disabled={previewSending}>
+                Cerrar
+              </button>
+            </div>
+
+            <div className="actions" style={{ marginBottom: 8 }}>
+              El correo no se envia hasta que confirmes con <strong>Enviar correo real</strong>.
+            </div>
+
+            {previewLoading ? <div className="message">Generando preview...</div> : null}
+            {previewError ? <div className="message">No fue posible cargar el preview: {previewError}</div> : null}
+
+            {previewData ? (
+              <>
+                <div className="outbox-mail-kv-grid" style={{ marginBottom: 10 }}>
+                  <div><strong>Docente:</strong> {previewData.recipientName ?? previewData.teacherName ?? 'Sin nombre'}</div>
+                  <div><strong>Correo:</strong> {previewData.recipientEmail ?? 'sin-correo@invalid.local'}</div>
+                  <div><strong>NRC origen:</strong> {previewData.nrc ?? pendingPreviewSend?.nrc ?? '-'}</div>
+                  <div><strong>Periodo:</strong> {previewData.periodCode}</div>
+                  <div><strong>Fase:</strong> {previewData.phase}</div>
+                  <div><strong>Momento:</strong> {formatMomentLabel(previewData.moment)} ({previewData.moment})</div>
+                </div>
+                <iframe
+                  title={`preview-course-${previewData.id}`}
+                  srcDoc={previewData.htmlBody}
+                  style={{
+                    width: '100%',
+                    minHeight: '68vh',
+                    border: '1px solid #d4d7dd',
+                    borderRadius: 12,
+                    background: '#fff',
+                  }}
+                  sandbox="allow-popups allow-same-origin"
+                />
+                <div className="controls" style={{ marginTop: 10, justifyContent: 'flex-end' }}>
+                  <button type="button" onClick={closePreviewModal} disabled={previewSending}>
+                    Cancelar
+                  </button>
+                  <button
+                    type="button"
+                    className="btn-next-action"
+                    onClick={() => void confirmPreviewSend()}
+                    disabled={previewSending || previewLoading}
+                  >
+                    {previewSending ? 'Enviando...' : 'Enviar correo real'}
+                  </button>
+                </div>
+              </>
+            ) : null}
+          </div>
+        </div>
+      ) : null}
     </article>
   );
 }

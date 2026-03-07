@@ -2,7 +2,7 @@ export const dynamic = 'force-dynamic';
 
 import { ReviewPanel } from '../review-panel';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
+const API_BASE = '/api/backend';
 const MOODLE_URL_TEMPLATE = process.env.NEXT_PUBLIC_MOODLE_URL_TEMPLATE ?? '';
 
 type Props = {

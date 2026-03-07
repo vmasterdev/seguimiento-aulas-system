@@ -3,7 +3,7 @@ export const dynamic = 'force-dynamic';
 import { TeachersManagementPanel } from '../teachers-management-panel';
 import { MainMenu } from '../main-menu';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
+const API_BASE = '/api/backend';
 
 export default function TeachersPage() {
   return (

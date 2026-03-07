@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Post, Query } from '@nestjs/common';
 import { OutboxService } from './outbox.service';
 
 @Controller('/outbox')
@@ -28,6 +28,21 @@ export class OutboxController {
   @Post('/resend-by-course')
   async resendByCourse(@Body() body: unknown) {
     return this.outboxService.resendByCourse(body);
+  }
+
+  @Post('/preview-by-course')
+  async previewByCourse(@Body() body: unknown) {
+    return this.outboxService.previewByCourse(body);
+  }
+
+  @Get('/options')
+  async options(@Query('yearPrefix') yearPrefix?: string) {
+    return this.outboxService.options(yearPrefix);
+  }
+
+  @Get('/:id/preview')
+  async preview(@Param('id') id: string) {
+    return this.outboxService.preview(id);
   }
 
   @Get()

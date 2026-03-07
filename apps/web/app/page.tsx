@@ -27,6 +27,7 @@ type CourseItem = {
 };
 
 const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
+const CLIENT_API_BASE = '/api/backend';
 const MOODLE_URL_TEMPLATE = process.env.NEXT_PUBLIC_MOODLE_URL_TEMPLATE ?? '';
 
 async function fetchJson<T>(resource: string): Promise<T | null> {
@@ -168,7 +169,7 @@ export default async function Page() {
       </section>
 
       <section className="section">
-        <SidecarIntegrationPanel apiBase={API_BASE} />
+        <SidecarIntegrationPanel apiBase={CLIENT_API_BASE} />
 
         <article className="panel">
           <h2>Integracion Sidecar (flujo)</h2>
@@ -228,7 +229,7 @@ export default async function Page() {
           </table>
         </article>
 
-        <OutboxEmailPanel apiBase={API_BASE} />
+        <OutboxEmailPanel apiBase={CLIENT_API_BASE} />
       </section>
     </main>
   );

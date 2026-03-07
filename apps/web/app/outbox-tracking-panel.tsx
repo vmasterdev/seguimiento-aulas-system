@@ -11,7 +11,7 @@ type TrackingItem = {
   periodCode: string;
   periodLabel: string;
   phase: 'ALISTAMIENTO' | 'EJECUCION';
-  moment: 'MD1' | 'MD2' | '1' | 'INTER' | 'RM1' | 'RM2';
+  moment: string;
   audience: 'DOCENTE' | 'COORDINADOR' | 'GLOBAL';
   status: string;
   subject: string;
@@ -20,7 +20,7 @@ type TrackingItem = {
   teacherId: string | null;
   attempts: number;
   lastAttemptAt: string | null;
-  lastAttemptResult: 'SENT' | 'FAILED' | null;
+  lastAttemptResult: 'SENT' | 'FAILED' | 'SKIPPED_DUPLICATE' | null;
   lastAttemptError: string | null;
   lastDeliveryMode: 'SMTP' | 'OUTLOOK' | null;
   createdAt: string;
@@ -39,6 +39,21 @@ type TrackingResponse = {
   };
   note: string;
   items: TrackingItem[];
+};
+
+type PreviewResponse = {
+  id: string;
+  subject: string;
+  htmlBody: string;
+  recipientName: string | null;
+  recipientEmail: string | null;
+  status: string;
+  phase: string;
+  moment: string;
+  audience: string;
+  periodCode: string;
+  periodLabel: string;
+  updatedAt: string;
 };
 
 async function fetchJson<T>(url: string, init?: RequestInit): Promise<T> {
@@ -76,6 +91,13 @@ function formatDate(value: string | null): string {
   });
 }
 
+function formatAttemptResult(value: TrackingItem['lastAttemptResult']): string {
+  if (value === 'SENT') return 'ENVIADO';
+  if (value === 'FAILED') return 'FALLIDO';
+  if (value === 'SKIPPED_DUPLICATE') return 'OMITIDO DUPLICADO';
+  return 'Sin intentos';
+}
+
 export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
   const [periodCode, setPeriodCode] = useState('202615');
   const [phase, setPhase] = useState<'ALL' | 'ALISTAMIENTO' | 'EJECUCION'>('ALL');
@@ -93,6 +115,10 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
   const [actionMessage, setActionMessage] = useState('');
   const [forceToResend, setForceToResend] = useState('');
   const [reloadToken, setReloadToken] = useState(0);
+  const [previewOpen, setPreviewOpen] = useState(false);
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState('');
+  const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
 
   const queryString = useMemo(() => {
     const params = new URLSearchParams();
@@ -179,6 +205,21 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
     }
   }
 
+  async function openPreview(item: TrackingItem) {
+    try {
+      setPreviewOpen(true);
+      setPreviewLoading(true);
+      setPreviewError('');
+      setPreviewData(null);
+      const response = await fetchJson<PreviewResponse>(`${apiBase}/outbox/${item.id}/preview`);
+      setPreviewData(response);
+    } catch (error) {
+      setPreviewError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
   const sent = data?.summary.sent ?? 0;
   const pending = data?.summary.pending ?? 0;
   const total = data?.total ?? 0;
@@ -188,6 +229,9 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
       <h2>Trazabilidad de correos enviados</h2>
       <div className="actions">
         Vista de envio por destinatario: borradores, enviados y ultimo resultado por intento.
+      </div>
+      <div className="actions" style={{ marginTop: 6 }}>
+        Cada tarjeta tiene <strong>Ver preview del correo</strong> y, para docentes, <strong>Actualizar y reenviar</strong>.
       </div>
 
       <div className="controls" style={{ marginTop: 10 }}>
@@ -298,7 +342,7 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
                 <span className={`badge status-chip status-${item.status.toLowerCase()}`}>{item.status}</span>
                 {item.lastAttemptResult ? (
                   <span className={`badge attempt-chip attempt-${item.lastAttemptResult.toLowerCase()}`}>
-                    Ultimo intento: {item.lastAttemptResult}
+                    Ultimo intento: {formatAttemptResult(item.lastAttemptResult)}
                   </span>
                 ) : (
                   <span className="badge attempt-chip">Sin intentos</span>
@@ -323,8 +367,16 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
               <div className="outbox-error-box">Error ultimo intento: {item.lastAttemptError}</div>
             ) : null}
 
-            {item.audience === 'DOCENTE' ? (
-              <div className="controls" style={{ marginTop: 8 }}>
+            <div className="controls" style={{ marginTop: 8 }}>
+              <button
+                type="button"
+                className="btn-next-action"
+                onClick={() => void openPreview(item)}
+                disabled={rowBusyId === item.id}
+              >
+                Ver preview del correo
+              </button>
+              {item.audience === 'DOCENTE' ? (
                 <button
                   type="button"
                   className="btn-next-action"
@@ -333,8 +385,8 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
                 >
                   {rowBusyId === item.id ? 'Reenviando...' : 'Actualizar y reenviar'}
                 </button>
-              </div>
-            ) : null}
+              ) : null}
+            </div>
           </article>
         ))}
       </div>
@@ -352,6 +404,72 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
           <button type="button" onClick={() => setPage((prev) => Math.min(data.pageCount, prev + 1))} disabled={loading || data.page >= data.pageCount}>
             Pagina siguiente
           </button>
+        </div>
+      ) : null}
+
+      {previewOpen ? (
+        <div
+          style={{
+            position: 'fixed',
+            inset: 0,
+            background: 'rgba(15, 23, 42, 0.55)',
+            display: 'flex',
+            alignItems: 'center',
+            justifyContent: 'center',
+            padding: 16,
+            zIndex: 1000,
+          }}
+        >
+          <div
+            className="panel"
+            style={{
+              width: 'min(1180px, 96vw)',
+              maxHeight: '92vh',
+              overflow: 'hidden',
+              display: 'flex',
+              flexDirection: 'column',
+              margin: 0,
+              background: '#fff',
+            }}
+          >
+            <div className="controls" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
+              <div>
+                <strong>Preview correo</strong>
+                {previewData ? ` | ${previewData.subject}` : ''}
+              </div>
+              <button type="button" onClick={() => setPreviewOpen(false)}>
+                Cerrar
+              </button>
+            </div>
+
+            {previewLoading ? <div className="message">Cargando preview...</div> : null}
+            {previewError ? <div className="message">No fue posible cargar el preview: {previewError}</div> : null}
+
+            {previewData ? (
+              <>
+                <div className="outbox-mail-kv-grid" style={{ marginBottom: 10 }}>
+                  <div><strong>Destinatario:</strong> {previewData.recipientName ?? 'Sin nombre'}</div>
+                  <div><strong>Correo:</strong> {previewData.recipientEmail ?? 'sin-correo@invalid.local'}</div>
+                  <div><strong>Periodo:</strong> {previewData.periodCode}</div>
+                  <div><strong>Fase:</strong> {previewData.phase}</div>
+                  <div><strong>Momento:</strong> {formatMomentLabel(previewData.moment)} ({previewData.moment})</div>
+                  <div><strong>Estado:</strong> {previewData.status}</div>
+                </div>
+                <iframe
+                  title={`preview-${previewData.id}`}
+                  srcDoc={previewData.htmlBody}
+                  style={{
+                    width: '100%',
+                    minHeight: '72vh',
+                    border: '1px solid #d4d7dd',
+                    borderRadius: 12,
+                    background: '#fff',
+                  }}
+                  sandbox="allow-popups allow-same-origin"
+                />
+              </>
+            ) : null}
+          </div>
         </div>
       ) : null}
     </article>

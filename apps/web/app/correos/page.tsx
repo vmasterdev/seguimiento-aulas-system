@@ -1,9 +1,10 @@
 export const dynamic = 'force-dynamic';
 
 import { OutboxTrackingPanel } from '../outbox-tracking-panel';
+import { OutboxEmailPanel } from '../outbox-email-panel';
 import { MainMenu } from '../main-menu';
 
-const API_BASE = process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://localhost:3001';
+const API_BASE = '/api/backend';
 
 export default function CorreosPage() {
   return (
@@ -16,6 +17,10 @@ export default function CorreosPage() {
           <p>Consulta visual de correos generados, enviados y ultimo resultado de envio por destinatario.</p>
         </div>
       </header>
+
+      <section className="section section-single">
+        <OutboxEmailPanel apiBase={API_BASE} />
+      </section>
 
       <section className="section section-single">
         <OutboxTrackingPanel apiBase={API_BASE} />
