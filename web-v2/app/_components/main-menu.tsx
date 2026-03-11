@@ -1,5 +1,7 @@
 'use client';
 
+import { usePathname } from 'next/navigation';
+
 export type MainMenuSection =
   | 'inicio'
   | 'rpaca'
@@ -11,30 +13,161 @@ export type MainMenuSection =
   | 'automatizacion-banner'
   | 'automatizacion-moodle';
 
-type MainMenuProps = {
-  active: MainMenuSection;
+const ICON_HOME = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 9l9-7 9 7v11a2 2 0 01-2 2H5a2 2 0 01-2-2z" />
+    <polyline points="9 22 9 12 15 12 15 22" />
+  </svg>
+);
+
+const ICON_UPLOAD = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4" />
+    <polyline points="17 8 12 3 7 8" />
+    <line x1="12" y1="3" x2="12" y2="15" />
+  </svg>
+);
+
+const ICON_USERS = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4-4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 00-3-3.87" />
+    <path d="M16 3.13a4 4 0 010 7.75" />
+  </svg>
+);
+
+const ICON_CLIPBOARD = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M16 4h2a2 2 0 012 2v14a2 2 0 01-2 2H6a2 2 0 01-2-2V6a2 2 0 012-2h2" />
+    <rect x="8" y="2" width="8" height="4" rx="1" ry="1" />
+    <path d="M9 14l2 2 4-4" />
+  </svg>
+);
+
+const ICON_GLOBE = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="10" />
+    <line x1="2" y1="12" x2="22" y2="12" />
+    <path d="M12 2a15.3 15.3 0 014 10 15.3 15.3 0 01-4 10 15.3 15.3 0 01-4-10 15.3 15.3 0 014-10z" />
+  </svg>
+);
+
+const ICON_BRANCH = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="6" y1="3" x2="6" y2="15" />
+    <circle cx="18" cy="6" r="3" />
+    <circle cx="6" cy="18" r="3" />
+    <path d="M18 9a9 9 0 01-9 9" />
+  </svg>
+);
+
+const ICON_MAIL = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M4 4h16c1.1 0 2 .9 2 2v12c0 1.1-.9 2-2 2H4c-1.1 0-2-.9-2-2V6c0-1.1.9-2 2-2z" />
+    <polyline points="22,6 12,13 2,6" />
+  </svg>
+);
+
+const ICON_ZAP = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polygon points="13 2 3 14 12 14 11 22 21 10 12 10 13 2" />
+  </svg>
+);
+
+const ICON_SETTINGS = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="12" cy="12" r="3" />
+    <path d="M19.4 15a1.65 1.65 0 00.33 1.82l.06.06a2 2 0 010 2.83 2 2 0 01-2.83 0l-.06-.06a1.65 1.65 0 00-1.82-.33 1.65 1.65 0 00-1 1.51V21a2 2 0 01-4 0v-.09A1.65 1.65 0 009 19.4a1.65 1.65 0 00-1.82.33l-.06.06a2 2 0 01-2.83-2.83l.06-.06A1.65 1.65 0 004.68 15a1.65 1.65 0 00-1.51-1H3a2 2 0 010-4h.09A1.65 1.65 0 004.6 9a1.65 1.65 0 00-.33-1.82l-.06-.06a2 2 0 012.83-2.83l.06.06A1.65 1.65 0 009 4.68a1.65 1.65 0 001-1.51V3a2 2 0 014 0v.09a1.65 1.65 0 001 1.51 1.65 1.65 0 001.82-.33l.06-.06a2 2 0 012.83 2.83l-.06.06A1.65 1.65 0 0019.4 9a1.65 1.65 0 001.51 1H21a2 2 0 010 4h-.09a1.65 1.65 0 00-1.51 1z" />
+  </svg>
+);
+
+type NavItem = {
+  href: string;
+  label: string;
+  section: MainMenuSection;
+  icon: React.ReactNode;
+  group: 'main' | 'data' | 'automation';
 };
 
-const MENU_ITEMS: Array<{ href: string; label: string; section: MainMenuSection }> = [
-  { href: '/', label: 'Inicio', section: 'inicio' },
-  { href: '/rpaca', label: 'Carga RPACA', section: 'rpaca' },
-  { href: '/docentes', label: 'Docentes', section: 'docentes' },
-  { href: '/review', label: 'Revision NRC', section: 'review' },
-  { href: '/nrc-globales', label: 'NRC Globales', section: 'nrc-globales' },
-  { href: '/nrc-trazabilidad', label: 'Trazabilidad NRC', section: 'nrc-trazabilidad' },
-  { href: '/correos', label: 'Correos', section: 'correos' },
-  { href: '/automatizacion-banner', label: 'Automatizacion Banner', section: 'automatizacion-banner' },
-  { href: '/automatizacion-moodle', label: 'Automatizacion Moodle', section: 'automatizacion-moodle' },
+const NAV_ITEMS: NavItem[] = [
+  { href: '/', label: 'Dashboard', section: 'inicio', icon: ICON_HOME, group: 'main' },
+  { href: '/rpaca', label: 'Carga RPACA', section: 'rpaca', icon: ICON_UPLOAD, group: 'data' },
+  { href: '/docentes', label: 'Docentes', section: 'docentes', icon: ICON_USERS, group: 'data' },
+  { href: '/review', label: 'Revision NRC', section: 'review', icon: ICON_CLIPBOARD, group: 'data' },
+  { href: '/nrc-globales', label: 'NRC Globales', section: 'nrc-globales', icon: ICON_GLOBE, group: 'data' },
+  { href: '/nrc-trazabilidad', label: 'Trazabilidad', section: 'nrc-trazabilidad', icon: ICON_BRANCH, group: 'data' },
+  { href: '/correos', label: 'Correos', section: 'correos', icon: ICON_MAIL, group: 'data' },
+  { href: '/automatizacion-banner', label: 'Banner', section: 'automatizacion-banner', icon: ICON_ZAP, group: 'automation' },
+  { href: '/automatizacion-moodle', label: 'Moodle Sidecar', section: 'automatizacion-moodle', icon: ICON_SETTINGS, group: 'automation' },
 ];
 
-export function MainMenu({ active }: MainMenuProps) {
+function getActiveSection(pathname: string): MainMenuSection {
+  if (pathname === '/') return 'inicio';
+  const match = NAV_ITEMS.find((item) => item.href !== '/' && pathname.startsWith(item.href));
+  return match?.section ?? 'inicio';
+}
+
+export function Sidebar() {
+  const pathname = usePathname();
+  const active = getActiveSection(pathname);
+
+  const mainItems = NAV_ITEMS.filter((i) => i.group === 'main');
+  const dataItems = NAV_ITEMS.filter((i) => i.group === 'data');
+  const autoItems = NAV_ITEMS.filter((i) => i.group === 'automation');
+
   return (
-    <nav className="menu-main">
-      {MENU_ITEMS.map((item) => (
-        <a href={item.href} className={`menu-link${active === item.section ? ' active' : ''}`} key={item.href}>
-          {item.label}
-        </a>
-      ))}
-    </nav>
+    <aside className="sidebar">
+      <div className="sidebar-brand">
+        <h2>Seguimiento Aulas</h2>
+        <small>UNIMINUTO &middot; Ops Console</small>
+      </div>
+
+      <nav className="sidebar-nav">
+        {mainItems.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className={`sidebar-link${active === item.section ? ' active' : ''}`}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </a>
+        ))}
+
+        <div className="sidebar-section-label">Datos</div>
+        {dataItems.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className={`sidebar-link${active === item.section ? ' active' : ''}`}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </a>
+        ))}
+
+        <div className="sidebar-section-label">Automatizacion</div>
+        {autoItems.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className={`sidebar-link${active === item.section ? ' active' : ''}`}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </a>
+        ))}
+      </nav>
+
+      <div className="sidebar-footer">
+        Ops Studio V2
+      </div>
+    </aside>
   );
+}
+
+/* Backward-compatible export for any code referencing MainMenu */
+export function MainMenu({ active: _active }: { active: MainMenuSection }) {
+  return <Sidebar />;
 }

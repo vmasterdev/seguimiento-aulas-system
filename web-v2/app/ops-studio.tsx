@@ -274,7 +274,7 @@ export function OpsStudio({ initialData }: { initialData: OpsData }) {
     selectedCourse?.integrations.urlValidation?.moodleUrl ?? selectedCourse?.moodleCheck?.moodleCourseUrl ?? null;
 
   return (
-    <main className="shell">
+    <div className="shell">
       <section className="hero">
         <div className="hero-copy">
           <span className="eyebrow">Nueva version paralela</span>
@@ -1114,6 +1114,6 @@ export function OpsStudio({ initialData }: { initialData: OpsData }) {
           </article>
         </section>
       ) : null}
-    </main>
+    </div>
   );
 }

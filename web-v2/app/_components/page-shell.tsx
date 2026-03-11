@@ -1,5 +1,5 @@
 import type { ReactNode } from 'react';
-import { MainMenu, type MainMenuSection } from './main-menu';
+import type { MainMenuSection } from './main-menu';
 
 type PageShellProps = {
   active: MainMenuSection;
@@ -8,20 +8,15 @@ type PageShellProps = {
   children: ReactNode;
 };
 
-export function PageShell({ active, title, description, children }: PageShellProps) {
+export function PageShell({ title, description, children }: PageShellProps) {
   return (
-    <main>
-      <MainMenu active={active} />
-
-      <header className="hero">
-        <div>
-          <h1>{title}</h1>
-          <p>{description}</p>
-        </div>
+    <div className="shell">
+      <header className="page-header">
+        <h1>{title}</h1>
+        <p>{description}</p>
       </header>
-
       {children}
-    </main>
+    </div>
   );
 }
 
