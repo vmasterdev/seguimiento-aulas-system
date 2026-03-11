@@ -195,11 +195,102 @@ a {
   color: var(--slate-600);
 }
 
+.mobile-topbar,
+.mobile-backdrop {
+  display: none;
+}
+
+.mobile-topbar {
+  position: fixed;
+  top: 0;
+  left: 0;
+  right: 0;
+  height: 64px;
+  padding: 12px 14px;
+  background: rgba(15, 23, 42, 0.94);
+  color: #fff;
+  border-bottom: 1px solid rgba(255, 255, 255, 0.08);
+  backdrop-filter: blur(12px);
+  z-index: 120;
+  align-items: center;
+  justify-content: space-between;
+}
+
+.mobile-brand {
+  display: inline-flex;
+  flex-direction: column;
+  gap: 2px;
+  min-width: 0;
+}
+
+.mobile-brand strong {
+  font-family: var(--font-display);
+  font-size: 0.92rem;
+  letter-spacing: -0.02em;
+}
+
+.mobile-brand small {
+  font-size: 0.68rem;
+  color: var(--slate-400);
+}
+
+.mobile-menu-button {
+  width: 42px;
+  height: 42px;
+  border: 1px solid rgba(255, 255, 255, 0.12);
+  background: rgba(255, 255, 255, 0.04);
+  border-radius: 10px;
+  padding: 10px 9px;
+  display: inline-flex;
+  flex-direction: column;
+  justify-content: space-between;
+  cursor: pointer;
+}
+
+.mobile-menu-button span {
+  display: block;
+  height: 2px;
+  width: 100%;
+  border-radius: 999px;
+  background: #fff;
+  transition: transform 140ms ease, opacity 140ms ease;
+}
+
+.mobile-menu-button.active span:nth-child(1) {
+  transform: translateY(10px) rotate(45deg);
+}
+
+.mobile-menu-button.active span:nth-child(2) {
+  opacity: 0;
+}
+
+.mobile-menu-button.active span:nth-child(3) {
+  transform: translateY(-10px) rotate(-45deg);
+}
+
+.mobile-backdrop {
+  position: fixed;
+  inset: 0;
+  border: 0;
+  padding: 0;
+  background: rgba(15, 23, 42, 0.48);
+  opacity: 0;
+  pointer-events: none;
+  transition: opacity 180ms ease;
+  z-index: 109;
+}
+
+.mobile-backdrop.active {
+  opacity: 1;
+  pointer-events: auto;
+}
+
 /* ─── Content Area ─── */
 .app-content {
   margin-left: var(--sidebar-w);
   flex: 1;
   min-width: 0;
+  min-height: 100vh;
 }
 
 /* ═══════════════════════════════════════════
@@ -1022,8 +1113,29 @@ select:focus {
     --sidebar-w: 0px;
   }
 
+  .mobile-topbar {
+    display: flex;
+  }
+
+  .mobile-backdrop {
+    display: block;
+  }
+
   .sidebar {
-    display: none;
+    display: flex;
+    width: min(82vw, 320px);
+    transform: translateX(-100%);
+    transition: transform 180ms ease;
+    box-shadow: 0 18px 40px rgba(15, 23, 42, 0.36);
+  }
+
+  .sidebar.mobile-open {
+    transform: translateX(0);
+  }
+
+  .app-content {
+    margin-left: 0;
+    padding-top: 64px;
   }
 
   .shell {

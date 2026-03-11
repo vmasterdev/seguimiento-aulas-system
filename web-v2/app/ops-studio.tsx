@@ -52,6 +52,81 @@ const ADVANCED_MODULES = [
   },
 ] as const;
 
+const EMPTY_OPS_DATA: OpsData = {
+  generatedAt: '',
+  projectRoot: 'Pendiente de carga',
+  bannerProjectRoot: 'Pendiente de carga',
+  apiBase: 'http://127.0.0.1:3001',
+  apiReachable: false,
+  health: null,
+  stats: null,
+  queue: null,
+  courses: {
+    total: 0,
+    items: [],
+  },
+  outbox: {
+    total: 0,
+    items: [],
+  },
+  sidecar: {
+    config: null,
+    runner: null,
+    summary: {
+      latestFile: null,
+      modifiedAt: null,
+      rowCount: 0,
+      okCount: 0,
+      errorCount: 0,
+      emptyClassrooms: 0,
+      typeCounts: {},
+      statusCounts: {},
+      participantAverage: null,
+      preview: [],
+      sampleByNrc: {},
+    },
+    urlValidation: {
+      latestFile: null,
+      modifiedAt: null,
+      rowCount: 0,
+      withUrlCount: 0,
+      preview: [],
+      sampleByNrc: {},
+    },
+  },
+  banner: {
+    runner: {
+      running: false,
+      current: null,
+      lastRun: null,
+      logTail: '',
+    },
+    exportSummary: {
+      latestFile: null,
+      modifiedAt: null,
+      rowCount: 0,
+      statusCounts: {},
+      preview: [],
+      sampleByNrc: {},
+    },
+  },
+  files: [],
+  derived: {
+    withTeacher: 0,
+    withoutTeacher: 0,
+    moodleOk: 0,
+    moodlePending: 0,
+    moodleErrors: 0,
+    withMoodleUrl: 0,
+    withSidecarData: 0,
+    bannerFound: 0,
+    bannerWithoutTeacher: 0,
+    outboxDrafts: 0,
+    reviewExcluded: 0,
+    attention: [],
+  },
+};
+
 function formatDate(value?: string | null) {
   if (!value) return '-';
   const date = new Date(value);
@@ -120,14 +195,15 @@ function StatCard({
   );
 }
 
-export function OpsStudio({ initialData }: { initialData: OpsData }) {
-  const [data, setData] = useState(initialData);
+export function OpsStudio({ initialData = null }: { initialData?: OpsData | null }) {
+  const hasInitialData = initialData !== null;
+  const [data, setData] = useState<OpsData>(initialData ?? EMPTY_OPS_DATA);
   const [activeView, setActiveView] = useState<ViewKey>('overview');
-  const [loading, setLoading] = useState(false);
+  const [loading, setLoading] = useState(!hasInitialData);
   const [busyAction, setBusyAction] = useState('');
   const [message, setMessage] = useState('');
   const [autoRefresh, setAutoRefresh] = useState(true);
-  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(initialData.courses.items[0]?.id ?? null);
+  const [selectedCourseId, setSelectedCourseId] = useState<string | null>(initialData?.courses.items[0]?.id ?? null);
 
   const [courseSearch, setCourseSearch] = useState('');
   const [periodFilter, setPeriodFilter] = useState('ALL');
@@ -163,13 +239,17 @@ export function OpsStudio({ initialData }: { initialData: OpsData }) {
       if (!silent) {
         setLoading(true);
       }
-      const response = await fetch('/api/ops', { cache: 'no-store' });
+      const response = await fetch('/api/ops', {
+        cache: 'no-store',
+        signal: AbortSignal.timeout(10000),
+      });
       const next = (await response.json()) as OpsData & { error?: string };
       if (!response.ok) {
         throw new Error(next.error ?? 'No fue posible cargar Ops Studio.');
       }
       startTransition(() => {
         setData(next);
+        setMessage('');
         if (!selectedCourseId && next.courses.items[0]?.id) {
           setSelectedCourseId(next.courses.items[0].id);
         }
@@ -184,6 +264,11 @@ export function OpsStudio({ initialData }: { initialData: OpsData }) {
       }
     }
   }
+
+  useEffect(() => {
+    if (hasInitialData) return;
+    void refreshData();
+  }, []);
 
   useEffect(() => {
     if (!autoRefresh) return;
@@ -332,6 +417,7 @@ export function OpsStudio({ initialData }: { initialData: OpsData }) {
         ))}
       </section>
 
+      {loading && !data.generatedAt ? <div className="flash">Cargando tablero operativo...</div> : null}
       {message ? <div className="flash">{message}</div> : null}
       {!data.apiReachable ? (
         <div className="flash flash-warning">

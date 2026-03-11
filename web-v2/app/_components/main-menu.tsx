@@ -1,5 +1,6 @@
 'use client';
 
+import { useEffect, useState } from 'react';
 import { usePathname } from 'next/navigation';
 
 export type MainMenuSection =
@@ -108,16 +109,19 @@ function getActiveSection(pathname: string): MainMenuSection {
   return match?.section ?? 'inicio';
 }
 
-export function Sidebar() {
-  const pathname = usePathname();
-  const active = getActiveSection(pathname);
-
+function SidebarContent({
+  active,
+  onNavigate,
+}: {
+  active: MainMenuSection;
+  onNavigate?: () => void;
+}) {
   const mainItems = NAV_ITEMS.filter((i) => i.group === 'main');
   const dataItems = NAV_ITEMS.filter((i) => i.group === 'data');
   const autoItems = NAV_ITEMS.filter((i) => i.group === 'automation');
 
   return (
-    <aside className="sidebar">
+    <>
       <div className="sidebar-brand">
         <h2>Seguimiento Aulas</h2>
         <small>UNIMINUTO &middot; Ops Console</small>
@@ -129,6 +133,7 @@ export function Sidebar() {
             key={item.href}
             href={item.href}
             className={`sidebar-link${active === item.section ? ' active' : ''}`}
+            onClick={onNavigate}
           >
             {item.icon}
             <span>{item.label}</span>
@@ -141,6 +146,7 @@ export function Sidebar() {
             key={item.href}
             href={item.href}
             className={`sidebar-link${active === item.section ? ' active' : ''}`}
+            onClick={onNavigate}
           >
             {item.icon}
             <span>{item.label}</span>
@@ -153,6 +159,7 @@ export function Sidebar() {
             key={item.href}
             href={item.href}
             className={`sidebar-link${active === item.section ? ' active' : ''}`}
+            onClick={onNavigate}
           >
             {item.icon}
             <span>{item.label}</span>
@@ -163,11 +170,54 @@ export function Sidebar() {
       <div className="sidebar-footer">
         Ops Studio V2
       </div>
-    </aside>
+    </>
   );
 }
 
-/* Backward-compatible export for any code referencing MainMenu */
+export function Sidebar() {
+  const pathname = usePathname();
+  const active = getActiveSection(pathname);
+  const [mobileOpen, setMobileOpen] = useState(false);
+
+  useEffect(() => {
+    setMobileOpen(false);
+  }, [pathname]);
+
+  return (
+    <>
+      <header className="mobile-topbar">
+        <a href="/" className="mobile-brand">
+          <strong>Seguimiento Aulas</strong>
+          <small>Ops Console</small>
+        </a>
+
+        <button
+          type="button"
+          className={`mobile-menu-button${mobileOpen ? ' active' : ''}`}
+          aria-label={mobileOpen ? 'Cerrar navegacion' : 'Abrir navegacion'}
+          aria-expanded={mobileOpen}
+          onClick={() => setMobileOpen((current) => !current)}
+        >
+          <span />
+          <span />
+          <span />
+        </button>
+      </header>
+
+      <button
+        type="button"
+        className={`mobile-backdrop${mobileOpen ? ' active' : ''}`}
+        aria-label="Cerrar navegacion"
+        onClick={() => setMobileOpen(false)}
+      />
+
+      <aside className={`sidebar${mobileOpen ? ' mobile-open' : ''}`}>
+        <SidebarContent active={active} onNavigate={() => setMobileOpen(false)} />
+      </aside>
+    </>
+  );
+}
+
 export function MainMenu({ active: _active }: { active: MainMenuSection }) {
-  return <Sidebar />;
+  return null;
 }
