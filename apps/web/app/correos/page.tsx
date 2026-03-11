@@ -1,30 +1,24 @@
 export const dynamic = 'force-dynamic';
 
-import { OutboxTrackingPanel } from '../outbox-tracking-panel';
-import { OutboxEmailPanel } from '../outbox-email-panel';
-import { MainMenu } from '../main-menu';
-
-const API_BASE = '/api/backend';
+import { OutboxTrackingPanel } from '../_features/correos/outbox-tracking-panel';
+import { OutboxEmailPanel } from '../_features/correos/outbox-email-panel';
+import { PageShell } from '../_components/page-shell';
+import { CLIENT_API_BASE } from '../_lib/api';
 
 export default function CorreosPage() {
   return (
-    <main>
-      <MainMenu active="correos" />
-
-      <header className="hero">
-        <div>
-          <h1>Trazabilidad de Correos</h1>
-          <p>Consulta visual de correos generados, enviados y ultimo resultado de envio por destinatario.</p>
-        </div>
-      </header>
-
+    <PageShell
+      active="correos"
+      title="Trazabilidad de Correos"
+      description="Consulta visual de correos generados, enviados y ultimo resultado de envio por destinatario."
+    >
       <section className="section section-single">
-        <OutboxEmailPanel apiBase={API_BASE} />
+        <OutboxEmailPanel apiBase={CLIENT_API_BASE} />
       </section>
 
       <section className="section section-single">
-        <OutboxTrackingPanel apiBase={API_BASE} />
+        <OutboxTrackingPanel apiBase={CLIENT_API_BASE} />
       </section>
-    </main>
+    </PageShell>
   );
 }

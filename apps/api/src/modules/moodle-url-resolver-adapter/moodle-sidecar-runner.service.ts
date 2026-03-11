@@ -1,8 +1,13 @@
 import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
 import fs from 'node:fs';
 import path from 'node:path';
-import { ChildProcessWithoutNullStreams, spawn } from 'node:child_process';
+import { ChildProcessWithoutNullStreams, execFileSync, spawn } from 'node:child_process';
 import { loadSidecarConfig, resolveAdapterInputPath, resolveProjectRoot } from './adapter.logic';
+import {
+  MoodleSidecarBatchService,
+  type PrepareSidecarBatchInput,
+  type PrepareRevalidateBatchInput,
+} from './moodle-sidecar-batch.service';
 
 type SidecarCommand = 'classify' | 'revalidate' | 'backup' | 'gui';
 
@@ -20,6 +25,9 @@ export type StartSidecarRunOptions = {
   loginWaitSeconds?: number;
   backupTimeout?: number;
   keepOpen?: boolean;
+  preloginAllModalities?: boolean;
+  preloginModalities?: string[];
+  modalidadesPermitidas?: string[];
 };
 
 type RunStatus = 'RUNNING' | 'COMPLETED' | 'FAILED' | 'CANCELLED';
@@ -38,6 +46,8 @@ type RunInfo = {
 
 @Injectable()
 export class MoodleSidecarRunnerService {
+  constructor(private readonly batchService: MoodleSidecarBatchService) {}
+
   private current: (RunInfo & { process: ChildProcessWithoutNullStreams; cancelRequested: boolean }) | null = null;
   private lastRun: RunInfo | null = null;
 
@@ -57,20 +67,32 @@ export class MoodleSidecarRunnerService {
 
     const root = resolveProjectRoot();
     const config = loadSidecarConfig(root);
-    const python = options.python?.trim() || (config as any)?.runtime?.pythonCommand || 'python3';
     const script = path.join(root, 'tools', 'moodle-sidecar', 'sidecar_runner.py');
-
-    const args = [script, options.command];
+    const useWindowsHost = this.shouldUseWindowsHost();
+    const python = useWindowsHost
+      ? this.resolveWindowsCommandLauncher()
+      : (options.python?.trim() || (config as any)?.runtime?.pythonCommand || 'python3');
+    const args = useWindowsHost
+      ? ['/c', 'py', '-3', this.toWindowsPath(script), options.command]
+      : [script, options.command];
+    const nestedPythonCommand = this.resolveNestedPythonCommand(options.python, useWindowsHost, config);
     if (options.command === 'classify') {
-      if (options.inputDir?.trim()) args.push('--input-dir', this.resolvePath(root, options.inputDir));
-      if (options.output?.trim()) args.push('--output', this.resolvePath(root, options.output));
+      if (options.inputDir?.trim()) args.push('--input-dir', this.resolveHostPath(root, options.inputDir, useWindowsHost));
+      if (options.output?.trim()) args.push('--output', this.resolveHostPath(root, options.output, useWindowsHost));
       if (options.workers) args.push('--workers', String(options.workers));
       if (options.browser) args.push('--browser', options.browser);
       if (options.headless) args.push('--headless');
       if (options.noResume) args.push('--no-resume');
+      if (options.preloginAllModalities) args.push('--prelogin-all-modalidades');
+      if (options.preloginModalities?.length) args.push('--prelogin-modalidades', options.preloginModalities.join(','));
+      if (options.modalidadesPermitidas?.length) {
+        args.push('--modalidades-permitidas', options.modalidadesPermitidas.join(','));
+      }
     }
 
     if (options.command === 'revalidate') {
+      if (options.inputDir?.trim()) args.push('--input-dir', this.resolveHostPath(root, options.inputDir, useWindowsHost));
+      if (options.output?.trim()) args.push('--output', this.resolveHostPath(root, options.output, useWindowsHost));
       if (options.mode) args.push('--mode', options.mode);
       if (options.workers) args.push('--workers', String(options.workers));
       if (options.browser) args.push('--browser', options.browser);
@@ -78,14 +100,14 @@ export class MoodleSidecarRunnerService {
     }
 
     if (options.command === 'backup') {
-      if (options.nrcCsv?.trim()) args.push('--nrc-csv', this.resolvePath(root, options.nrcCsv));
+      if (options.nrcCsv?.trim()) args.push('--nrc-csv', this.resolveHostPath(root, options.nrcCsv, useWindowsHost));
       if (options.loginWaitSeconds) args.push('--login-wait-seconds', String(options.loginWaitSeconds));
       if (options.backupTimeout) args.push('--backup-timeout', String(options.backupTimeout));
       if (options.keepOpen) args.push('--keep-open');
     }
 
-    if (options.python?.trim()) {
-      args.push('--python', options.python.trim());
+    if (nestedPythonCommand) {
+      args.push('--python', nestedPythonCommand);
     }
 
     const logsDir = path.join(root, 'storage', 'outputs', 'validation', 'sidecar-runs');
@@ -166,6 +188,106 @@ export class MoodleSidecarRunnerService {
     };
   }
 
+  async startFromDatabase(input: PrepareSidecarBatchInput & Omit<StartSidecarRunOptions, 'command' | 'inputDir'>) {
+    if (this.current) {
+      throw new ConflictException('Ya existe una ejecucion sidecar en curso. Debes esperar o cancelarla.');
+    }
+
+    const prepared = await this.batchService.prepareBatch(input);
+    if (prepared.total <= 0) {
+      throw new BadRequestException(this.buildEmptyBatchMessage(input.source, 'classify'));
+    }
+    const output =
+      input.output?.trim() ||
+      path.join(
+        'storage',
+        'outputs',
+        'validation',
+        `RESULTADO_TIPOS_AULA_DESDE_MOODLE_${prepared.batchId}.xlsx`,
+      );
+
+    const started = this.start({
+      command: 'classify',
+      inputDir: prepared.inputDir,
+      output,
+      workers: input.workers,
+      browser: input.browser,
+      python: input.python,
+      headless: input.headless,
+      noResume: input.noResume,
+      preloginAllModalities: input.preloginAllModalities,
+      preloginModalities: input.preloginModalities,
+      modalidadesPermitidas: input.modalidadesPermitidas,
+    });
+
+    return {
+      ...started,
+      batch: prepared,
+      outputPath: output,
+    };
+  }
+
+  async startBackupFromDatabase(
+    input: PrepareSidecarBatchInput & Pick<StartSidecarRunOptions, 'python' | 'loginWaitSeconds' | 'backupTimeout' | 'keepOpen'>,
+  ) {
+    if (this.current) {
+      throw new ConflictException('Ya existe una ejecucion sidecar en curso. Debes esperar o cancelarla.');
+    }
+
+    const prepared = await this.batchService.prepareBackupBatch(input);
+    if (prepared.total <= 0) {
+      throw new BadRequestException(this.buildEmptyBatchMessage(input.source, 'backup'));
+    }
+    const started = this.start({
+      command: 'backup',
+      nrcCsv: prepared.csvPath,
+      python: input.python,
+      loginWaitSeconds: input.loginWaitSeconds,
+      backupTimeout: input.backupTimeout,
+      keepOpen: input.keepOpen,
+    });
+
+    return {
+      ...started,
+      batch: prepared,
+    };
+  }
+
+  async startRevalidateFromDatabase(
+    input: PrepareRevalidateBatchInput &
+      Pick<StartSidecarRunOptions, 'workers' | 'browser' | 'python' | 'headless' | 'output'>,
+  ) {
+    if (this.current) {
+      throw new ConflictException('Ya existe una ejecucion sidecar en curso. Debes esperar o cancelarla.');
+    }
+
+    const prepared = await this.batchService.prepareRevalidateBatch(input);
+    if (prepared.total <= 0) {
+      throw new BadRequestException(this.buildEmptyRevalidateMessage(input.mode));
+    }
+
+    const output =
+      input.output?.trim() ||
+      path.join('storage', 'outputs', 'validation', `REVALIDACION_PENDIENTES_${prepared.batchId}.xlsx`);
+
+    const started = this.start({
+      command: 'revalidate',
+      inputDir: prepared.inputDir,
+      output,
+      mode: input.mode,
+      workers: input.workers,
+      browser: input.browser,
+      python: input.python,
+      headless: input.headless,
+    });
+
+    return {
+      ...started,
+      batch: prepared,
+      outputPath: output,
+    };
+  }
+
   cancel() {
     if (!this.current) {
       throw new BadRequestException('No hay ejecucion sidecar activa para cancelar.');
@@ -185,6 +307,46 @@ export class MoodleSidecarRunnerService {
     return resolveAdapterInputPath(projectRoot, rawPath.trim());
   }
 
+  private resolveHostPath(projectRoot: string, rawPath: string, useWindowsHost: boolean): string {
+    const resolved = this.resolvePath(projectRoot, rawPath);
+    return useWindowsHost ? this.toWindowsPath(resolved) : resolved;
+  }
+
+  private shouldUseWindowsHost(): boolean {
+    const raw = String(process.env.MOODLE_SIDECAR_EXECUTION_HOST ?? '').trim().toLowerCase();
+    return raw === 'windows';
+  }
+
+  private resolveWindowsCommandLauncher(): string {
+    return String(process.env.MOODLE_SIDECAR_WINDOWS_CMD_PATH ?? '').trim() || '/mnt/c/WINDOWS/system32/cmd.exe';
+  }
+
+  private resolveNestedPythonCommand(
+    requestedPython: string | undefined,
+    useWindowsHost: boolean,
+    config: ReturnType<typeof loadSidecarConfig>,
+  ): string | null {
+    if (useWindowsHost) {
+      const normalized = requestedPython?.trim();
+      if (!normalized || normalized.toLowerCase() === 'python3' || normalized.toLowerCase() === 'python') {
+        return 'py';
+      }
+      return normalized;
+    }
+
+    return requestedPython?.trim() || (config as any)?.runtime?.pythonCommand || null;
+  }
+
+  private toWindowsPath(rawPath: string): string {
+    try {
+      return execFileSync('wslpath', ['-w', rawPath], { encoding: 'utf8' }).trim();
+    } catch (error) {
+      throw new BadRequestException(
+        `No fue posible convertir ruta a Windows: ${rawPath}. ${error instanceof Error ? error.message : String(error)}`,
+      );
+    }
+  }
+
   private publicRun(run: RunInfo) {
     return {
       id: run.id,
@@ -197,6 +359,27 @@ export class MoodleSidecarRunnerService {
       pid: run.pid,
       logPath: run.logPath,
     };
+  }
+
+  private buildEmptyBatchMessage(source: PrepareSidecarBatchInput['source'], command: 'classify' | 'backup') {
+    const action =
+      command === 'backup'
+        ? 'No hay NRC elegibles para generar el respaldo con los filtros indicados.'
+        : 'No hay NRC elegibles para iniciar la revision con los filtros indicados.';
+    if (source === 'PENDING') {
+      return `${action} En modo PENDING solo entran cursos pendientes/reintento/revision manual que sigan siendo elegibles para revision. Los casos sin acceso, no matriculado o vacio sin estudiantes quedan excluidos.`;
+    }
+    return action;
+  }
+
+  private buildEmptyRevalidateMessage(mode: PrepareRevalidateBatchInput['mode']) {
+    if (mode === 'aulas_vacias') {
+      return 'No hay cursos con tipo de aula VACIO en los periodos y momentos seleccionados.';
+    }
+    if (mode === 'sin_matricula') {
+      return 'No hay cursos marcados como sin matricula/no registrado en los periodos y momentos seleccionados.';
+    }
+    return 'No hay cursos para revalidar en los periodos y momentos seleccionados.';
   }
 
   private readLogTail(logPath?: string, maxChars = 12000) {

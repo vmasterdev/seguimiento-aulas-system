@@ -63,6 +63,9 @@ export class QueueService implements OnModuleDestroy {
         nrc: course.nrc,
         periodId: course.periodId,
       },
+      opts: {
+        jobId: `moodle-classify:${course.id}`,
+      },
     }));
 
     try {

@@ -1,25 +1,17 @@
 export const dynamic = 'force-dynamic';
 
-import { RpacaManagementPanel } from '../rpaca-management-panel';
-import { MainMenu } from '../main-menu';
-
-const API_BASE = '/api/backend';
+import { RpacaManagementPanel } from '../_features/rpaca/rpaca-management-panel';
+import { SinglePanelPageShell } from '../_components/page-shell';
+import { CLIENT_API_BASE } from '../_lib/api';
 
 export default function RpacaPage() {
   return (
-    <main>
-      <MainMenu active="rpaca" />
-
-      <header className="hero">
-        <div>
-          <h1>Gestion RPACA</h1>
-          <p>Carga incremental de RPACA y ajuste manual de docentes faltantes.</p>
-        </div>
-      </header>
-
-      <section className="section section-single">
-        <RpacaManagementPanel apiBase={API_BASE} />
-      </section>
-    </main>
+    <SinglePanelPageShell
+      active="rpaca"
+      title="Gestion RPACA"
+      description="Carga incremental de RPACA y ajuste manual de docentes faltantes."
+    >
+      <RpacaManagementPanel apiBase={CLIENT_API_BASE} />
+    </SinglePanelPageShell>
   );
 }

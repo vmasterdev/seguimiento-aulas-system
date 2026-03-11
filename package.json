@@ -4,6 +4,9 @@
   "packageManager": "pnpm@9.15.0",
   "scripts": {
     "dev": "turbo dev",
+    "stack:up": "bash ./scripts/dev-stack.sh up",
+    "stack:status": "bash ./scripts/dev-stack.sh status",
+    "stack:down": "bash ./scripts/dev-stack.sh down",
     "build": "turbo build",
     "lint": "turbo lint",
     "test": "turbo test",

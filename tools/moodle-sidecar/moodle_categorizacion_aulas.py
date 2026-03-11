@@ -2,6 +2,7 @@ import argparse
 from concurrent.futures import ThreadPoolExecutor, as_completed
 import csv
 from difflib import SequenceMatcher
+import os
 import re
 import shutil
 import time
@@ -37,8 +38,14 @@ except Exception as e:
 # =========================
 # CONFIGURACION
 # =========================
-PROFILE_DIR_CHROME = str(Path.cwd() / "chrome_profile_aulas_uniminuto")
-PROFILE_DIR_EDGE = str(Path.cwd() / "edge_profile_aulas_uniminuto")
+PROFILE_ROOT = Path(
+    os.environ.get("SEGUIMIENTO_SIDECAR_PROFILE_ROOT", "").strip()
+    or (Path.home() / ".cache" / "seguimiento-aulas" / "moodle-sidecar")
+).expanduser()
+LEGACY_PROFILE_DIR_CHROME = Path.cwd() / "chrome_profile_aulas_uniminuto"
+LEGACY_PROFILE_DIR_EDGE = Path.cwd() / "edge_profile_aulas_uniminuto"
+PROFILE_DIR_CHROME = str(PROFILE_ROOT / "chrome_profile_aulas_uniminuto")
+PROFILE_DIR_EDGE = str(PROFILE_ROOT / "edge_profile_aulas_uniminuto")
 DEFAULT_INPUT_DIR = Path("1.2 CATEGORIZACION/2026 S1")
 DEFAULT_OUTPUT_XLSX = DEFAULT_INPUT_DIR / "RESULTADO_TIPOS_AULA_DESDE_MOODLE.xlsx"
 VACIA_MAX_MOD_LINKS = 2
@@ -48,6 +55,7 @@ MAX_WORKERS = 8
 TITLE_SIMILAR_THRESHOLD = 80.0
 TITLE_EQUAL_THRESHOLD = 99.0
 D40_NAME_THRESHOLD = 86.0
+AUTO_RECOVERY_MISSING_WORKERS = True
 
 PROFILE_COPY_IGNORE = (
     "Crashpad",
@@ -473,7 +481,12 @@ def preparar_perfiles_workers(browser: str, workers: int) -> Dict[int, str]:
         worker_profile = profile_dir_worker(browser, worker_id)
         try:
             if worker_profile.exists():
-                shutil.rmtree(worker_profile, ignore_errors=True)
+                print(
+                    f"[INFO] Reutilizando perfil existente para worker {worker_id}: "
+                    f"{worker_profile}"
+                )
+                perfiles[worker_id] = str(worker_profile)
+                continue
             if base.exists():
                 print(f"[INFO] Preparando perfil worker {worker_id}: {worker_profile}")
                 shutil.copytree(
@@ -725,18 +738,37 @@ def create_driver(
     browser_key = (browser or "edge").strip().lower()
     if browser_key == "edge":
         profile_dir = profile_dir_override or PROFILE_DIR_EDGE
+        legacy_profile_dir = LEGACY_PROFILE_DIR_EDGE
         browser_name = "Edge"
     elif browser_key == "chrome":
         profile_dir = profile_dir_override or PROFILE_DIR_CHROME
+        legacy_profile_dir = LEGACY_PROFILE_DIR_CHROME
         browser_name = "Chrome"
     else:
         raise ValueError("Navegador no soportado. Usa --browser edge o --browser chrome")
 
+    Path(profile_dir).parent.mkdir(parents=True, exist_ok=True)
+    profile_path = Path(profile_dir)
+    if not profile_path.exists() and legacy_profile_dir.exists():
+        try:
+            print(
+                f"[INFO] Migrando perfil legado de {browser_name} "
+                f"desde {legacy_profile_dir} hacia {profile_path}..."
+            )
+            shutil.copytree(
+                legacy_profile_dir,
+                profile_path,
+                ignore=shutil.ignore_patterns(*PROFILE_COPY_IGNORE),
+                dirs_exist_ok=True,
+            )
+        except Exception as e:
+            print(f"[WARN] No se pudo migrar perfil legado de {browser_name}: {e}")
+
     if clean_profile:
         try:
-            if Path(profile_dir).exists():
+            if profile_path.exists():
                 print(f"[INFO] Borrando perfil de {browser_name} corrupto...")
-                shutil.rmtree(profile_dir, ignore_errors=True)
+                shutil.rmtree(profile_path, ignore_errors=True)
         except Exception as e:
             print(f"[WARN] No se pudo borrar el perfil: {e}")
 
@@ -1083,6 +1115,11 @@ def cargar_procesados(csv_path: Path) -> Set[str]:
             if nrc:
                 done.add(nrc)
     return done
+
+
+def detect_missing_nrcs(records: Dict[str, NRCRecord], expected_nrcs: Sequence[str], csv_path: Path) -> List[str]:
+    processed = cargar_procesados(csv_path)
+    return [nrc for nrc in expected_nrcs if nrc in records and nrc not in processed]
 
 
 def leer_headers_csv(csv_path: Path) -> List[str]:
@@ -1659,6 +1696,7 @@ def run(args):
     print(f"[INFO] Excel final: {output_xlsx}")
     print(f"[INFO] Reporte sin matricula: {matricula_xlsx}")
     print(f"[INFO] Reporte aulas vacias/sin participantes: {vacias_xlsx}")
+    print(f"[INFO] Perfil navegador root: {PROFILE_ROOT}")
     print(f"[INFO] Headless: {'SI' if args.headless else 'NO'}")
     print(f"[INFO] Workers: {workers}")
     print(
@@ -1783,6 +1821,53 @@ def run(args):
             total_merge_matricula += append_csv_rows(part_matricula, matricula_csv)
         print(f"[INFO] Filas consolidadas al checkpoint: {total_merge}")
         print(f"[INFO] Filas consolidadas en sin matricula: {total_merge_matricula}")
+
+        missing_after_merge = detect_missing_nrcs(records, pendientes, output_csv)
+        if AUTO_RECOVERY_MISSING_WORKERS and missing_after_merge:
+            print(
+                f"[WARN] Quedaron {len(missing_after_merge)} NRC sin fila consolidada tras multi-worker. "
+                "Iniciando pasada de recuperacion secuencial..."
+            )
+            recovery_csv = temp_dir / "recovery_missing.csv"
+            recovery_matricula = temp_dir / "recovery_missing_SIN_MATRICULA.csv"
+            if recovery_csv.exists():
+                recovery_csv.unlink()
+            if recovery_matricula.exists():
+                recovery_matricula.unlink()
+
+            recovery_profile = perfiles.get(1) or str(profile_dir_base(args.browser))
+            recovered_now = procesar_nrcs_lote(
+                records=records,
+                nrcs=missing_after_merge,
+                browser=args.browser,
+                output_csv=recovery_csv,
+                matricula_csv=recovery_matricula,
+                catalogo_d40=catalogo_d40,
+                headless=args.headless,
+                worker_id=1,
+                total_workers=1,
+                profile_dir_override=recovery_profile,
+                strict_modalidad=args.modo_estricto_modalidad,
+                modalidades_forzadas=modalidades_permitidas,
+                prelogin_modalidades=prelogin_modalidades,
+                solo_nrc_5_digitos=args.solo_nrc_5_digitos,
+                nrc_5_segun_archivo=args.nrc_5_segun_archivo,
+            )
+            recovered_merge = append_csv_rows(recovery_csv, output_csv)
+            recovered_matricula_merge = append_csv_rows(recovery_matricula, matricula_csv)
+            print(
+                f"[INFO] Recuperacion secuencial: "
+                f"{recovered_now} procesados | {recovered_merge} consolidados | "
+                f"{recovered_matricula_merge} sin matricula."
+            )
+            still_missing = detect_missing_nrcs(records, pendientes, output_csv)
+            if still_missing:
+                print(
+                    f"[WARN] Aun faltan {len(still_missing)} NRC tras recuperacion. "
+                    f"Ejemplo: {', '.join(still_missing[:10])}"
+                )
+            else:
+                print("[INFO] Recuperacion completada sin NRC faltantes.")
 
     if output_csv.exists():
         csv_to_xlsx(output_csv, output_xlsx)

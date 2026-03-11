@@ -235,14 +235,26 @@ def leer_filas_desde_csv(ruta_csv: str):
     return filas
 
 
-def detectar_modalidad_por_nrc(nrc: str):
+def detectar_modalidad_por_nrc(nrc: str, periodo: str = ""):
     """
     Devuelve la clave de modalidad ('presencial', 'posgrados', etc.)
-    según el prefijo del NRC. Si no coincide, devuelve None.
+    según el prefijo del NRC. Si no coincide, intenta inferirla por periodo.
     """
     for clave_mod, cfg in MODALIDADES.items():
         if any(nrc.startswith(pref) for pref in cfg["prefixes"]):
             return clave_mod
+
+    periodo = (periodo or "").strip()
+    sufijo = periodo[-2:] if len(periodo) >= 2 else ""
+    if sufijo in ("10", "60"):
+        return "presencial"
+    if sufijo in ("11", "21", "41", "61", "71"):
+        return "posgrados"
+    if sufijo in ("15", "65"):
+        return "distancia"
+    if sufijo in ("80", "85", "62", "86"):
+        return "moocs"
+
     return None
 
 
@@ -252,7 +264,7 @@ def modalidades_presentes_en_csv(filas):
     """
     presentes = set()
     for fila in filas:
-        mod = detectar_modalidad_por_nrc(fila["nrc"])
+        mod = detectar_modalidad_por_nrc(fila["nrc"], fila.get("periodo", ""))
         if mod:
             presentes.add(mod)
         else:
@@ -601,7 +613,7 @@ def main():
             periodo = fila["periodo"]
             programa = fila["programa"]
 
-            clave_mod = detectar_modalidad_por_nrc(nrc)
+            clave_mod = detectar_modalidad_por_nrc(nrc, periodo)
             if not clave_mod:
                 print(f"[SKIP] NRC {nrc} no coincide con ninguna modalidad configurada.")
                 continue

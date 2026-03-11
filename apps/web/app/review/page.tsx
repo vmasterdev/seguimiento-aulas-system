@@ -1,8 +1,9 @@
 export const dynamic = 'force-dynamic';
 
-import { ReviewPanel } from '../review-panel';
+import { ReviewPanel } from '../_features/review/review-panel';
+import { SinglePanelPageShell } from '../_components/page-shell';
+import { CLIENT_API_BASE } from '../_lib/api';
 
-const API_BASE = '/api/backend';
 const MOODLE_URL_TEMPLATE = process.env.NEXT_PUBLIC_MOODLE_URL_TEMPLATE ?? '';
 
 type Props = {
@@ -23,16 +24,19 @@ export default function ReviewPage({ searchParams }: Props) {
   const category = categoryRaw === 'TEMPORAL' ? 'TEMPORAL' : 'MUESTREO';
 
   return (
-    <main style={{ width: 'min(560px, 95vw)', margin: '16px auto' }}>
+    <SinglePanelPageShell
+      active="review"
+      title="Revision Manual de NRC"
+      description="Carga una cola de revision, abre Moodle y guarda la evaluacion manual del NRC seleccionado."
+    >
       <ReviewPanel
-        apiBase={API_BASE}
-        compact
+        apiBase={CLIENT_API_BASE}
         initialPeriodCode={periodCode}
         initialMoment={moment}
         initialPhase={phase}
         initialCategory={category}
         initialMoodleUrlTemplate={MOODLE_URL_TEMPLATE}
       />
-    </main>
+    </SinglePanelPageShell>
   );
 }

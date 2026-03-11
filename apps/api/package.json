@@ -8,10 +8,13 @@
     "build": "tsc -p tsconfig.json",
     "lint": "echo \"(api) lint TBD\"",
     "test": "echo \"(api) test TBD\"",
+    "test:outbox": "tsx scripts/test-outbox-report-builder.ts",
     "prisma:generate": "prisma generate",
     "prisma:migrate": "prisma migrate dev --name init",
     "prisma:studio": "prisma studio",
     "prisma:seed": "tsx prisma/seed.ts",
+    "programs:normalize": "tsx scripts/normalize-program-names.ts",
+    "teachers:program-overrides": "tsx scripts/apply-teacher-program-overrides.ts",
     "sidecar:adapter": "tsx scripts/moodle_url_resolver_adapter.ts",
     "sidecar:adapter:dry": "tsx scripts/moodle_url_resolver_adapter.ts --dry-run"
   },

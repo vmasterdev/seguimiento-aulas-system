@@ -83,15 +83,25 @@ pnpm db:seed
 5. Iniciar todo el sistema:
 
 ```bash
-pnpm dev
+pnpm stack:up
 ```
+
+Comandos utiles del stack local:
+
+```bash
+pnpm stack:status
+pnpm stack:down
+```
+
+En WSL, `pnpm stack:up` detecta automaticamente si el repo esta sobre `/mnt/c` y arranca el API desde la copia Linux estable en `$HOME/seguimiento-api-run-20260307`, sincronizando antes el `dist` y la configuracion del backend.
 
 Servicios por defecto:
 
 - API: `http://localhost:3001`
 - Web: `http://localhost:3000`
+- Web V2: `http://localhost:3010`
 - Postgres: `localhost:5433`
-- Redis: `localhost:6380`
+- Redis: `localhost:16380`
 
 Variable opcional para abrir Moodle desde revision manual:
 
@@ -322,8 +332,8 @@ Notas:
   - `MD1` (`RY1`) en Alistamiento y Ejecucion
   - `MD2` (`RY2`) en Alistamiento y Ejecucion
   - `1` (`RYC`) en Alistamiento y Ejecucion
-- Los estilos HTML de correo para docente/coordinacion se toman desde la carpeta `ejemplo_reportes`.
-  - Variable opcional: `REPORT_TEMPLATES_DIR` (por defecto `../../ejemplo_reportes` desde `apps/api`).
+- Los estilos HTML activos del outbox ya viven dentro del modulo `apps/api/src/modules/outbox`.
+  - La carpeta `ejemplo_reportes` queda como referencia historica, no como dependencia runtime.
 - Para el reporte global (`audience: GLOBAL`) puedes definir destinatario por variables:
   - `OUTBOX_GLOBAL_RECIPIENT_EMAIL`
   - `OUTBOX_GLOBAL_RECIPIENT_NAME`

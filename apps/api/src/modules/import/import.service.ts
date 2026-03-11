@@ -1,7 +1,10 @@
 import { Inject, Injectable, Logger } from '@nestjs/common';
+import fs from 'node:fs/promises';
+import path from 'node:path';
 import { parse } from 'csv-parse/sync';
 import { read, utils } from 'xlsx';
 import { z } from 'zod';
+import { Prisma } from '@prisma/client';
 import {
   inferModality,
   inferSemesterFromPeriod,
@@ -14,7 +17,8 @@ import {
 } from '@seguimiento/shared';
 import { PrismaService } from '../prisma.service';
 import { parseWithSchema } from '../common/zod.util';
-import { resolveProgramValue } from '../common/program.util';
+import { normalizeProgramValue, resolveProgramValue, resolveTeacherProgramOverride } from '../common/program.util';
+import { resolveProjectRoot } from '../moodle-url-resolver-adapter/adapter.logic';
 
 const ImportBodySchema = z.object({
   periodCode: z.string().trim().optional(),
@@ -22,6 +26,8 @@ const ImportBodySchema = z.object({
   modality: z.string().trim().optional(),
   semester: z.coerce.number().int().min(1).max(2).optional(),
   executionPolicy: z.enum(['APPLIES', 'AUTO_PASS']).optional(),
+  preserveTeacherAssignment: z.coerce.boolean().optional().default(true),
+  createOnly: z.coerce.boolean().optional().default(false),
 });
 
 const ImportTeachersBodySchema = z.object({
@@ -70,6 +76,24 @@ const COORDINATOR_PROGRAM_KEYS = ['id', 'programa', 'centrocosto', 'responsable'
 const COORDINATOR_EMAIL_KEYS = ['email', 'correo'];
 const COORDINATOR_NAME_KEYS = ['nombre', 'coordinador', 'responsable'];
 const COORDINATION_KEYS = ['responsable', 'centrocosto', 'programa'];
+
+type RpacaImportAction = 'CREATED' | 'UPDATED' | 'SKIPPED_EXISTING';
+
+type RpacaImportChange = {
+  action: RpacaImportAction;
+  periodCode: string;
+  nrc: string;
+  sourceFile: string;
+  rowNumber: number;
+  courseId: string | null;
+  teacherIdBefore: string | null;
+  teacherIdAfter: string | null;
+  teacherPreserved: boolean;
+  subjectNameBefore: string | null;
+  subjectNameAfter: string | null;
+  momentBefore: string | null;
+  momentAfter: string | null;
+};
 
 function detectDelimiter(text: string): string {
   const firstLine = text.split(/\r?\n/, 1)[0] ?? '';
@@ -186,6 +210,96 @@ export class ImportService {
 
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
+  private asRecord(value: unknown): Record<string, unknown> {
+    if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+    return value as Record<string, unknown>;
+  }
+
+  private resolveRpacaHistoryDir() {
+    return path.join(resolveProjectRoot(), 'storage', 'archive', 'imports', 'rpaca');
+  }
+
+  private buildCourseRawJson(input: {
+    existingRawJson: unknown;
+    fileName: string;
+    rowNumber: number;
+    row: Record<string, string>;
+    importId: string;
+    importedAt: string;
+    preserveTeacherAssignment: boolean;
+    createOnly: boolean;
+    teacherPreserved: boolean;
+  }): Prisma.InputJsonValue {
+    const raw = { ...this.asRecord(input.existingRawJson) } as Record<string, unknown>;
+
+    raw.sourceFile = input.fileName;
+    raw.rowNumber = input.rowNumber;
+    raw.row = input.row;
+    raw.rpacaImport = {
+      importId: input.importId,
+      importedAt: input.importedAt,
+      preserveTeacherAssignment: input.preserveTeacherAssignment,
+      createOnly: input.createOnly,
+      teacherPreserved: input.teacherPreserved,
+    };
+
+    return raw as Prisma.InputJsonValue;
+  }
+
+  private async writeRpacaImportHistory(input: {
+    importId: string;
+    files: Express.Multer.File[];
+    startedAt: string;
+    finishedAt: string;
+    options: {
+      preserveTeacherAssignment: boolean;
+      createOnly: boolean;
+      periodCode?: string;
+      periodLabel?: string;
+      modality?: string;
+      semester?: number;
+      executionPolicy?: 'APPLIES' | 'AUTO_PASS';
+    };
+    summary: {
+      totalRows: number;
+      createdCourses: number;
+      updatedCourses: number;
+      skippedRows: number;
+      skippedExistingCourses: number;
+      preservedTeacherAssignments: number;
+      periodsTouched: string[];
+      errors: string[];
+    };
+    changes: RpacaImportChange[];
+  }) {
+    const dir = this.resolveRpacaHistoryDir();
+    await fs.mkdir(dir, { recursive: true });
+
+    const fileName = `${input.importId}.json`;
+    const absolutePath = path.join(dir, fileName);
+    const payload = {
+      ok: true,
+      importId: input.importId,
+      source: 'RPACA',
+      startedAt: input.startedAt,
+      finishedAt: input.finishedAt,
+      files: input.files.map((file) => ({
+        originalName: file.originalname,
+        size: file.size,
+      })),
+      options: input.options,
+      summary: input.summary,
+      changes: input.changes,
+    };
+
+    await fs.writeFile(absolutePath, JSON.stringify(payload, null, 2), 'utf8');
+
+    return {
+      historyPath: absolutePath,
+      historyRelativePath: path.join('storage', 'archive', 'imports', 'rpaca', fileName),
+    };
+  }
+
   private async findTeacherByIdentifiers(identifiers: string[]) {
     if (!identifiers.length) return null;
 
@@ -226,7 +340,7 @@ export class ImportService {
   }
 
   private async syncTeacherProgramToCourses(teacherId: string, program: string | null) {
-    const resolved = resolveProgramValue({ teacherCostCenter: program });
+    const resolved = resolveProgramValue({ teacherId, teacherCostCenter: program });
     if (!resolved.programCode && !resolved.programName) return;
 
     await this.prisma.course.updateMany({
@@ -240,13 +354,21 @@ export class ImportService {
 
   async importCsvFiles(files: Express.Multer.File[], payload: unknown) {
     const body = parseWithSchema(ImportBodySchema, payload, 'import body');
+    const importStartedAt = new Date();
+    const importStartedAtIso = importStartedAt.toISOString();
+    const importId = `rpaca_${importStartedAt.toISOString().replace(/[:.]/g, '-')}`;
+    const preserveTeacherAssignment = body.preserveTeacherAssignment ?? true;
+    const createOnly = body.createOnly ?? false;
 
     let totalRows = 0;
     let createdCourses = 0;
     let updatedCourses = 0;
     let skippedRows = 0;
+    let skippedExistingCourses = 0;
+    let preservedTeacherAssignments = 0;
     const periodsTouched = new Set<string>();
     const errors: string[] = [];
+    const changes: RpacaImportChange[] = [];
 
     for (const file of files) {
       const sourceText = file.buffer.toString('utf8');
@@ -308,6 +430,38 @@ export class ImportService {
           });
           periodsTouched.add(period.code);
 
+          const uniqueCourseWhere = { nrc_periodId: { nrc, periodId: period.id } };
+          const existing = await this.prisma.course.findUnique({
+            where: uniqueCourseWhere,
+            select: {
+              id: true,
+              teacherId: true,
+              subjectName: true,
+              moment: true,
+              rawJson: true,
+            },
+          });
+
+          if (createOnly && existing) {
+            skippedExistingCourses += 1;
+            changes.push({
+              action: 'SKIPPED_EXISTING',
+              periodCode: period.code,
+              nrc,
+              sourceFile: file.originalname,
+              rowNumber: idx + 2,
+              courseId: existing.id,
+              teacherIdBefore: existing.teacherId ?? null,
+              teacherIdAfter: existing.teacherId ?? null,
+              teacherPreserved: false,
+              subjectNameBefore: existing.subjectName ?? null,
+              subjectNameAfter: existing.subjectName ?? null,
+              momentBefore: existing.moment ?? null,
+              momentAfter: existing.moment ?? null,
+            });
+            continue;
+          }
+
           const teacherSourceId = normalizeTeacherId(pickValue(row, TEACHER_SOURCE_ID_KEYS));
           const teacherDocumentId = normalizeTeacherId(pickValue(row, TEACHER_DOCUMENT_ID_KEYS));
           const teacherIdentifiers = uniqueTeacherIdentifiers([teacherSourceId, teacherDocumentId]);
@@ -320,6 +474,10 @@ export class ImportService {
           const importedProgramCode = inferProgramCode(row);
           const importedProgramName = pickValue(row, PROGRAM_NAME_KEYS) || null;
           const resolvedProgram = resolveProgramValue({
+            teacherId: matchedTeacher?.id ?? (teacherIdCandidate || null),
+            teacherSourceId: teacherSourceId || null,
+            teacherDocumentId: teacherDocumentId || null,
+            teacherName,
             teacherCostCenter: matchedTeacher?.costCenter ?? null,
             courseProgramCode: importedProgramCode,
             courseProgramName: importedProgramName,
@@ -375,17 +533,17 @@ export class ImportService {
               });
             }
           }
-
-          const uniqueCourseWhere = { nrc_periodId: { nrc, periodId: period.id } };
-          const existing = await this.prisma.course.findUnique({
-            where: uniqueCourseWhere,
-            select: { id: true },
-          });
+          const teacherPreserved =
+            !!existing && preserveTeacherAssignment && !teacherIdCandidate && !!existing.teacherId;
+          const teacherIdToPersist = teacherPreserved
+            ? existing.teacherId
+            : (teacherIdCandidate || null);
+          if (teacherPreserved) preservedTeacherAssignments += 1;
 
           const courseData = {
             nrc,
             periodId: period.id,
-            teacherId: teacherIdCandidate || null,
+            teacherId: teacherIdToPersist,
             campusCode: campus,
             programCode: resolvedProgram.programCode,
             programName: resolvedProgram.programName,
@@ -395,11 +553,17 @@ export class ImportService {
             salon1: pickValue(row, SALON1_KEYS) || null,
             templateDeclared,
             d4FlagLegacy,
-            rawJson: {
-              sourceFile: file.originalname,
+            rawJson: this.buildCourseRawJson({
+              existingRawJson: existing?.rawJson,
+              fileName: file.originalname,
               rowNumber: idx + 2,
               row,
-            },
+              importId,
+              importedAt: importStartedAtIso,
+              preserveTeacherAssignment,
+              createOnly,
+              teacherPreserved,
+            }),
           };
 
           const course = existing
@@ -411,6 +575,22 @@ export class ImportService {
           } else {
             createdCourses += 1;
           }
+
+          changes.push({
+            action: existing ? 'UPDATED' : 'CREATED',
+            periodCode: period.code,
+            nrc,
+            sourceFile: file.originalname,
+            rowNumber: idx + 2,
+            courseId: course.id,
+            teacherIdBefore: existing?.teacherId ?? null,
+            teacherIdAfter: teacherIdToPersist,
+            teacherPreserved,
+            subjectNameBefore: existing?.subjectName ?? null,
+            subjectNameAfter: subjectName,
+            momentBefore: existing?.moment ?? null,
+            momentAfter: moment,
+          });
 
           await this.prisma.moodleCheck.upsert({
             where: { courseId: course.id },
@@ -426,6 +606,44 @@ export class ImportService {
       }
     }
 
+    let historyPath: string | null = null;
+    let historyRelativePath: string | null = null;
+
+    try {
+      const history = await this.writeRpacaImportHistory({
+        importId,
+        files,
+        startedAt: importStartedAtIso,
+        finishedAt: new Date().toISOString(),
+        options: {
+          preserveTeacherAssignment,
+          createOnly,
+          periodCode: body.periodCode,
+          periodLabel: body.periodLabel,
+          modality: body.modality,
+          semester: body.semester,
+          executionPolicy: body.executionPolicy,
+        },
+        summary: {
+          totalRows,
+          createdCourses,
+          updatedCourses,
+          skippedRows,
+          skippedExistingCourses,
+          preservedTeacherAssignments,
+          periodsTouched: [...periodsTouched],
+          errors,
+        },
+        changes,
+      });
+      historyPath = history.historyPath;
+      historyRelativePath = history.historyRelativePath;
+    } catch (error) {
+      const message = `No fue posible guardar historial RPACA: ${error instanceof Error ? error.message : String(error)}`;
+      this.logger.error(message);
+      if (errors.length < 50) errors.push(message);
+    }
+
     return {
       ok: true,
       files: files.length,
@@ -433,7 +651,11 @@ export class ImportService {
       createdCourses,
       updatedCourses,
       skippedRows,
+      skippedExistingCourses,
+      preservedTeacherAssignments,
       periodsTouched: [...periodsTouched],
+      historyPath,
+      historyRelativePath,
       errors,
     };
   }
@@ -475,7 +697,7 @@ export class ImportService {
 
         for (const rowRaw of rowsRaw) {
           const row = normalizeRowKeys(rowRaw);
-          const programId = pickValue(row, COORDINATOR_PROGRAM_KEYS);
+          const programId = normalizeProgramValue(pickValue(row, COORDINATOR_PROGRAM_KEYS));
           const email = pickValue(row, COORDINATOR_EMAIL_KEYS).toLowerCase();
           const fullName = pickValue(row, COORDINATOR_NAME_KEYS) || 'Coordinador de programa';
 
@@ -566,8 +788,21 @@ export class ImportService {
         const email = pickValue(row, TEACHER_EMAIL_KEYS) || null;
         const campus = pickValue(row, CAMPUS_KEYS) || null;
         const region = pickValue(row, ['zona', 'region']) || null;
-        const costCenter = pickValue(row, ['centrocosto']) || null;
-        const coordination = pickValue(row, COORDINATION_KEYS) || null;
+        const costCenter = resolveTeacherProgramOverride({
+          teacherId,
+          teacherSourceId: sourceId || existing?.sourceId || null,
+          teacherDocumentId: documentId || existing?.documentId || null,
+          teacherName: fullName,
+          teacherCostCenter: pickValue(row, ['centrocosto']) || existing?.costCenter || null,
+        });
+        const coordination = resolveTeacherProgramOverride({
+          teacherId,
+          teacherSourceId: sourceId || existing?.sourceId || null,
+          teacherDocumentId: documentId || existing?.documentId || null,
+          teacherName: fullName,
+          teacherCostCenter:
+            pickValue(row, COORDINATION_KEYS) || pickValue(row, ['centrocosto']) || existing?.coordination || existing?.costCenter || null,
+        });
 
         await this.prisma.teacher.upsert({
           where: { id: teacherId },

@@ -1,9 +1,7 @@
-import { promises as fs, readFileSync, existsSync } from 'node:fs';
+import { promises as fs } from 'node:fs';
 import path from 'node:path';
 import { spawn } from 'node:child_process';
 import { BadRequestException, Inject, Injectable, NotFoundException } from '@nestjs/common';
-import nodemailer from 'nodemailer';
-import { z } from 'zod';
 import {
   normalizeProgramKey,
   normalizeTeacherId,
@@ -16,257 +14,59 @@ import { PrismaService } from '../prisma.service';
 import { parseWithSchema } from '../common/zod.util';
 import { resolveProgramValue } from '../common/program.util';
 import { isCourseExcludedFromReview } from '../common/review-eligibility.util';
-
-type GeneratePayload = {
-  periodCode: string;
-  periodCodes?: string[];
-  phase: 'ALISTAMIENTO' | 'EJECUCION';
-  moment?: 'MD1' | 'MD2' | '1' | 'INTER' | 'RM1' | 'RM2';
-  moments?: Array<'MD1' | 'MD2' | '1' | 'INTER' | 'RM1' | 'RM2'>;
-  audience?: 'DOCENTE' | 'COORDINADOR' | 'GLOBAL';
-  teacherId?: string;
-  recipientName?: string;
-  recipientEmails?: string[];
-};
-
-type SendPayload = {
-  ids?: string[];
-  periodCode?: string;
-  periodCodes?: string[];
-  phase?: 'ALISTAMIENTO' | 'EJECUCION';
-  moment?: 'MD1' | 'MD2' | '1' | 'INTER' | 'RM1' | 'RM2';
-  moments?: Array<'MD1' | 'MD2' | '1' | 'INTER' | 'RM1' | 'RM2'>;
-  audience?: 'DOCENTE' | 'COORDINADOR' | 'GLOBAL';
-  status?: 'DRAFT' | 'EXPORTED' | 'SENT_MANUAL' | 'SENT_AUTO';
-  limit?: number;
-  forceTo?: string;
-  dryRun?: boolean;
-};
-
-type OutboxTrackingQuery = {
-  periodCode?: string;
-  phase?: 'ALISTAMIENTO' | 'EJECUCION';
-  moment?: 'MD1' | 'MD2' | '1' | 'INTER' | 'RM1' | 'RM2';
-  audience?: 'DOCENTE' | 'COORDINADOR' | 'GLOBAL';
-  status?: string;
-  search?: string;
-  page?: string;
-  pageSize?: string;
-};
-
-type SendCandidate = {
-  id: string;
-  originalTo: string;
-  to: string;
-  cc?: string;
-  recipientName: string;
-  fingerprint: string;
-  messageCreatedAt: Date;
-  subject: string;
-  htmlBody: string;
-  audience: string;
-  periodCode: string;
-  periodId: string;
-  phase: string;
-  moment: string;
-  teacherId?: string;
-  coordinatorId?: string;
-};
-
-type SendAuditLogDetail = {
-  to?: string;
-  error?: string;
-  messageId?: string | null;
-  deliveryMode?: 'SMTP' | 'OUTLOOK';
-  forceToApplied?: boolean;
-  recipientName?: string;
-  fingerprint?: string;
-};
-
-const OutboxResendUpdatedSchema = z.object({
-  id: z.string().trim().min(1),
-  forceTo: z.string().trim().email().optional(),
-  dryRun: z.coerce.boolean().optional().default(false),
-});
-
-const OutboxResendByCourseSchema = z.object({
-  courseId: z.string().trim().min(1),
-  phase: z.enum(['ALISTAMIENTO', 'EJECUCION']).default('ALISTAMIENTO'),
-  forceTo: z.string().trim().email().optional(),
-  dryRun: z.coerce.boolean().optional().default(false),
-});
-
-const OutboxPreviewByCourseSchema = z.object({
-  courseId: z.string().trim().min(1),
-  phase: z.enum(['ALISTAMIENTO', 'EJECUCION']).default('ALISTAMIENTO'),
-});
-
-const SUPPORTED_MOMENTS = ['MD1', 'MD2', '1', 'INTER', 'RM1', 'RM2'] as const;
-
-function sanitizeForFilename(input: string): string {
-  return input.replace(/[^a-zA-Z0-9_.-]+/g, '_');
-}
-
-function toEml(payload: { to: string; cc?: string; subject: string; html: string }) {
-  const headers = [
-    `To: ${payload.to}`,
-    payload.cc ? `Cc: ${payload.cc}` : null,
-    `Subject: ${payload.subject.replace(/[\r\n]+/g, ' ')}`,
-    'MIME-Version: 1.0',
-    'Content-Type: text/html; charset=UTF-8',
-    '',
-  ]
-    .filter(Boolean)
-    .join('\n');
-
-  return `${headers}\n${payload.html}`;
-}
-
-function parseEnvBoolean(raw: string | undefined, fallback: boolean): boolean {
-  if (raw == null) return fallback;
-  const normalized = raw.trim().toLowerCase();
-  if (!normalized) return fallback;
-  if (['1', 'true', 'yes', 'si', 'on'].includes(normalized)) return true;
-  if (['0', 'false', 'no', 'off'].includes(normalized)) return false;
-  return fallback;
-}
-
-function escapeHtml(value: string): string {
-  return value
-    .replace(/&/g, '&amp;')
-    .replace(/</g, '&lt;')
-    .replace(/>/g, '&gt;')
-    .replace(/"/g, '&quot;')
-    .replace(/'/g, '&#39;');
-}
-
-function formatMomentLabel(value: string): string {
-  const normalized = (value || '').trim().toUpperCase();
-  if (normalized === 'MD1') return 'M1';
-  if (normalized === 'MD2') return 'M2';
-  if (normalized === '1') return 'RYC';
-  return value || '-';
-}
-
-function normalizeMomentList(
-  moment?: GeneratePayload['moment'] | SendPayload['moment'],
-  moments?: GeneratePayload['moments'] | SendPayload['moments'],
-): Array<(typeof SUPPORTED_MOMENTS)[number]> {
-  const seen = new Set<(typeof SUPPORTED_MOMENTS)[number]>();
-  const selected: Array<(typeof SUPPORTED_MOMENTS)[number]> = [];
-  for (const value of [moment, ...(moments ?? [])]) {
-    if (!value || !SUPPORTED_MOMENTS.includes(value)) continue;
-    if (seen.has(value)) continue;
-    seen.add(value);
-    selected.push(value);
-  }
-  return selected;
-}
-
-function normalizeRecipientEmails(input: string[] | undefined): string[] {
-  if (!input?.length) return [];
-  const seen = new Set<string>();
-  const emails: string[] = [];
-  for (const raw of input) {
-    const normalized = raw.trim();
-    if (!normalized) continue;
-    const key = normalized.toLowerCase();
-    if (seen.has(key)) continue;
-    seen.add(key);
-    emails.push(normalized);
-  }
-  return emails;
-}
-
-function normalizePeriodCodeList(
-  periodCode?: string,
-  periodCodes?: string[],
-): string[] {
-  const seen = new Set<string>();
-  const selected: string[] = [];
-  for (const value of [periodCode, ...(periodCodes ?? [])]) {
-    const normalized = String(value ?? '').trim();
-    if (!normalized || seen.has(normalized)) continue;
-    seen.add(normalized);
-    selected.push(normalized);
-  }
-  return selected;
-}
-
-function parseStoredRecipientEmails(value?: string | null): string[] {
-  if (!value) return [];
-  return normalizeRecipientEmails(value.split(/[\n,;]+/));
-}
-
-type CourseCoordinationRow = {
-  periodCode: string;
-  periodLabel: string | null;
-  teacherName: string;
-  nrc: string;
-  subject: string;
-  moment: string;
-  status: string;
-  template: string;
-  score: number | null;
-  coordinationKey: string;
-  coordinationName: string;
-};
-
-type GlobalSummaryRow = {
-  coordination: string;
-  total: number;
-  average: number | null;
-  excellent: number;
-  good: number;
-  acceptable: number;
-  unsatisfactory: number;
-};
-
-type GlobalPeriodSummaryRow = {
-  periodCode: string;
-  moments: string[];
-  total: number;
-  average: number | null;
-  excellent: number;
-  good: number;
-  acceptable: number;
-  unsatisfactory: number;
-};
-
-type GlobalMomentSummaryRow = {
-  moment: string;
-  total: number;
-  average: number | null;
-  excellent: number;
-  good: number;
-  acceptable: number;
-  unsatisfactory: number;
-};
-
-const TEACHER_BOOKING_URL =
-  'https://outlook.office.com/book/CampusVirtual1@uniminuto.edu/s/y4TJLlHIjkmqPphvip1Piw2?ismsaljsauthenabled';
-const CAMPUS_VIRTUAL_COMMUNICADO_URL = 'https://comunicado2026.netlify.app/';
+import { SUPPORTED_MOMENTS, type SupportedMoment } from './outbox.constants';
+import {
+  buildSendFingerprint,
+  createSmtpTransport,
+  normalizeFingerprintToken,
+  parsePositiveInt,
+  resolveDeliveryMode,
+} from './outbox.delivery';
+import {
+  buildCoordinatorHtml,
+  buildGlobalHtml,
+  buildTeacherHtml,
+  formatScoreForPhase,
+  matchCoordinatorCourse,
+  summarizeGlobalRows,
+  toScoreBand,
+  toScoreBandForPhase,
+} from './outbox.report-builder';
+import {
+  OutboxPreviewByCourseSchema,
+  OutboxResendByCourseSchema,
+  OutboxResendUpdatedSchema,
+} from './outbox.schemas';
+import type {
+  CourseCoordinationRow,
+  GeneratePayload,
+  GlobalMomentSummaryRow,
+  GlobalPeriodSummaryRow,
+  GlobalSummaryRow,
+  OutboxTrackingQuery,
+  SendAuditLogDetail,
+  SendCandidate,
+  SendPayload,
+} from './outbox.types';
+import {
+  formatMomentLabel,
+  isSupportedMoment,
+  normalizeMomentList,
+  normalizePeriodCodeList,
+  normalizeRecipientEmails,
+  parseEnvBoolean,
+  parseStoredRecipientEmails,
+  sanitizeForFilename,
+  toEml,
+} from './outbox.utils';
 
 @Injectable()
 export class OutboxService {
-  private readonly templateStyleCache = new Map<string, string>();
-
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   private resolveOutboxDir() {
     const raw = process.env.OUTBOX_DIR ?? '../../data/outbox';
     return path.resolve(process.cwd(), raw);
-  }
-
-  private resolveReportTemplatesDir() {
-    const raw = process.env.REPORT_TEMPLATES_DIR ?? '../../ejemplo_reportes';
-    const primary = path.resolve(process.cwd(), raw);
-    if (existsSync(primary)) return primary;
-
-    const fallback = path.resolve(process.cwd(), 'ejemplo_reportes');
-    if (existsSync(fallback)) return fallback;
-
-    return primary;
   }
 
   private normalizeGlobalSelectedPeriods(rawPeriodCodes: string[] | undefined, fallbackPeriodCode: string): string[] {
@@ -327,6 +127,21 @@ export class OutboxService {
     return value as Record<string, unknown>;
   }
 
+  private buildSendMomentFilterValues(selectedMoments: SupportedMoment[]): string[] {
+    if (!selectedMoments.length) return [];
+    if (selectedMoments.length === 1) return [selectedMoments[0]];
+
+    const canonicalOrder = [...selectedMoments].sort(
+      (left, right) => SUPPORTED_MOMENTS.indexOf(left) - SUPPORTED_MOMENTS.indexOf(right),
+    );
+
+    return [...new Set([
+      ...selectedMoments,
+      selectedMoments.join('+'),
+      canonicalOrder.join('+'),
+    ])];
+  }
+
   private isTemporalChecklistCourse(rawJson: unknown): boolean {
     const root = this.asRecord(rawJson);
     const marker = this.asRecord(root.specialChecklistQueue);
@@ -376,23 +191,6 @@ export class OutboxService {
     return this.isTemporalChecklistCourse(input.rawJson) && this.hasPhaseScore(input.evaluations, input.phase);
   }
 
-  private loadTemplateStyle(fileName: string): string {
-    const cached = this.templateStyleCache.get(fileName);
-    if (cached !== undefined) return cached;
-
-    try {
-      const absolutePath = path.join(this.resolveReportTemplatesDir(), fileName);
-      const template = readFileSync(absolutePath, 'utf8');
-      const styleMatch = template.match(/<style[^>]*>[\s\S]*?<\/style>/i);
-      const style = styleMatch?.[0] ?? '';
-      this.templateStyleCache.set(fileName, style);
-      return style;
-    } catch {
-      this.templateStyleCache.set(fileName, '');
-      return '';
-    }
-  }
-
   private buildTeacherHtml(options: {
     teacherName: string;
     phase: string;
@@ -401,6 +199,7 @@ export class OutboxService {
     rows: Array<{
       nrc: string;
       reviewedNrc: string;
+      moodleCourseUrl?: string | null;
       moment: string;
       resultType: 'REVISADO' | 'REPLICADO';
       subject: string;
@@ -410,180 +209,7 @@ export class OutboxService {
       observations: string;
     }>;
   }) {
-    const templateStyle =
-      this.loadTemplateStyle('reporte_docente_albeiro_m1_ryc_alistamiento_preview.html') ||
-      this.loadTemplateStyle('ejemplo Docentes - Profesores.html');
-    const phaseUpper = options.phase.toUpperCase();
-    const phaseLabel = options.phase === 'ALISTAMIENTO' ? 'Alistamiento' : 'Ejecucion';
-    const scoreScale = phaseUpper === 'ALISTAMIENTO' ? 50 : 100;
-    const selectedCount = options.rows.filter((row) => row.resultType === 'REVISADO').length;
-    const replicatedCount = options.rows.filter((row) => row.resultType === 'REPLICADO').length;
-    const scoredRows = options.rows.filter((row) => row.score != null);
-    const average = scoredRows.length
-      ? scoredRows.reduce((acc, row) => acc + (row.score ?? 0), 0) / scoredRows.length
-      : null;
-    const byBand = {
-      EXCELENTE: 0,
-      BUENO: 0,
-      ACEPTABLE: 0,
-      INSATISFACTORIO: 0,
-    } as const;
-    const bandCounter = { ...byBand };
-    for (const row of options.rows) {
-      const band = this.toScoreBandForPhase(row.score, phaseUpper);
-      bandCounter[band] += 1;
-    }
-    const asPercent = (count: number) =>
-      options.rows.length ? Number(((count / options.rows.length) * 100).toFixed(1)) : 0;
-    const scoreSeg = {
-      EXCELENTE: asPercent(bandCounter.EXCELENTE),
-      BUENO: asPercent(bandCounter.BUENO),
-      ACEPTABLE: asPercent(bandCounter.ACEPTABLE),
-      INSATISFACTORIO: asPercent(bandCounter.INSATISFACTORIO),
-    };
-    const rowsHtml = options.rows
-      .map((row) => {
-        const band = this.toScoreBandForPhase(row.score, phaseUpper);
-        const bandLabel =
-          band === 'EXCELENTE'
-            ? 'Excelente'
-            : band === 'BUENO'
-              ? 'Bueno'
-              : band === 'ACEPTABLE'
-                ? 'Aceptable'
-                : 'Insatisfactorio';
-        const scoreLabel = this.formatScoreForPhase(row.score, phaseUpper);
-        const resultBadgeClass = row.resultType === 'REVISADO' ? 'badge-primary' : 'badge-muted';
-        return [
-          '<div class="course-card">',
-          '<div class="course-card-head">',
-          `<div class="course-card-title">NRC ${escapeHtml(row.nrc)}</div>`,
-          `<span class="result-badge ${resultBadgeClass}">${escapeHtml(row.resultType)}</span>`,
-          '</div>',
-          `<div class="course-card-score">${escapeHtml(scoreLabel)} | ${escapeHtml(bandLabel)}</div>`,
-          '<table class="course-kv" role="presentation" cellspacing="0" cellpadding="0" border="0">',
-          `<tr><td class="kv-key">Momento</td><td class="kv-val">${escapeHtml(formatMomentLabel(row.moment))} (${escapeHtml(row.moment)})</td></tr>`,
-          `<tr><td class="kv-key">NRC revisado</td><td class="kv-val">${escapeHtml(row.reviewedNrc)}</td></tr>`,
-          `<tr><td class="kv-key">Asignatura</td><td class="kv-val">${escapeHtml(row.subject)}</td></tr>`,
-          `<tr><td class="kv-key">Programa</td><td class="kv-val">${escapeHtml(row.program)}</td></tr>`,
-          `<tr><td class="kv-key">Tipo aula</td><td class="kv-val">${escapeHtml(row.template)}</td></tr>`,
-          `<tr><td class="kv-key">Observaciones</td><td class="kv-val">${escapeHtml(row.observations || 'Sin observaciones registradas.')}</td></tr>`,
-          '</table>',
-          '</div>',
-        ].join('');
-      })
-      .join('');
-    const extraStyle = [
-      '<style>',
-      '.course-cards{display:flex;flex-direction:column;gap:12px;}',
-      '.course-card{background:#ffffff;border:1px solid #d4d7dd;border-radius:14px;padding:12px 14px;box-shadow:0 2px 8px rgba(15,23,42,0.04);}',
-      '.course-card-head{display:flex;align-items:flex-start;justify-content:space-between;gap:12px;margin-bottom:8px;}',
-      '.course-card-title{font-size:13px;font-weight:800;color:#0a3e74;}',
-      '.result-badge{display:inline-flex;align-items:center;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:0.25px;text-transform:uppercase;border:1px solid transparent;}',
-      '.badge-primary{background:#e8f0fb;color:#0a4e8a;border-color:#c5d8f2;}',
-      '.badge-muted{background:#f3f4f6;color:#475569;border-color:#d8dee7;}',
-      '.course-card-score{margin:0 0 10px 0;font-size:13px;font-weight:700;color:#334155;}',
-      '.course-kv{width:100%;border-collapse:collapse;font-size:12px;table-layout:fixed;}',
-      '.course-kv td{padding:8px 0;border-top:1px solid #e4e9f1;vertical-align:top;color:#334155;line-height:1.45;}',
-      '.course-kv tr:first-child td{border-top:0;}',
-      '.kv-key{width:32%;padding-right:12px;font-size:11px;font-weight:800;letter-spacing:0.28px;text-transform:uppercase;color:#94a3b8;}',
-      '.kv-val{font-weight:600;color:#334155;}',
-      '@media only screen and (max-width:640px){.shell{margin:12px auto!important;border-radius:10px!important;}.body-wrap{padding:14px!important;}.hero{padding:14px!important;}.report-table{font-size:11px!important;}.report-table th,.report-table td{padding:8px 6px!important;}.course-card{padding:12px!important;}.course-card-head{flex-direction:column!important;align-items:flex-start!important;}.course-kv,.course-kv tbody,.course-kv tr,.course-kv td{display:block;width:100%;}.course-kv td{padding:6px 0!important;}.kv-key{padding-right:0!important;}}',
-      '</style>',
-    ].join('');
-    const summaryNotes = [
-      `<li><strong>${escapeHtml(formatMomentLabel(options.moment))}:</strong> ${selectedCount} NRC revisado(s) base y ${replicatedCount} NRC replicado(s).</li>`,
-      `<li><strong>Total reportado:</strong> ${options.rows.length} NRC en el correo.</li>`,
-      phaseUpper === 'ALISTAMIENTO'
-        ? `<li><strong>Escala de fase:</strong> esta fase se califica sobre ${scoreScale} puntos (${scoreScale}/${scoreScale} = Excelente).</li>`
-        : `<li><strong>Escala de fase:</strong> esta fase se califica sobre ${scoreScale} puntos.</li>`,
-    ].join('');
-
-    return [
-      '<html><head>',
-      templateStyle,
-      extraStyle,
-      '</head><body>',
-      '<div class="shell"><div class="top-strip" style="background:#ffc300;background-image:linear-gradient(90deg,#ffc300 0%,#ffd95c 100%);"></div>',
-      '<div class="hero" style="background:#002b5c;background-image:linear-gradient(120deg,#002b5c 0%,#0057a4 100%);color:#ffffff;">',
-      '<h2 class="hero-title">Reporte de seguimiento - <span class="hero-highlight">Campus Virtual RCS</span></h2>',
-      `<div class="hero-subtitle">Periodo ${escapeHtml(options.periodCode)} | Fase de ${escapeHtml(phaseLabel)} | Momentos: M1 (MD1) y RYC (1)</div>`,
-      `<div class="hero-period-pill">Periodo reportado: ${escapeHtml(options.periodCode)}</div>`,
-      '</div>',
-      '<div class="body-wrap">',
-      `<div class="period-banner">PERIODO REPORTADO: ${escapeHtml(options.periodCode)} | FASE: ${escapeHtml(options.phase)} | MOMENTO: ${escapeHtml(formatMomentLabel(options.moment))} (${escapeHtml(options.moment)})</div>`,
-      '<div class="quick-access"><p class="quick-access-title">Acceso rapido</p><p class="quick-access-text">Antes de revisar el detalle, puedes consultar los criterios oficiales del seguimiento.</p><div class="quick-access-actions">',
-      `<a class="cta-btn alt" href="${CAMPUS_VIRTUAL_COMMUNICADO_URL}" target="_blank" rel="noopener">Ver comunicado Campus Virtual</a>`,
-      '</div></div>',
-      `<p><strong>Cordial saludo, ${escapeHtml(options.teacherName)},</strong></p>`,
-      `<p>Desde Campus Virtual compartimos el consolidado para el periodo ${escapeHtml(options.periodCode)}. A continuacion encontrara el detalle por NRC con su momento, NRC revisado base y NRC replicados.</p>`,
-      '<div class="panel">',
-      '<div class="section-title">Resumen de desempeno de sus aulas</div>',
-      '<div class="kpi-grid">',
-      '<div class="kpi">',
-      '<div class="kpi-label">Aulas revisadas</div>',
-      `<div class="kpi-value">${options.rows.length}</div>`,
-      '</div>',
-      '<div class="kpi">',
-      '<div class="kpi-label">Promedio final</div>',
-      `<div class="kpi-value">${average == null ? 'N/A' : average.toFixed(1)}</div>`,
-      `<div class="kpi-meta">(0-${scoreScale})</div>`,
-      '</div>',
-      '<div class="kpi kpi-success">',
-      '<div class="kpi-label">Excelente</div>',
-      `<div class="kpi-value">${bandCounter.EXCELENTE}</div>`,
-      `<div class="kpi-meta">${scoreSeg.EXCELENTE}%</div>`,
-      '</div>',
-      '<div class="kpi kpi-info">',
-      '<div class="kpi-label">Bueno</div>',
-      `<div class="kpi-value">${bandCounter.BUENO}</div>`,
-      `<div class="kpi-meta">${scoreSeg.BUENO}%</div>`,
-      '</div>',
-      '<div class="kpi kpi-warning">',
-      '<div class="kpi-label">Aceptable</div>',
-      `<div class="kpi-value">${bandCounter.ACEPTABLE}</div>`,
-      `<div class="kpi-meta">${scoreSeg.ACEPTABLE}%</div>`,
-      '</div>',
-      '<div class="kpi kpi-danger">',
-      '<div class="kpi-label">Insatisfactorio</div>',
-      `<div class="kpi-value">${bandCounter.INSATISFACTORIO}</div>`,
-      `<div class="kpi-meta">${scoreSeg.INSATISFACTORIO}%</div>`,
-      '</div>',
-      '</div>',
-      '<div class="score-bar-wrap"><p class="score-bar-title">Barra de desempeno (Excelente / Bueno / Aceptable / Insatisfactorio)</p>',
-      '<div class="score-bar">',
-      `<div class="score-seg seg-exc" style="width:${scoreSeg.EXCELENTE}%;">${scoreSeg.EXCELENTE > 0 ? `Excelente ${scoreSeg.EXCELENTE}%` : ''}</div>`,
-      `<div class="score-seg seg-good" style="width:${scoreSeg.BUENO}%;">${scoreSeg.BUENO > 0 ? `Bueno ${scoreSeg.BUENO}%` : ''}</div>`,
-      `<div class="score-seg seg-ok" style="width:${scoreSeg.ACEPTABLE}%;">${scoreSeg.ACEPTABLE > 0 ? `Aceptable ${scoreSeg.ACEPTABLE}%` : ''}</div>`,
-      `<div class="score-seg seg-bad" style="width:${scoreSeg.INSATISFACTORIO}%;">${scoreSeg.INSATISFACTORIO > 0 ? `Insatisf. ${scoreSeg.INSATISFACTORIO}%` : ''}</div>`,
-      '</div>',
-      '<div class="score-legend">',
-      `<span class="legend-item"><span class="legend-dot dot-exc"></span>Excelente: ${bandCounter.EXCELENTE} (${scoreSeg.EXCELENTE}%)</span>`,
-      `<span class="legend-item"><span class="legend-dot dot-good"></span>Bueno: ${bandCounter.BUENO} (${scoreSeg.BUENO}%)</span>`,
-      `<span class="legend-item"><span class="legend-dot dot-ok"></span>Aceptable: ${bandCounter.ACEPTABLE} (${scoreSeg.ACEPTABLE}%)</span>`,
-      `<span class="legend-item"><span class="legend-dot dot-bad"></span>Insatisfactorio: ${bandCounter.INSATISFACTORIO} (${scoreSeg.INSATISFACTORIO}%)</span>`,
-      '</div></div>',
-      '</div>',
-      '<div class="panel">',
-      `<div class="section-title">Detalle por NRC - ${escapeHtml(formatMomentLabel(options.moment))} (${escapeHtml(options.moment)})</div>`,
-      `<div class="course-cards">${rowsHtml}</div>`,
-      '</div>',
-      '<div class="panel panel-warm">',
-      '<div class="section-title" style="color:#7a5b00;">Observaciones priorizadas para siguiente ciclo</div>',
-      `<ul class="obs-list">${summaryNotes}</ul>`,
-      '</div>',
-      '<div class="action-panel">',
-      '<p class="action-title">Acompanamiento</p>',
-      '<p class="action-text">Si necesitas revisar este reporte por periodo y resolver dudas puntuales, agenda un espacio.</p>',
-      '<div class="cta-wrap" style="margin-top:0;">',
-      `<a class="cta-btn" href="${TEACHER_BOOKING_URL}" target="_blank" rel="noopener">Agendar llamada / videollamada</a>`,
-      '</div>',
-      '</div>',
-      '<div style="margin-top:16px;text-align:center;color:#334155;font-size:13px;">Campus Virtual - Rectoria Centro Sur</div>',
-      `<div class="report-footer">Generado el ${new Date().toISOString().slice(0, 10)} - Reporte automatico de seguimiento de aulas.</div>`,
-      '</div></div>',
-      '</body></html>',
-    ].join('');
+    return buildTeacherHtml(options);
   }
 
   private buildCoordinatorHtml(options: {
@@ -604,319 +230,14 @@ export class OutboxService {
       score: number | null;
     }>;
   }) {
-    const templateStyle =
-      this.loadTemplateStyle('reporte_docente_albeiro_m1_ryc_alistamiento_preview.html') ||
-      this.loadTemplateStyle('ejemplo Programas - Coordinaciones.html');
-    const phaseUpper = options.phase.toUpperCase();
-    const phaseLabel = options.phase === 'ALISTAMIENTO' ? 'Alistamiento' : 'Ejecucion';
-    const scoreScale = phaseUpper === 'ALISTAMIENTO' ? 50 : 100;
-    const scoredRows = options.rows.filter((row) => row.score != null);
-    const average = scoredRows.length
-      ? scoredRows.reduce((acc, row) => acc + (row.score ?? 0), 0) / scoredRows.length
-      : null;
-    const bandCounter = {
-      EXCELENTE: 0,
-      BUENO: 0,
-      ACEPTABLE: 0,
-      INSATISFACTORIO: 0,
-    };
-    const moodleStatusCounter = new Map<string, number>();
-    const templateCounter = new Map<string, number>();
-    for (const row of options.rows) {
-      const band = this.toScoreBandForPhase(row.score, phaseUpper);
-      bandCounter[band] += 1;
-      const normalizedStatus = (row.status || 'SIN_CHECK').trim().toUpperCase() || 'SIN_CHECK';
-      const normalizedTemplate = (row.template || 'UNKNOWN').trim().toUpperCase() || 'UNKNOWN';
-      moodleStatusCounter.set(normalizedStatus, (moodleStatusCounter.get(normalizedStatus) ?? 0) + 1);
-      templateCounter.set(normalizedTemplate, (templateCounter.get(normalizedTemplate) ?? 0) + 1);
-    }
-    const asPercent = (count: number) =>
-      options.rows.length ? Number(((count / options.rows.length) * 100).toFixed(1)) : 0;
-    const scoreSeg = {
-      EXCELENTE: asPercent(bandCounter.EXCELENTE),
-      BUENO: asPercent(bandCounter.BUENO),
-      ACEPTABLE: asPercent(bandCounter.ACEPTABLE),
-      INSATISFACTORIO: asPercent(bandCounter.INSATISFACTORIO),
-    };
-    const selectedMomentsLabel = options.moments
-      .map((moment) => `${formatMomentLabel(moment)} (${moment})`)
-      .join(' | ');
-    const selectedPeriodsLabel = options.periodCodes.join(', ');
-    const summaryByPeriod = new Map<
-      string,
-      { total: number; scoreSum: number; scoredCount: number; excellent: number; good: number; acceptable: number; unsatisfactory: number }
-    >();
-    const summaryByMoment = new Map<
-      string,
-      { total: number; scoreSum: number; scoredCount: number; excellent: number; good: number; acceptable: number; unsatisfactory: number }
-    >();
-    const topStatuses = Array.from(moodleStatusCounter.entries())
-      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
-      .slice(0, 3);
-    const topTemplates = Array.from(templateCounter.entries())
-      .sort((left, right) => right[1] - left[1] || left[0].localeCompare(right[0]))
-      .slice(0, 3);
-    const rowsHtml = options.rows
-      .map((row) => {
-        const band = this.toScoreBandForPhase(row.score, phaseUpper);
-        const periodSummary = summaryByPeriod.get(row.periodCode) ?? {
-          total: 0,
-          scoreSum: 0,
-          scoredCount: 0,
-          excellent: 0,
-          good: 0,
-          acceptable: 0,
-          unsatisfactory: 0,
-        };
-        const momentSummary = summaryByMoment.get(row.moment) ?? {
-          total: 0,
-          scoreSum: 0,
-          scoredCount: 0,
-          excellent: 0,
-          good: 0,
-          acceptable: 0,
-          unsatisfactory: 0,
-        };
-        periodSummary.total += 1;
-        momentSummary.total += 1;
-        if (row.score != null) {
-          periodSummary.scoreSum += row.score;
-          periodSummary.scoredCount += 1;
-          momentSummary.scoreSum += row.score;
-          momentSummary.scoredCount += 1;
-        }
-        if (band === 'EXCELENTE') {
-          periodSummary.excellent += 1;
-          momentSummary.excellent += 1;
-        }
-        if (band === 'BUENO') {
-          periodSummary.good += 1;
-          momentSummary.good += 1;
-        }
-        if (band === 'ACEPTABLE') {
-          periodSummary.acceptable += 1;
-          momentSummary.acceptable += 1;
-        }
-        if (band === 'INSATISFACTORIO') {
-          periodSummary.unsatisfactory += 1;
-          momentSummary.unsatisfactory += 1;
-        }
-        summaryByPeriod.set(row.periodCode, periodSummary);
-        summaryByMoment.set(row.moment, momentSummary);
-        const bandLabel =
-          band === 'EXCELENTE'
-            ? 'Excelente'
-            : band === 'BUENO'
-              ? 'Bueno'
-              : band === 'ACEPTABLE'
-                ? 'Aceptable'
-                : 'Insatisfactorio';
-        const statusClass =
-          band === 'EXCELENTE'
-            ? 'status-success'
-            : band === 'BUENO'
-              ? 'status-info'
-              : band === 'ACEPTABLE'
-                ? 'status-warning'
-                : 'status-danger';
-        return [
-          '<tr>',
-          `<td>${escapeHtml(row.periodCode)}</td>`,
-          `<td>${escapeHtml(row.teacherName)}</td>`,
-          `<td>${escapeHtml(row.nrc)}</td>`,
-          `<td>${escapeHtml(row.subject)}</td>`,
-          `<td>${escapeHtml(formatMomentLabel(row.moment))} (${escapeHtml(row.moment)})</td>`,
-          `<td>${escapeHtml(row.status || 'SIN_CHECK')}</td>`,
-          `<td>${escapeHtml(row.template || 'UNKNOWN')}</td>`,
-          `<td class="t-center">${escapeHtml(this.formatScoreForPhase(row.score, phaseUpper))}</td>`,
-          `<td class="t-center"><span class="status-pill ${statusClass}">${escapeHtml(bandLabel)}</span></td>`,
-          '</tr>',
-        ].join('');
-      })
-      .join('');
-    const periodRowsHtml = options.periodCodes
-      .map((periodCode, idx) => {
-        const row = summaryByPeriod.get(periodCode) ?? {
-          total: 0,
-          scoreSum: 0,
-          scoredCount: 0,
-          excellent: 0,
-          good: 0,
-          acceptable: 0,
-          unsatisfactory: 0,
-        };
-        const background = idx % 2 === 0 ? '#ffffff' : '#f8fbff';
-        return [
-          `<tr style="background:${background};font-size:14px;">`,
-          `<td style="padding:8px 12px;text-align:left;font-weight:700;color:#0a3e74;">${escapeHtml(periodCode)}</td>`,
-          `<td style="padding:8px 12px;text-align:center;">${row.total}</td>`,
-          `<td style="padding:8px 12px;text-align:center;">${row.scoredCount > 0 ? (row.scoreSum / row.scoredCount).toFixed(1) : 'N/A'}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#dcfce7;">${row.excellent}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#dbeafe;">${row.good}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#ffedd5;">${row.acceptable}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#fee2e2;">${row.unsatisfactory}</td>`,
-          '</tr>',
-        ].join('');
-      })
-      .join('');
-    const momentRowsHtml = options.moments
-      .map((moment, idx) => {
-        const row = summaryByMoment.get(moment) ?? {
-          total: 0,
-          scoreSum: 0,
-          scoredCount: 0,
-          excellent: 0,
-          good: 0,
-          acceptable: 0,
-          unsatisfactory: 0,
-        };
-        const background = idx % 2 === 0 ? '#ffffff' : '#f8fbff';
-        return [
-          `<tr style="background:${background};font-size:14px;">`,
-          `<td style="padding:8px 12px;text-align:left;font-weight:700;color:#0a3e74;">${escapeHtml(formatMomentLabel(moment))} (${escapeHtml(moment)})</td>`,
-          `<td style="padding:8px 12px;text-align:center;">${row.total}</td>`,
-          `<td style="padding:8px 12px;text-align:center;">${row.scoredCount > 0 ? (row.scoreSum / row.scoredCount).toFixed(1) : 'N/A'}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#dcfce7;">${row.excellent}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#dbeafe;">${row.good}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#ffedd5;">${row.acceptable}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#fee2e2;">${row.unsatisfactory}</td>`,
-          '</tr>',
-        ].join('');
-      })
-      .join('');
-    const extraStyle = [
-      '<style>',
-      '.status-pill{display:inline-flex;align-items:center;justify-content:center;padding:5px 10px;border-radius:999px;font-size:11px;font-weight:800;letter-spacing:0.25px;text-transform:uppercase;border:1px solid transparent;white-space:nowrap;}',
-      '.status-success{background:#dcfce7;color:#166534;border-color:#bbf7d0;}',
-      '.status-info{background:#dbeafe;color:#1d4ed8;border-color:#bfdbfe;}',
-      '.status-warning{background:#ffedd5;color:#9a3412;border-color:#fed7aa;}',
-      '.status-danger{background:#fee2e2;color:#b91c1c;border-color:#fecaca;}',
-      '.summary-list{margin:0;padding-left:18px;color:#334155;font-size:13px;line-height:1.6;}',
-      '.summary-list strong{color:#0f172a;}',
-      '.report-table td{vertical-align:middle;}',
-      '@media only screen and (max-width:640px){.shell{margin:12px auto!important;border-radius:10px!important;}.body-wrap{padding:14px!important;}.hero{padding:14px!important;}.report-table{font-size:11px!important;}.report-table th,.report-table td{padding:8px 6px!important;}.status-pill{width:100%;}}',
-      '</style>',
-    ].join('');
-    const summaryNotes = [
-      `<li><strong>Momentos consolidados:</strong> ${escapeHtml(selectedMomentsLabel)}.</li>`,
-      `<li><strong>Periodos incluidos:</strong> ${escapeHtml(selectedPeriodsLabel)}.</li>`,
-      `<li><strong>NRC consolidados:</strong> ${options.rows.length} aulas consolidadas para el programa ${escapeHtml(options.programId)}.</li>`,
-      `<li><strong>Docentes impactados:</strong> ${options.uniqueTeachers} docente(s) con aulas reportadas en este corte.</li>`,
-      `<li><strong>Plantillas mas frecuentes:</strong> ${
-        topTemplates.length
-          ? topTemplates.map(([template, count]) => `${escapeHtml(template)} (${count})`).join(', ')
-          : 'Sin informacion disponible'
-      }.</li>`,
-      `<li><strong>Estados Moodle mas frecuentes:</strong> ${
-        topStatuses.length
-          ? topStatuses.map(([status, count]) => `${escapeHtml(status)} (${count})`).join(', ')
-          : 'Sin informacion disponible'
-      }.</li>`,
-    ].join('');
-
-    return [
-      '<html><head>',
-      templateStyle,
-      extraStyle,
-      '</head><body>',
-      '<div class="shell"><div class="top-strip" style="background:#ffc300;background-image:linear-gradient(90deg,#ffc300 0%,#ffd95c 100%);"></div>',
-      '<div class="hero" style="background:#002b5c;background-image:linear-gradient(120deg,#002b5c 0%,#0057a4 100%);color:#ffffff;">',
-      '<h2 class="hero-title">Reporte de seguimiento - <span class="hero-highlight">Campus Virtual RCS</span></h2>',
-      `<div class="hero-subtitle">Programa ${escapeHtml(options.programId)} | Fase de ${escapeHtml(phaseLabel)} | Momentos ${escapeHtml(
-        options.moments.map((moment) => formatMomentLabel(moment)).join(' + '),
-      )}</div>`,
-      `<div class="hero-period-pill">Periodos incluidos: ${escapeHtml(selectedPeriodsLabel)}</div>`,
-      '</div>',
-      '<div class="body-wrap">',
-      `<div class="period-banner">PERIODOS: ${escapeHtml(selectedPeriodsLabel)} | FASE: ${escapeHtml(options.phase)} | MOMENTOS: ${escapeHtml(selectedMomentsLabel)}</div>`,
-      '<div class="quick-access"><p class="quick-access-title">Acceso rapido</p><p class="quick-access-text">Antes de revisar el consolidado del programa, puede consultar el comunicado y los criterios oficiales del seguimiento.</p><div class="quick-access-actions">',
-      `<a class="cta-btn alt" href="${CAMPUS_VIRTUAL_COMMUNICADO_URL}" target="_blank" rel="noopener">Ver comunicado Campus Virtual</a>`,
-      '</div></div>',
-      `<p><strong>Cordial saludo, ${escapeHtml(options.coordinatorName)},</strong></p>`,
-      `<p>Desde Campus Virtual compartimos el consolidado del programa <strong>${escapeHtml(options.programId)}</strong> integrando los periodos ${escapeHtml(selectedPeriodsLabel)} y los momentos ${escapeHtml(selectedMomentsLabel)} en un solo correo. A continuacion encontrara el resumen del corte y el detalle por NRC para apoyar el seguimiento con sus docentes.</p>`,
-      '<div class="panel">',
-      '<div class="section-title">Resumen de desempeno del programa</div>',
-      '<div class="kpi-grid">',
-      '<div class="kpi"><div class="kpi-label">Periodos</div>',
-      `<div class="kpi-value">${options.periodCodes.length}</div></div>`,
-      '<div class="kpi"><div class="kpi-label">Momentos</div>',
-      `<div class="kpi-value">${options.moments.length}</div></div>`,
-      '<div class="kpi"><div class="kpi-label">Docentes</div>',
-      `<div class="kpi-value">${options.uniqueTeachers}</div></div>`,
-      '<div class="kpi"><div class="kpi-label">Aulas reportadas</div>',
-      `<div class="kpi-value">${options.rows.length}</div></div>`,
-      '<div class="kpi"><div class="kpi-label">Promedio final</div>',
-      `<div class="kpi-value">${average == null ? 'N/A' : average.toFixed(1)}</div>`,
-      `<div class="kpi-meta">(0-${scoreScale})</div></div>`,
-      '<div class="kpi kpi-success"><div class="kpi-label">Excelente</div>',
-      `<div class="kpi-value">${bandCounter.EXCELENTE}</div><div class="kpi-meta">${scoreSeg.EXCELENTE}%</div></div>`,
-      '<div class="kpi kpi-info"><div class="kpi-label">Bueno</div>',
-      `<div class="kpi-value">${bandCounter.BUENO}</div><div class="kpi-meta">${scoreSeg.BUENO}%</div></div>`,
-      '<div class="kpi kpi-warning"><div class="kpi-label">Aceptable</div>',
-      `<div class="kpi-value">${bandCounter.ACEPTABLE}</div><div class="kpi-meta">${scoreSeg.ACEPTABLE}%</div></div>`,
-      '<div class="kpi kpi-danger"><div class="kpi-label">Insatisfactorio</div>',
-      `<div class="kpi-value">${bandCounter.INSATISFACTORIO}</div><div class="kpi-meta">${scoreSeg.INSATISFACTORIO}%</div></div>`,
-      '</div>',
-      '<div class="score-bar-wrap"><p class="score-bar-title">Barra de desempeno (Excelente / Bueno / Aceptable / Insatisfactorio)</p>',
-      '<div class="score-bar">',
-      `<div class="score-seg seg-exc" style="width:${scoreSeg.EXCELENTE}%;">${scoreSeg.EXCELENTE > 0 ? `Excelente ${scoreSeg.EXCELENTE}%` : ''}</div>`,
-      `<div class="score-seg seg-good" style="width:${scoreSeg.BUENO}%;">${scoreSeg.BUENO > 0 ? `Bueno ${scoreSeg.BUENO}%` : ''}</div>`,
-      `<div class="score-seg seg-ok" style="width:${scoreSeg.ACEPTABLE}%;">${scoreSeg.ACEPTABLE > 0 ? `Aceptable ${scoreSeg.ACEPTABLE}%` : ''}</div>`,
-      `<div class="score-seg seg-bad" style="width:${scoreSeg.INSATISFACTORIO}%;">${scoreSeg.INSATISFACTORIO > 0 ? `Insatisf. ${scoreSeg.INSATISFACTORIO}%` : ''}</div>`,
-      '</div><div class="score-legend">',
-      `<span class="legend-item"><span class="legend-dot dot-exc"></span>Excelente: ${bandCounter.EXCELENTE} (${scoreSeg.EXCELENTE}%)</span>`,
-      `<span class="legend-item"><span class="legend-dot dot-good"></span>Bueno: ${bandCounter.BUENO} (${scoreSeg.BUENO}%)</span>`,
-      `<span class="legend-item"><span class="legend-dot dot-ok"></span>Aceptable: ${bandCounter.ACEPTABLE} (${scoreSeg.ACEPTABLE}%)</span>`,
-      `<span class="legend-item"><span class="legend-dot dot-bad"></span>Insatisfactorio: ${bandCounter.INSATISFACTORIO} (${scoreSeg.INSATISFACTORIO}%)</span>`,
-      '</div></div></div>',
-      '<div class="panel">',
-      '<div class="section-title">Corte por momento</div>',
-      '<div class="table-container">',
-      '<table class="report-table">',
-      '<thead><tr><th>Momento</th><th>Aulas</th><th>Promedio</th><th>Excelente</th><th>Bueno</th><th>Aceptable</th><th>Insatisf.</th></tr></thead>',
-      `<tbody>${momentRowsHtml}</tbody>`,
-      '</table></div></div>',
-      '<div class="panel">',
-      '<div class="section-title">Corte por periodo</div>',
-      '<div class="table-container">',
-      '<table class="report-table">',
-      '<thead><tr><th>Periodo</th><th>Aulas</th><th>Promedio</th><th>Excelente</th><th>Bueno</th><th>Aceptable</th><th>Insatisf.</th></tr></thead>',
-      `<tbody>${periodRowsHtml}</tbody>`,
-      '</table></div></div>',
-      '<div class="panel">',
-      `<div class="section-title">Detalle por NRC - ${escapeHtml(options.programId)}</div>`,
-      '<div class="table-container">',
-      '<table class="report-table">',
-      '<thead><tr><th>Periodo</th><th>Docente</th><th>NRC</th><th>Asignatura</th><th>Momento</th><th>Estado Moodle</th><th>Plantilla</th><th>Puntaje fase</th><th>Resultado</th></tr></thead>',
-      `<tbody>${rowsHtml}</tbody>`,
-      '</table></div></div>',
-      '<div class="panel panel-warm">',
-      '<div class="section-title" style="color:#7a5b00;">Observaciones priorizadas para siguiente ciclo</div>',
-      `<ul class="summary-list">${summaryNotes}</ul>`,
-      '</div>',
-      '<div class="action-panel">',
-      '<p class="action-title">Acompanamiento por programa</p>',
-      '<p class="action-text">Si requiere revisar hallazgos del programa o priorizar seguimiento con su coordinacion, puede agendar un espacio con Campus Virtual.</p>',
-      '<div class="cta-wrap" style="margin-top:0;">',
-      `<a class="cta-btn" href="${TEACHER_BOOKING_URL}" target="_blank" rel="noopener">Agendar llamada / videollamada</a>`,
-      '</div></div>',
-      '<div style="margin-top:16px;text-align:center;color:#334155;font-size:13px;">Campus Virtual - Rectoria Centro Sur</div>',
-      `<div class="report-footer">Generado el ${new Date().toISOString().slice(0, 10)} - Reporte automatico de seguimiento de aulas.</div>`,
-      '</div></div>',
-      '</body></html>',
-    ].join('');
+    return buildCoordinatorHtml(options);
   }
 
   private matchCoordinatorCourse(
     coordinatorProgramKey: string,
     courseCoordinationKey: string,
   ): boolean {
-    if (!coordinatorProgramKey || !courseCoordinationKey) return false;
-    return (
-      courseCoordinationKey === coordinatorProgramKey ||
-      courseCoordinationKey.includes(coordinatorProgramKey) ||
-      coordinatorProgramKey.includes(courseCoordinationKey)
-    );
+    return matchCoordinatorCourse(coordinatorProgramKey, courseCoordinationKey);
   }
 
   private buildGlobalHtml(options: {
@@ -934,202 +255,22 @@ export class OutboxService {
     momentSummary: GlobalMomentSummaryRow[];
     recipientsCount: number;
   }) {
-    const templateStyle =
-      this.loadTemplateStyle('reporte_docente_albeiro_m1_ryc_alistamiento_preview.html') ||
-      this.loadTemplateStyle('ejemplo global .html');
-    const phaseUpper = options.phase.toUpperCase();
-    const phaseLabel = options.phase === 'ALISTAMIENTO' ? 'Alistamiento' : 'Ejecucion';
-    const scoreScale = phaseUpper === 'ALISTAMIENTO' ? 50 : 100;
-    const averageLabel = options.averageScore == null ? 'N/A' : options.averageScore.toFixed(1);
-    const asPercent = (count: number) =>
-      options.totalCourses ? Number(((count / options.totalCourses) * 100).toFixed(1)) : 0;
-    const scoreSeg = {
-      EXCELENTE: asPercent(options.excellent),
-      BUENO: asPercent(options.good),
-      ACEPTABLE: asPercent(options.acceptable),
-      INSATISFACTORIO: asPercent(options.unsatisfactory),
-    };
-    const selectedMomentsLabel = options.moments
-      .map((moment) => `${formatMomentLabel(moment)} (${moment})`)
-      .join(' | ');
-    const selectedPeriodsLabel = options.periodCodes.join(', ');
-    const rowsHtml = options.rows
-      .map((row, idx) => {
-        const background = idx % 2 === 0 ? '#ffffff' : '#f8fbff';
-        return [
-          `<tr style="background:${background};font-size:14px;">`,
-          `<td style="padding:8px 12px;text-align:left;font-weight:600;color:#0057A4;">${row.coordination}</td>`,
-          `<td style="padding:8px 12px;text-align:center;">${row.total}</td>`,
-          `<td style="padding:8px 12px;text-align:center;">${row.average == null ? 'N/A' : row.average.toFixed(2)}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#dcfce7;">${row.excellent}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#dbeafe;">${row.good}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#ffedd5;">${row.acceptable}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#fee2e2;">${row.unsatisfactory}</td>`,
-          '</tr>',
-        ].join('');
-      })
-      .join('');
-    const periodRowsHtml = options.periodSummary
-      .map((row, idx) => {
-        const background = idx % 2 === 0 ? '#ffffff' : '#f8fbff';
-        return [
-          `<tr style="background:${background};font-size:14px;">`,
-          `<td style="padding:8px 12px;text-align:left;font-weight:700;color:#0a3e74;">${escapeHtml(row.periodCode)}</td>`,
-          `<td style="padding:8px 12px;text-align:left;">${escapeHtml(
-            row.moments.map((moment) => formatMomentLabel(moment)).join(', '),
-          )}</td>`,
-          `<td style="padding:8px 12px;text-align:center;">${row.total}</td>`,
-          `<td style="padding:8px 12px;text-align:center;">${row.average == null ? 'N/A' : row.average.toFixed(1)}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#dcfce7;">${row.excellent}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#dbeafe;">${row.good}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#ffedd5;">${row.acceptable}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#fee2e2;">${row.unsatisfactory}</td>`,
-          '</tr>',
-        ].join('');
-      })
-      .join('');
-    const momentRowsHtml = options.momentSummary
-      .map((row, idx) => {
-        const background = idx % 2 === 0 ? '#ffffff' : '#f8fbff';
-        return [
-          `<tr style="background:${background};font-size:14px;">`,
-          `<td style="padding:8px 12px;text-align:left;font-weight:700;color:#0a3e74;">${escapeHtml(
-            formatMomentLabel(row.moment),
-          )} (${escapeHtml(row.moment)})</td>`,
-          `<td style="padding:8px 12px;text-align:center;">${row.total}</td>`,
-          `<td style="padding:8px 12px;text-align:center;">${row.average == null ? 'N/A' : row.average.toFixed(1)}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#dcfce7;">${row.excellent}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#dbeafe;">${row.good}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#ffedd5;">${row.acceptable}</td>`,
-          `<td style="padding:8px 12px;text-align:center;background:#fee2e2;">${row.unsatisfactory}</td>`,
-          '</tr>',
-        ].join('');
-      })
-      .join('');
-    const summaryNotes = [
-      `<li><strong>Periodos incluidos:</strong> ${escapeHtml(selectedPeriodsLabel)}.</li>`,
-      `<li><strong>Momentos consolidados:</strong> ${escapeHtml(selectedMomentsLabel)}.</li>`,
-      `<li><strong>Escala de fase:</strong> ${scoreScale} puntos maximos para ${escapeHtml(
-        phaseLabel,
-      ).toLowerCase()}.</li>`,
-      `<li><strong>Total coordinaciones reportadas:</strong> ${options.rows.length} coordinacion(es) con cursos en el consolidado.</li>`,
-      `<li><strong>Destinatarios del correo:</strong> ${options.recipientsCount} correo(s) configurados en este envio.</li>`,
-    ].join('');
-
-    return [
-      '<html><head>',
-      templateStyle,
-      '</head><body>',
-      '<div class="shell"><div class="top-strip" style="background:#ffc300;background-image:linear-gradient(90deg,#ffc300 0%,#ffd95c 100%);"></div>',
-      '<div class="hero" style="background:#002b5c;background-image:linear-gradient(120deg,#002b5c 0%,#0057a4 100%);color:#ffffff;">',
-      '<h2 class="hero-title">Reporte ejecutivo - <span class="hero-highlight">Campus Virtual RCS</span></h2>',
-      `<div class="hero-subtitle">Consolidado 2026 | Fase de ${escapeHtml(phaseLabel)} | Momentos ${escapeHtml(
-        options.moments.map((moment) => formatMomentLabel(moment)).join(' + '),
-      )}</div>`,
-      `<div class="hero-period-pill">Periodos incluidos: ${escapeHtml(selectedPeriodsLabel)}</div>`,
-      '</div>',
-      '<div class="body-wrap">',
-      `<div class="period-banner">FASE: ${escapeHtml(options.phase)} | MOMENTOS: ${escapeHtml(
-        selectedMomentsLabel,
-      )} | PERIODOS: ${escapeHtml(selectedPeriodsLabel)}</div>`,
-      '<div class="quick-access"><p class="quick-access-title">Lectura recomendada</p><p class="quick-access-text">Este consolidado integra varios periodos 2026 en un solo reporte para priorizar decisiones de seguimiento.</p><div class="quick-access-actions">',
-      `<a class="cta-btn alt" href="${CAMPUS_VIRTUAL_COMMUNICADO_URL}" target="_blank" rel="noopener">Ver comunicado Campus Virtual</a>`,
-      '</div></div>',
-      '<p><strong>Cordial saludo,</strong></p>',
-      `<p>Compartimos el consolidado ejecutivo de seguimiento de aulas para ${escapeHtml(
-        phaseLabel.toLowerCase(),
-      )}, integrando los momentos ${escapeHtml(selectedMomentsLabel)} y los periodos ${escapeHtml(
-        selectedPeriodsLabel,
-      )} en un solo correo.</p>`,
-      '<div class="panel">',
-      '<div class="section-title">Resumen ejecutivo</div>',
-      '<div class="kpi-grid">',
-      '<div class="kpi"><div class="kpi-label">Periodos</div>',
-      `<div class="kpi-value">${options.periodCodes.length}</div></div>`,
-      '<div class="kpi"><div class="kpi-label">Momentos</div>',
-      `<div class="kpi-value">${options.moments.length}</div></div>`,
-      '<div class="kpi"><div class="kpi-label">Aulas consolidadas</div>',
-      `<div class="kpi-value">${options.totalCourses}</div></div>`,
-      '<div class="kpi"><div class="kpi-label">Destinatarios</div>',
-      `<div class="kpi-value">${options.recipientsCount}</div></div>`,
-      '<div class="kpi"><div class="kpi-label">Promedio global</div>',
-      `<div class="kpi-value">${averageLabel}</div><div class="kpi-meta">(0-${scoreScale})</div></div>`,
-      '<div class="kpi kpi-success"><div class="kpi-label">Excelente</div>',
-      `<div class="kpi-value">${options.excellent}</div><div class="kpi-meta">${scoreSeg.EXCELENTE}%</div></div>`,
-      '<div class="kpi kpi-info"><div class="kpi-label">Bueno</div>',
-      `<div class="kpi-value">${options.good}</div><div class="kpi-meta">${scoreSeg.BUENO}%</div></div>`,
-      '<div class="kpi kpi-warning"><div class="kpi-label">Aceptable</div>',
-      `<div class="kpi-value">${options.acceptable}</div><div class="kpi-meta">${scoreSeg.ACEPTABLE}%</div></div>`,
-      '<div class="kpi kpi-danger"><div class="kpi-label">Insatisfactorio</div>',
-      `<div class="kpi-value">${options.unsatisfactory}</div><div class="kpi-meta">${scoreSeg.INSATISFACTORIO}%</div></div>`,
-      '</div>',
-      '<div class="score-bar-wrap"><p class="score-bar-title">Distribucion global del desempeno</p><div class="score-bar">',
-      `<div class="score-seg seg-exc" style="width:${scoreSeg.EXCELENTE}%;">${scoreSeg.EXCELENTE > 0 ? `Excelente ${scoreSeg.EXCELENTE}%` : ''}</div>`,
-      `<div class="score-seg seg-good" style="width:${scoreSeg.BUENO}%;">${scoreSeg.BUENO > 0 ? `Bueno ${scoreSeg.BUENO}%` : ''}</div>`,
-      `<div class="score-seg seg-ok" style="width:${scoreSeg.ACEPTABLE}%;">${scoreSeg.ACEPTABLE > 0 ? `Aceptable ${scoreSeg.ACEPTABLE}%` : ''}</div>`,
-      `<div class="score-seg seg-bad" style="width:${scoreSeg.INSATISFACTORIO}%;">${scoreSeg.INSATISFACTORIO > 0 ? `Insatisf. ${scoreSeg.INSATISFACTORIO}%` : ''}</div>`,
-      '</div><div class="score-legend">',
-      `<span class="legend-item"><span class="legend-dot dot-exc"></span>Excelente: ${options.excellent}</span>`,
-      `<span class="legend-item"><span class="legend-dot dot-good"></span>Bueno: ${options.good}</span>`,
-      `<span class="legend-item"><span class="legend-dot dot-ok"></span>Aceptable: ${options.acceptable}</span>`,
-      `<span class="legend-item"><span class="legend-dot dot-bad"></span>Insatisfactorio: ${options.unsatisfactory}</span>`,
-      '</div></div></div>',
-      '<div class="panel">',
-      '<div class="section-title">Corte por momento</div>',
-      '<div class="table-container"><table class="report-table">',
-      '<thead><tr><th>Momento</th><th>Aulas</th><th>Promedio</th><th>Excelente</th><th>Bueno</th><th>Aceptable</th><th>Insatisf.</th></tr></thead>',
-      `<tbody>${momentRowsHtml}</tbody>`,
-      '</table></div></div>',
-      '<div class="panel">',
-      '<div class="section-title">Corte por periodo</div>',
-      '<div class="table-container"><table class="report-table">',
-      '<thead><tr><th>Periodo</th><th>Momentos</th><th>Aulas</th><th>Promedio</th><th>Excelente</th><th>Bueno</th><th>Aceptable</th><th>Insatisf.</th></tr></thead>',
-      `<tbody>${periodRowsHtml}</tbody>`,
-      '</table></div></div>',
-      '<div class="panel">',
-      '<div class="section-title">Resumen consolidado por coordinacion</div>',
-      '<div class="table-container"><table class="report-table">',
-      '<thead><tr><th>Coordinacion</th><th>Aulas</th><th>Promedio</th><th>Excelente</th><th>Bueno</th><th>Aceptable</th><th>Insatisf.</th></tr></thead>',
-      `<tbody>${rowsHtml}</tbody>`,
-      '</table></div></div>',
-      '<div class="panel panel-warm">',
-      '<div class="section-title" style="color:#7a5b00;">Claves de lectura del consolidado</div>',
-      `<ul class="obs-list">${summaryNotes}</ul>`,
-      '</div>',
-      '<div class="action-panel">',
-      '<p class="action-title">Acompanamiento ejecutivo</p>',
-      '<p class="action-text">Si requiere una lectura dirigida del consolidado o priorizar programas criticos, puede agendar un espacio con Campus Virtual.</p>',
-      '<div class="cta-wrap" style="margin-top:0;">',
-      `<a class="cta-btn" href="${TEACHER_BOOKING_URL}" target="_blank" rel="noopener">Agendar llamada / videollamada</a>`,
-      '</div></div>',
-      '<div style="margin-top:16px;text-align:center;color:#334155;font-size:13px;">Campus Virtual - Rectoria Centro Sur</div>',
-      `<div class="report-footer">Generado el ${new Date().toISOString().slice(0, 10)} - Reporte ejecutivo consolidado 2026.</div>`,
-      '</div></div>',
-      '</body></html>',
-    ].join('');
+    return buildGlobalHtml(options);
   }
 
   private toScoreBand(score: number | null): 'EXCELENTE' | 'BUENO' | 'ACEPTABLE' | 'INSATISFACTORIO' {
-    if (score == null) return 'INSATISFACTORIO';
-    if (score >= 90) return 'EXCELENTE';
-    if (score >= 80) return 'BUENO';
-    if (score >= 70) return 'ACEPTABLE';
-    return 'INSATISFACTORIO';
+    return toScoreBand(score);
   }
 
   private toScoreBandForPhase(
     score: number | null,
     phase: string,
   ): 'EXCELENTE' | 'BUENO' | 'ACEPTABLE' | 'INSATISFACTORIO' {
-    if (score == null) return 'INSATISFACTORIO';
-    const normalized = phase === 'ALISTAMIENTO' ? score * 2 : score;
-    return this.toScoreBand(normalized);
+    return toScoreBandForPhase(score, phase);
   }
 
   private formatScoreForPhase(score: number | null, phase: string): string {
-    if (score == null) return 'N/A';
-    const fixed = Number(score).toFixed(1);
-    return phase === 'ALISTAMIENTO' ? `${fixed}/50` : `${fixed}/100`;
+    return formatScoreForPhase(score, phase);
   }
 
   private async buildCoordinatorMessageContent(message: {
@@ -1156,10 +297,10 @@ export class OutboxService {
     });
     if (!coordinator) return null;
 
-    const selectedMoments = normalizeMomentList(undefined, message.moment.split('+') as GeneratePayload['moments']);
+    const selectedMoments = normalizeMomentList(undefined, message.moment.split('+') as SupportedMoment[]);
     const effectiveMoments = selectedMoments.length
       ? selectedMoments
-      : ([message.moment || 'MD1'] as Array<(typeof SUPPORTED_MOMENTS)[number]>);
+      : ([message.moment || 'MD1'] as SupportedMoment[]);
     const coordinatorMeta = this.extractCoordinatorMetadata({
       periodCode: message.periodCode,
       programCode: message.programCode,
@@ -1237,7 +378,7 @@ export class OutboxService {
       return null;
     }
 
-    const selectedMoments = normalizeMomentList(undefined, message.moment.split('+') as GeneratePayload['moments']);
+    const selectedMoments = normalizeMomentList(undefined, message.moment.split('+') as SupportedMoment[]);
     const selectedPeriodCodes = this.extractGlobalSelectedPeriods({
       periodCode: message.periodCode,
       programCode: message.programCode,
@@ -1245,7 +386,7 @@ export class OutboxService {
     });
     const effectiveMoments = selectedMoments.length
       ? selectedMoments
-      : ([message.moment || 'MD1'] as Array<(typeof SUPPORTED_MOMENTS)[number]>);
+      : ([message.moment || 'MD1'] as SupportedMoment[]);
     const rows = await this.collectGlobalRows({
       periodCodes: selectedPeriodCodes,
       moments: effectiveMoments,
@@ -1437,216 +578,12 @@ export class OutboxService {
     acceptable: number;
     unsatisfactory: number;
   } {
-    const phaseUpper = phase.toUpperCase();
-    const summaryByCoordination = new Map<
-      string,
-      {
-        coordination: string;
-        total: number;
-        scoreSum: number;
-        scoredCount: number;
-        excellent: number;
-        good: number;
-        acceptable: number;
-        unsatisfactory: number;
-      }
-    >();
-    const summaryByPeriodMoment = new Map<
-      string,
-      {
-        periodCode: string;
-        moments: Set<string>;
-        total: number;
-        scoreSum: number;
-        scoredCount: number;
-        excellent: number;
-        good: number;
-        acceptable: number;
-        unsatisfactory: number;
-      }
-    >();
-    const summaryByMoment = new Map<
-      string,
-      {
-        moment: string;
-        total: number;
-        scoreSum: number;
-        scoredCount: number;
-        excellent: number;
-        good: number;
-        acceptable: number;
-        unsatisfactory: number;
-      }
-    >();
-
-    let scoreSum = 0;
-    let scoredCount = 0;
-    let excellent = 0;
-    let good = 0;
-    let acceptable = 0;
-    let unsatisfactory = 0;
-
-    for (const row of rows) {
-      const band = this.toScoreBandForPhase(row.score, phaseUpper);
-      const coordination = summaryByCoordination.get(row.coordinationKey) ?? {
-        coordination: row.coordinationName,
-        total: 0,
-        scoreSum: 0,
-        scoredCount: 0,
-        excellent: 0,
-        good: 0,
-        acceptable: 0,
-        unsatisfactory: 0,
-      };
-      const periodKey = row.periodCode;
-      const period = summaryByPeriodMoment.get(periodKey) ?? {
-        periodCode: row.periodCode,
-        moments: new Set<string>(),
-        total: 0,
-        scoreSum: 0,
-        scoredCount: 0,
-        excellent: 0,
-        good: 0,
-        acceptable: 0,
-        unsatisfactory: 0,
-      };
-      const moment = summaryByMoment.get(row.moment) ?? {
-        moment: row.moment,
-        total: 0,
-        scoreSum: 0,
-        scoredCount: 0,
-        excellent: 0,
-        good: 0,
-        acceptable: 0,
-        unsatisfactory: 0,
-      };
-
-      coordination.total += 1;
-      period.total += 1;
-      period.moments.add(row.moment);
-      moment.total += 1;
-
-      if (row.score != null) {
-        coordination.scoreSum += row.score;
-        coordination.scoredCount += 1;
-        period.scoreSum += row.score;
-        period.scoredCount += 1;
-        moment.scoreSum += row.score;
-        moment.scoredCount += 1;
-        scoreSum += row.score;
-        scoredCount += 1;
-      }
-
-      if (band === 'EXCELENTE') {
-        coordination.excellent += 1;
-        period.excellent += 1;
-        moment.excellent += 1;
-        excellent += 1;
-      }
-      if (band === 'BUENO') {
-        coordination.good += 1;
-        period.good += 1;
-        moment.good += 1;
-        good += 1;
-      }
-      if (band === 'ACEPTABLE') {
-        coordination.acceptable += 1;
-        period.acceptable += 1;
-        moment.acceptable += 1;
-        acceptable += 1;
-      }
-      if (band === 'INSATISFACTORIO') {
-        coordination.unsatisfactory += 1;
-        period.unsatisfactory += 1;
-        moment.unsatisfactory += 1;
-        unsatisfactory += 1;
-      }
-
-      summaryByCoordination.set(row.coordinationKey, coordination);
-      summaryByPeriodMoment.set(periodKey, period);
-      summaryByMoment.set(row.moment, moment);
-    }
-
-    for (const periodCode of selectedPeriodCodes) {
-      if (summaryByPeriodMoment.has(periodCode)) continue;
-      summaryByPeriodMoment.set(periodCode, {
-        periodCode,
-        moments: new Set(selectedMoments),
-        total: 0,
-        scoreSum: 0,
-        scoredCount: 0,
-        excellent: 0,
-        good: 0,
-        acceptable: 0,
-        unsatisfactory: 0,
-      });
-    }
-
-    for (const moment of selectedMoments) {
-      if (summaryByMoment.has(moment)) continue;
-      summaryByMoment.set(moment, {
-        moment,
-        total: 0,
-        scoreSum: 0,
-        scoredCount: 0,
-        excellent: 0,
-        good: 0,
-        acceptable: 0,
-        unsatisfactory: 0,
-      });
-    }
-
-    return {
-      rowsSummary: [...summaryByCoordination.values()]
-        .map((item) => ({
-          coordination: item.coordination,
-          total: item.total,
-          average: item.scoredCount > 0 ? item.scoreSum / item.scoredCount : null,
-          excellent: item.excellent,
-          good: item.good,
-          acceptable: item.acceptable,
-          unsatisfactory: item.unsatisfactory,
-        }))
-        .sort((a, b) => a.coordination.localeCompare(b.coordination, 'es')),
-      periodSummary: [...summaryByPeriodMoment.values()]
-        .map((item) => ({
-          periodCode: item.periodCode,
-          moments: [...item.moments].sort((a, b) => a.localeCompare(b, 'es')),
-          total: item.total,
-          average: item.scoredCount > 0 ? item.scoreSum / item.scoredCount : null,
-          excellent: item.excellent,
-          good: item.good,
-          acceptable: item.acceptable,
-          unsatisfactory: item.unsatisfactory,
-        }))
-        .sort((a, b) => a.periodCode.localeCompare(b.periodCode, 'es')),
-      momentSummary: [...summaryByMoment.values()]
-        .map((item) => ({
-          moment: item.moment,
-          total: item.total,
-          average: item.scoredCount > 0 ? item.scoreSum / item.scoredCount : null,
-          excellent: item.excellent,
-          good: item.good,
-          acceptable: item.acceptable,
-          unsatisfactory: item.unsatisfactory,
-        }))
-        .sort(
-          (a, b) =>
-            selectedMoments.indexOf(a.moment) - selectedMoments.indexOf(b.moment) ||
-            a.moment.localeCompare(b.moment, 'es'),
-        ),
-      totalCourses: rows.length,
-      averageScore: scoredCount > 0 ? scoreSum / scoredCount : null,
-      excellent,
-      good,
-      acceptable,
-      unsatisfactory,
-    };
+    return summarizeGlobalRows(rows, phase, selectedPeriodCodes, selectedMoments);
   }
 
   private async collectGlobalRows(criteria: {
     periodCodes: string[];
-    moments: Array<(typeof SUPPORTED_MOMENTS)[number]>;
+    moments: SupportedMoment[];
     phase: GeneratePayload['phase'];
   }): Promise<CourseCoordinationRow[]> {
     const periods = await this.prisma.period.findMany({
@@ -1791,6 +728,7 @@ export class OutboxService {
             reviewedNrc: replicatedFromCourseId
               ? (nrcByCourseId.get(replicatedFromCourseId) ?? course.nrc)
               : course.nrc,
+            moodleCourseUrl: course.moodleCheck?.moodleCourseUrl ?? null,
             moment: course.moment ?? payload.moment ?? '1',
             resultType: isReplicated ? ('REPLICADO' as const) : ('REVISADO' as const),
             subject: course.subjectName ?? '-',
@@ -1947,6 +885,7 @@ export class OutboxService {
           return {
             nrc: course.nrc,
             reviewedNrc: nrcByCourseId.get(parentSelectedCourseId) ?? course.nrc,
+            moodleCourseUrl: course.moodleCheck?.moodleCourseUrl ?? null,
             moment: course.moment ?? moment,
             resultType: isReplicated ? ('REPLICADO' as const) : ('REVISADO' as const),
             subject: course.subjectName ?? '-',
@@ -2043,7 +982,7 @@ export class OutboxService {
     const selectedMoments = normalizeMomentList(payload.moment, payload.moments);
     const effectiveMoments = selectedMoments.length
       ? selectedMoments
-      : ([payload.moment ?? 'MD1'] as Array<(typeof SUPPORTED_MOMENTS)[number]>);
+      : ([payload.moment ?? 'MD1'] as SupportedMoment[]);
     const coursesByCoordination = await this.collectGlobalRows({
       periodCodes: selectedPeriodCodes,
       moments: effectiveMoments,
@@ -2156,7 +1095,7 @@ export class OutboxService {
   ) {
     const selectedPeriodCodes = this.normalizeGlobalSelectedPeriods(payload.periodCodes, period.code);
     const selectedMoments = normalizeMomentList(payload.moment, payload.moments);
-    const effectiveMoments = selectedMoments.length ? selectedMoments : ([payload.moment ?? 'MD1'] as Array<(typeof SUPPORTED_MOMENTS)[number]>);
+    const effectiveMoments = selectedMoments.length ? selectedMoments : ([payload.moment ?? 'MD1'] as SupportedMoment[]);
     const rows = await this.collectGlobalRows({
       periodCodes: selectedPeriodCodes,
       moments: effectiveMoments,
@@ -2261,8 +1200,6 @@ export class OutboxService {
     if (payload.audience === 'DOCENTE' && selectedMoments.length > 1) {
       const batches = [];
       let created = 0;
-      let totalCourses = 0;
-      let coordinations = 0;
 
       for (const selectedMoment of selectedMoments) {
         const batchPayload: GeneratePayload = {
@@ -2270,16 +1207,9 @@ export class OutboxService {
           moment: selectedMoment,
           moments: undefined,
         };
-        const result =
-          payload.audience === 'COORDINADOR'
-            ? await this.generateCoordinatorOutbox(period, batchPayload)
-            : payload.audience === 'GLOBAL'
-              ? await this.generateGlobalOutbox(period, batchPayload)
-              : await this.generateTeacherOutbox(period, batchPayload);
+        const result = await this.generateTeacherOutbox(period, batchPayload);
         batches.push(result);
         created += Number(result?.created ?? 0);
-        totalCourses += Number(result?.totalCourses ?? 0);
-        coordinations += Number(result?.coordinations ?? 0);
       }
 
       return {
@@ -2289,8 +1219,6 @@ export class OutboxService {
         phase: payload.phase,
         moments: selectedMoments,
         created,
-        totalCourses: totalCourses || undefined,
-        coordinations: coordinations || undefined,
         batches,
       };
     }
@@ -2375,81 +1303,19 @@ export class OutboxService {
   }
 
   private createSmtpTransport() {
-    const host = process.env.OUTBOX_SMTP_HOST?.trim();
-    if (!host) {
-      throw new BadRequestException(
-        'Falta OUTBOX_SMTP_HOST. Configura SMTP antes de usar /outbox/send.',
-      );
-    }
-
-    const portRaw = process.env.OUTBOX_SMTP_PORT?.trim() || '25';
-    const port = Number(portRaw);
-    if (!Number.isInteger(port) || port <= 0) {
-      throw new BadRequestException(`OUTBOX_SMTP_PORT invalido: "${portRaw}".`);
-    }
-
-    const secure = parseEnvBoolean(process.env.OUTBOX_SMTP_SECURE, false);
-    const ignoreTLS = parseEnvBoolean(process.env.OUTBOX_SMTP_IGNORE_TLS, false);
-    const rejectUnauthorized = parseEnvBoolean(process.env.OUTBOX_SMTP_REJECT_UNAUTHORIZED, false);
-    const user = process.env.OUTBOX_SMTP_USER?.trim();
-    const pass = process.env.OUTBOX_SMTP_PASS ?? '';
-    const requireAuth = parseEnvBoolean(process.env.OUTBOX_SMTP_REQUIRE_AUTH, !!user);
-
-    if (requireAuth && !user) {
-      throw new BadRequestException(
-        'OUTBOX_SMTP_REQUIRE_AUTH=true requiere OUTBOX_SMTP_USER y OUTBOX_SMTP_PASS.',
-      );
-    }
-
-    const from = process.env.OUTBOX_SMTP_FROM?.trim();
-    if (!from) {
-      throw new BadRequestException(
-        'Falta OUTBOX_SMTP_FROM. Ejemplo: "Campus Virtual <campus.virtual@uniminuto.edu>".',
-      );
-    }
-
-    const replyTo = process.env.OUTBOX_SMTP_REPLY_TO?.trim() || undefined;
-    const transporter = nodemailer.createTransport({
-      host,
-      port,
-      secure,
-      ignoreTLS,
-      auth: requireAuth ? { user, pass } : undefined,
-      tls: {
-        rejectUnauthorized,
-      },
-      connectionTimeout: 15000,
-      greetingTimeout: 15000,
-      socketTimeout: 20000,
-    });
-
-    return {
-      transporter,
-      from,
-      replyTo,
-    };
+    return createSmtpTransport();
   }
 
   private resolveDeliveryMode(): 'SMTP' | 'OUTLOOK' {
-    const raw = (process.env.OUTBOX_DELIVERY_MODE ?? 'SMTP').trim().toUpperCase();
-    if (raw === 'SMTP' || raw === 'OUTLOOK') return raw;
-    throw new BadRequestException(
-      `OUTBOX_DELIVERY_MODE invalido: "${raw}". Usa "SMTP" o "OUTLOOK".`,
-    );
+    return resolveDeliveryMode();
   }
 
   private parsePositiveInt(raw: string | undefined, fallback: number, min: number, max: number): number {
-    if (!raw) return fallback;
-    const parsed = Number(raw);
-    if (!Number.isFinite(parsed)) return fallback;
-    return Math.max(min, Math.min(max, Math.trunc(parsed)));
+    return parsePositiveInt(raw, fallback, min, max);
   }
 
   private normalizeFingerprintToken(value: string | null | undefined): string {
-    return String(value ?? '')
-      .trim()
-      .toLowerCase()
-      .replace(/\s+/g, ' ');
+    return normalizeFingerprintToken(value);
   }
 
   private buildSendFingerprint(input: {
@@ -2461,15 +1327,7 @@ export class OutboxService {
     recipientName: string;
     scopeKey?: string | null;
   }): string {
-    return [
-      this.normalizeFingerprintToken(input.to),
-      this.normalizeFingerprintToken(input.audience),
-      this.normalizeFingerprintToken(input.periodCode),
-      this.normalizeFingerprintToken(input.phase),
-      this.normalizeFingerprintToken(input.moment),
-      this.normalizeFingerprintToken(input.recipientName),
-      this.normalizeFingerprintToken(input.scopeKey),
-    ].join('|');
+    return buildSendFingerprint(input);
   }
 
   private async buildRecentSendFingerprintMap(since: Date): Promise<Map<string, Date>> {
@@ -2564,6 +1422,7 @@ export class OutboxService {
         rows: Array<{
           nrc: string;
           reviewedNrc: string;
+          moodleCourseUrl?: string | null;
           moment: string;
           resultType: 'REVISADO' | 'REPLICADO';
           subject: string;
@@ -2668,6 +1527,7 @@ export class OutboxService {
             reviewedNrc: replicatedFromCourseId
               ? (nrcByCourseId.get(replicatedFromCourseId) ?? course.nrc)
               : course.nrc,
+            moodleCourseUrl: course.moodleCheck?.moodleCourseUrl ?? null,
             moment: course.moment ?? params.moment ?? '1',
             resultType: isReplicated ? ('REPLICADO' as const) : ('REVISADO' as const),
             subject: course.subjectName ?? '-',
@@ -2765,6 +1625,7 @@ export class OutboxService {
         return {
           nrc: course.nrc,
           reviewedNrc: nrcByCourseId.get(parentSelectedCourseId) ?? course.nrc,
+          moodleCourseUrl: course.moodleCheck?.moodleCourseUrl ?? null,
           moment: course.moment ?? params.moment ?? '1',
           resultType: isReplicated ? ('REPLICADO' as const) : ('REVISADO' as const),
           subject: course.subjectName ?? '-',
@@ -2810,7 +1671,7 @@ export class OutboxService {
     programCode: string | null;
   } | null> {
     if (!message.teacherId) return null;
-    if (!message.moment || !SUPPORTED_MOMENTS.includes(message.moment as (typeof SUPPORTED_MOMENTS)[number])) {
+    if (!isSupportedMoment(message.moment)) {
       return null;
     }
     if (!message.phase || !['ALISTAMIENTO', 'EJECUCION'].includes(message.phase)) {
@@ -2946,8 +1807,8 @@ foreach ($item in $payload) {
 
     const inputPayload = candidates.map((item) => ({
       id: item.id,
-      to: item.to,
-      cc: item.cc ?? '',
+      to: parseStoredRecipientEmails(item.to).join('; ') || item.to,
+      cc: parseStoredRecipientEmails(item.cc).join('; '),
       subject: item.subject,
       htmlBody: item.htmlBody,
     }));
@@ -3025,6 +1886,7 @@ foreach ($item in $payload) {
     };
     const selectedMoments = normalizeMomentList(payload.moment, payload.moments);
     const selectedPeriodCodes = normalizePeriodCodeList(payload.periodCode, payload.periodCodes);
+    const selectedMomentFilters = this.buildSendMomentFilterValues(selectedMoments);
 
     const where = payload.ids?.length
       ? {
@@ -3041,11 +1903,11 @@ foreach ($item in $payload) {
             : undefined,
           phase: payload.phase,
           moment:
-            selectedMoments.length > 1
+            selectedMomentFilters.length > 1
               ? {
-                  in: selectedMoments,
+                  in: selectedMomentFilters,
                 }
-              : (selectedMoments[0] ?? payload.moment),
+              : (selectedMomentFilters[0] ?? payload.moment),
           audience: payload.audience,
         };
 
@@ -3226,8 +2088,8 @@ foreach ($item in $payload) {
         try {
           const info = await transporter.sendMail({
             from,
-            to: item.to.replace(/;\s*/g, ', '),
-            cc: item.cc,
+            to: parseStoredRecipientEmails(item.to).join(', ') || item.to.replace(/;\s*/g, ', '),
+            cc: parseStoredRecipientEmails(item.cc).join(', ') || item.cc,
             replyTo,
             subject: item.subject,
             html: item.htmlBody,
@@ -3351,7 +2213,7 @@ foreach ($item in $payload) {
         'Reenvio actualizado solo aplica a correos de audiencia DOCENTE.',
       );
     }
-    if (!original.moment || !SUPPORTED_MOMENTS.includes(original.moment as (typeof SUPPORTED_MOMENTS)[number])) {
+    if (!isSupportedMoment(original.moment)) {
       throw new BadRequestException(
         `Momento invalido en mensaje ${payload.id}: ${original.moment}.`,
       );
@@ -3366,7 +2228,7 @@ foreach ($item in $payload) {
     const regeneration = await this.generateTeacherOutbox(original.period, {
       periodCode: original.period.code,
       phase: original.phase as 'ALISTAMIENTO' | 'EJECUCION',
-      moment: original.moment as 'MD1' | 'MD2' | '1' | 'INTER' | 'RM1' | 'RM2',
+      moment: original.moment,
       audience: 'DOCENTE',
       teacherId: original.teacherId,
     });
@@ -3467,7 +2329,7 @@ foreach ($item in $payload) {
     }
 
     const moment = (course.moment ?? '').trim().toUpperCase();
-    if (!moment || !SUPPORTED_MOMENTS.includes(moment as (typeof SUPPORTED_MOMENTS)[number])) {
+    if (!isSupportedMoment(moment)) {
       throw new BadRequestException(`Momento invalido en curso ${course.nrc}: ${course.moment}.`);
     }
     const phase: 'ALISTAMIENTO' | 'EJECUCION' = payload.phase ?? 'ALISTAMIENTO';
@@ -3476,7 +2338,7 @@ foreach ($item in $payload) {
     const regeneration = await this.generateTeacherOutbox(course.period, {
       periodCode: course.period.code,
       phase,
-      moment: moment as GeneratePayload['moment'],
+      moment,
       audience: 'DOCENTE',
       teacherId: course.teacherId,
     });
@@ -3583,7 +2445,7 @@ foreach ($item in $payload) {
     }
 
     const moment = (course.moment ?? '').trim().toUpperCase();
-    if (!moment || !SUPPORTED_MOMENTS.includes(moment as (typeof SUPPORTED_MOMENTS)[number])) {
+    if (!isSupportedMoment(moment)) {
       throw new BadRequestException(`Momento invalido en curso ${course.nrc}: ${course.moment}.`);
     }
     const phase: 'ALISTAMIENTO' | 'EJECUCION' = payload.phase ?? 'ALISTAMIENTO';

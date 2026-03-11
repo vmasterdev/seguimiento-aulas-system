@@ -4,7 +4,7 @@ import { z } from 'zod';
 import { normalizeHeader, normalizeTeacherId } from '@seguimiento/shared';
 import { PrismaService } from '../prisma.service';
 import { parseWithSchema } from '../common/zod.util';
-import { resolveProgramValue } from '../common/program.util';
+import { resolveProgramValue, resolveTeacherProgramOverride } from '../common/program.util';
 
 const TeachersQuerySchema = z.object({
   q: z.string().trim().optional(),
@@ -64,7 +64,7 @@ export class TeachersService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   private async syncTeacherProgramToCourses(teacherId: string, program: string | null) {
-    const resolved = resolveProgramValue({ teacherCostCenter: program });
+    const resolved = resolveProgramValue({ teacherId, teacherCostCenter: program });
     if (!resolved.programCode && !resolved.programName) return;
 
     await this.prisma.course.updateMany({
@@ -138,6 +138,20 @@ export class TeachersService {
         },
       }));
     const teacherId = existingByAlt?.id ?? candidateId;
+    const normalizedCostCenter = resolveTeacherProgramOverride({
+      teacherId,
+      teacherSourceId: normalizedSourceId || existingByAlt?.sourceId || null,
+      teacherDocumentId: normalizedDocumentId || existingByAlt?.documentId || null,
+      teacherName: body.fullName,
+      teacherCostCenter: body.costCenter || existingByAlt?.costCenter || null,
+    });
+    const normalizedCoordination = resolveTeacherProgramOverride({
+      teacherId,
+      teacherSourceId: normalizedSourceId || existingByAlt?.sourceId || null,
+      teacherDocumentId: normalizedDocumentId || existingByAlt?.documentId || null,
+      teacherName: body.fullName,
+      teacherCostCenter: body.coordination || body.costCenter || existingByAlt?.coordination || existingByAlt?.costCenter || null,
+    });
 
     const teacher = await this.prisma.teacher.upsert({
       where: { id: teacherId },
@@ -149,8 +163,8 @@ export class TeachersService {
         email: body.email || null,
         campus: body.campus || null,
         region: body.region || null,
-        costCenter: body.costCenter || null,
-        coordination: body.coordination || null,
+        costCenter: normalizedCostCenter,
+        coordination: normalizedCoordination,
       },
       update: {
         sourceId: normalizedSourceId || existingByAlt?.sourceId || undefined,
@@ -159,12 +173,12 @@ export class TeachersService {
         email: body.email || undefined,
         campus: body.campus || undefined,
         region: body.region || undefined,
-        costCenter: body.costCenter || undefined,
-        coordination: body.coordination || undefined,
+        costCenter: normalizedCostCenter || undefined,
+        coordination: normalizedCoordination || undefined,
       },
     });
 
-    await this.syncTeacherProgramToCourses(teacher.id, body.costCenter || existingByAlt?.costCenter || null);
+    await this.syncTeacherProgramToCourses(teacher.id, normalizedCostCenter);
 
     return { ok: true, teacher };
   }
@@ -224,6 +238,21 @@ export class TeachersService {
             }));
           const finalId = existing?.id ?? teacherId;
 
+          const costCenter = resolveTeacherProgramOverride({
+            teacherId: finalId,
+            teacherSourceId: sourceId || existing?.sourceId || null,
+            teacherDocumentId: documentId || existing?.documentId || null,
+            teacherName: fullName,
+            teacherCostCenter: pickValue(row, COST_KEYS) || existing?.costCenter || null,
+          });
+          const coordination = resolveTeacherProgramOverride({
+            teacherId: finalId,
+            teacherSourceId: sourceId || existing?.sourceId || null,
+            teacherDocumentId: documentId || existing?.documentId || null,
+            teacherName: fullName,
+            teacherCostCenter: pickValue(row, COORD_KEYS) || pickValue(row, COST_KEYS) || existing?.coordination || existing?.costCenter || null,
+          });
+
           await this.prisma.teacher.upsert({
             where: { id: finalId },
             create: {
@@ -234,8 +263,8 @@ export class TeachersService {
               email: pickValue(row, EMAIL_KEYS) || null,
               campus: pickValue(row, CAMPUS_KEYS) || null,
               region: pickValue(row, REGION_KEYS) || null,
-              costCenter: pickValue(row, COST_KEYS) || null,
-              coordination: pickValue(row, COORD_KEYS) || null,
+              costCenter,
+              coordination,
             },
             update: {
               sourceId: sourceId || existing?.sourceId || undefined,
@@ -244,12 +273,12 @@ export class TeachersService {
               email: pickValue(row, EMAIL_KEYS) || undefined,
               campus: pickValue(row, CAMPUS_KEYS) || undefined,
               region: pickValue(row, REGION_KEYS) || undefined,
-              costCenter: pickValue(row, COST_KEYS) || undefined,
-              coordination: pickValue(row, COORD_KEYS) || undefined,
+              costCenter: costCenter || undefined,
+              coordination: coordination || undefined,
             },
           });
 
-          await this.syncTeacherProgramToCourses(finalId, pickValue(row, COST_KEYS) || existing?.costCenter || null);
+          await this.syncTeacherProgramToCourses(finalId, costCenter || existing?.costCenter || null);
 
           if (existing) {
             updated += 1;

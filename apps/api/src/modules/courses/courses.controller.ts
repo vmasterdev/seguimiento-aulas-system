@@ -10,6 +10,11 @@ export class CoursesController {
     return this.coursesService.missingTeacherList(query);
   }
 
+  @Get('/moodle-followup/list')
+  async moodleFollowup(@Query() query: Record<string, unknown>) {
+    return this.coursesService.moodleFollowupList(query);
+  }
+
   @Get()
   async list(@Query() query: Record<string, unknown>) {
     return this.coursesService.list(query);
@@ -33,6 +38,11 @@ export class CoursesController {
   @Post('/:id/deactivate')
   async deactivate(@Param('id') id: string, @Body() body: unknown) {
     return this.coursesService.deactivate(id, body);
+  }
+
+  @Post('/deactivate-batch')
+  async deactivateBatch(@Body() body: unknown) {
+    return this.coursesService.deactivateBatch(body);
   }
 
   @Post('/:id/checklist-temporal')

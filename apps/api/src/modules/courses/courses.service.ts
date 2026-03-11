@@ -37,6 +37,15 @@ const MissingTeacherQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
 });
 
+const MoodleFollowupQuerySchema = z.object({
+  kind: z.enum(['sin_matricula', 'no_encontrado', 'ambos']).optional().default('ambos'),
+  periodCodes: z.string().trim().optional(),
+  moments: z.string().trim().optional(),
+  q: z.string().trim().optional(),
+  limit: z.coerce.number().int().min(1).max(5000).default(500),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
 const AssignTeacherSchema = z.object({
   teacherId: z.string().trim().min(1),
   fullName: z.string().trim().max(200).optional(),
@@ -45,6 +54,12 @@ const AssignTeacherSchema = z.object({
 
 const DeactivateCourseSchema = z.object({
   reason: z.string().trim().max(1000).optional(),
+});
+
+const DeactivateCourseBatchSchema = z.object({
+  courseIds: z.array(z.string().trim().min(1)).min(1).max(500),
+  reason: z.string().trim().max(1000).optional(),
+  confirm: z.coerce.boolean().optional().default(false),
 });
 
 const ChecklistTemporalSchema = z.object({
@@ -59,6 +74,19 @@ export class CoursesService {
   private asRecord(value: unknown): Record<string, unknown> {
     if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
     return value as Record<string, unknown>;
+  }
+
+  private parseCsvList(value: string | undefined) {
+    return [...new Set(String(value ?? '').split(',').map((item) => item.trim()).filter(Boolean))];
+  }
+
+  private classifyMoodleFollowupKind(moodleCheck: { status: string; errorCode: string | null } | null) {
+    if (!moodleCheck) return null;
+    const status = String(moodleCheck.status ?? '').trim().toUpperCase();
+    const errorCode = String(moodleCheck.errorCode ?? '').trim().toUpperCase();
+    if (status === 'DESCARTADO_NO_EXISTE' || errorCode === 'NO_EXISTE') return 'no_encontrado' as const;
+    if (status === 'REVISAR_MANUAL' && errorCode === 'SIN_ACCESO') return 'sin_matricula' as const;
+    return null;
   }
 
   private readChecklistTemporal(rawJson: unknown): { active: boolean; reason: string | null; at: string | null } {
@@ -355,6 +383,108 @@ export class CoursesService {
     });
 
     return { ok: true, moodleCheck: updated };
+  }
+
+  async moodleFollowupList(rawQuery: unknown) {
+    const query = parseWithSchema(MoodleFollowupQuerySchema, rawQuery, 'moodle followup query');
+    const limit = query.limit ?? 500;
+    const offset = query.offset ?? 0;
+    const periodCodes = this.parseCsvList(query.periodCodes);
+    const moments = this.parseCsvList(query.moments).map((moment) => normalizeMoment(moment));
+
+    const where = {
+      period: periodCodes.length ? { code: { in: periodCodes } } : undefined,
+      moment: moments.length ? { in: moments } : undefined,
+      moodleCheck: {
+        status: {
+          in: ['REVISAR_MANUAL', 'DESCARTADO_NO_EXISTE'],
+        },
+      },
+      OR: query.q
+        ? [
+            { nrc: { contains: query.q, mode: 'insensitive' as const } },
+            { subjectName: { contains: query.q, mode: 'insensitive' as const } },
+            { programName: { contains: query.q, mode: 'insensitive' as const } },
+            { teacher: { fullName: { contains: query.q, mode: 'insensitive' as const } } },
+          ]
+        : undefined,
+    };
+
+    const items = await this.prisma.course.findMany({
+      where,
+      include: {
+        period: true,
+        teacher: true,
+        moodleCheck: true,
+      },
+      orderBy: [{ periodId: 'desc' }, { nrc: 'asc' }],
+    });
+
+    const mapped = items
+      .map((course) => {
+        const kind = this.classifyMoodleFollowupKind(course.moodleCheck);
+        if (!kind) return null;
+        const bannerReviewStatus = readBannerReviewStatus(course.rawJson);
+        const resolvedProgram = resolveProgramValue({
+          teacherCostCenter: course.teacher?.costCenter ?? null,
+          teacherLinked: !!course.teacherId,
+          courseProgramCode: course.programCode,
+          courseProgramName: course.programName,
+        });
+
+        return {
+          id: course.id,
+          nrc: course.nrc,
+          subjectName: course.subjectName,
+          periodCode: course.period.code,
+          periodLabel: course.period.label,
+          moment: course.moment,
+          programCode: resolvedProgram.programCode,
+          programName: resolvedProgram.programName,
+          teacherId: course.teacherId,
+          teacherName: course.teacher?.fullName ?? null,
+          moodleStatus: course.moodleCheck?.status ?? null,
+          moodleErrorCode: course.moodleCheck?.errorCode ?? null,
+          moodleNotes: course.moodleCheck?.notes ?? null,
+          moodleCourseUrl: course.moodleCheck?.moodleCourseUrl ?? null,
+          moodleCourseId: course.moodleCheck?.moodleCourseId ?? null,
+          bannerReviewStatus,
+          followupKind: kind,
+          canSendToBanner: kind === 'no_encontrado',
+          canDeactivate: kind === 'no_encontrado' && bannerReviewStatus === 'NO_ENCONTRADO',
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item))
+      .filter((item) => query.kind === 'ambos' || item.followupKind === query.kind);
+
+    const total = mapped.length;
+    const paged = mapped.slice(offset, offset + limit);
+
+    const byKind: Record<string, number> = {};
+    const byPeriod: Record<string, number> = {};
+    const byBannerStatus: Record<string, number> = {};
+    for (const item of mapped) {
+      byKind[item.followupKind] = (byKind[item.followupKind] ?? 0) + 1;
+      byPeriod[item.periodCode] = (byPeriod[item.periodCode] ?? 0) + 1;
+      const bannerKey = item.bannerReviewStatus ?? 'SIN_DATO';
+      byBannerStatus[bannerKey] = (byBannerStatus[bannerKey] ?? 0) + 1;
+    }
+
+    return {
+      ok: true,
+      total,
+      limit,
+      offset,
+      filters: {
+        kind: query.kind,
+        periodCodes,
+        moments,
+      },
+      byKind,
+      byPeriod,
+      byBannerStatus,
+      items: paged,
+    };
   }
 
   async missingTeacherList(rawQuery: unknown) {
@@ -789,6 +919,48 @@ export class CoursesService {
         replicatedEvaluationsUpdated: updated.replicatedEvaluationsUpdated,
         replicatedFromReplacementId,
       },
+    };
+  }
+
+  async deactivateBatch(payload: unknown) {
+    const body = parseWithSchema(DeactivateCourseBatchSchema, payload, 'deactivate course batch payload');
+    if (!body.confirm) {
+      throw new BadRequestException('Debes confirmar la desactivacion multiple.');
+    }
+
+    const uniqueIds = [...new Set(body.courseIds)];
+    const results: Array<{
+      courseId: string;
+      ok: boolean;
+      nrc: string | null;
+      message: string;
+    }> = [];
+
+    for (const courseId of uniqueIds) {
+      try {
+        const response = await this.deactivate(courseId, { reason: body.reason });
+        results.push({
+          courseId,
+          ok: true,
+          nrc: response.deactivated?.nrc ?? null,
+          message: 'Desactivado',
+        });
+      } catch (error) {
+        results.push({
+          courseId,
+          ok: false,
+          nrc: null,
+          message: error instanceof Error ? error.message : 'No fue posible desactivar el NRC.',
+        });
+      }
+    }
+
+    return {
+      ok: true,
+      requested: uniqueIds.length,
+      deactivated: results.filter((item) => item.ok).length,
+      failed: results.filter((item) => !item.ok).length,
+      results,
     };
   }
 

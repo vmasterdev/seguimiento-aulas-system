@@ -69,8 +69,14 @@ def classify(args, cfg: Dict, root: Path) -> int:
 
     if runtime.get("strictMode", True):
         cmd.append("--modo-estricto-modalidad")
+    if getattr(args, "modalidades_permitidas", ""):
+        cmd.extend(["--modalidades-permitidas", args.modalidades_permitidas])
     if runtime.get("nrc5SegunArchivo", True):
         cmd.append("--nrc-5-segun-archivo")
+    if getattr(args, "prelogin_all_modalidades", False):
+        cmd.append("--prelogin-all-modalidades")
+    if getattr(args, "prelogin_modalidades", ""):
+        cmd.extend(["--prelogin-modalidades", args.prelogin_modalidades])
 
     return run_cmd(cmd, sidecar_root)
 
@@ -86,62 +92,98 @@ def _read_rows(path: Path) -> List[Dict[str, str]]:
     return rows
 
 
+def _resolve_latest_revalidate_csv(root: Path, paths: Dict, suffix: str) -> Path | None:
+    configured_xlsx = resolve(root, paths["classificationOutputXlsx"])
+    configured_csv = configured_xlsx.with_name(f"{configured_xlsx.stem}{suffix}")
+    if configured_csv.exists():
+        return configured_csv
+
+    validation_dir = resolve(root, "storage/outputs/validation")
+    if not validation_dir.exists():
+        return None
+
+    matches = sorted(
+        (
+            item
+            for item in validation_dir.glob(f"*{suffix}")
+            if "smoke" not in item.name.lower()
+        ),
+        key=lambda item: item.stat().st_mtime,
+        reverse=True,
+    )
+    return matches[0] if matches else None
+
+
 def revalidate(args, cfg: Dict, root: Path) -> int:
     runtime = cfg.get("runtime", {})
     paths = cfg.get("paths", {})
     sidecar_root = resolve(root, paths["sidecarRoot"])
 
-    sinm_csv = resolve(root, paths["classificationOutputXlsx"]).with_name(
-        Path(paths["classificationOutputXlsx"]).stem + "_SIN_MATRICULA.csv"
-    )
-    vacias_csv = resolve(root, paths["classificationOutputXlsx"]).with_name(
-        Path(paths["classificationOutputXlsx"]).stem + "_AULAS_VACIAS.csv"
-    )
+    if args.input_dir:
+        tmp_dir = resolve(root, args.input_dir)
+        if not tmp_dir.exists():
+            raise SystemExit(f"No existe directorio para revalidar: {tmp_dir}")
+        csv_files = list(tmp_dir.glob("*.csv"))
+        if not csv_files:
+            raise SystemExit(f"No se encontraron CSV para revalidar en {tmp_dir}")
+        out_xlsx = resolve(root, args.output) if args.output else tmp_dir / "REVALIDACION_PENDIENTES_RESULTADO.xlsx"
+        print(f"[INFO] Revalidacion desde lote BD: {tmp_dir}")
+        print(f"[INFO] Revalidacion output: {out_xlsx}")
+    else:
+        sinm_csv = _resolve_latest_revalidate_csv(root, paths, "_SIN_MATRICULA.csv")
+        vacias_csv = _resolve_latest_revalidate_csv(root, paths, "_AULAS_VACIAS.csv")
 
-    if not sinm_csv.exists() and not vacias_csv.exists():
-        raise SystemExit("No existen archivos para revalidar: SIN_MATRICULA / AULAS_VACIAS")
+        if not sinm_csv and not vacias_csv:
+            raise SystemExit("No existen archivos para revalidar: SIN_MATRICULA / AULAS_VACIAS")
 
-    mode = args.mode
-    sources: List[Path] = []
-    if mode in ("sin_matricula", "ambos") and sinm_csv.exists():
-        sources.append(sinm_csv)
-    if mode in ("aulas_vacias", "ambos") and vacias_csv.exists():
-        sources.append(vacias_csv)
+        mode = args.mode
+        sources: List[Path] = []
+        if mode in ("sin_matricula", "ambos") and sinm_csv:
+            sources.append(sinm_csv)
+        if mode in ("aulas_vacias", "ambos") and vacias_csv:
+            sources.append(vacias_csv)
 
-    if not sources:
-        raise SystemExit(f"Modo {mode} sin fuentes disponibles")
+        if not sources:
+            raise SystemExit(f"Modo {mode} sin fuentes disponibles")
 
-    stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
-    tmp_dir = resolve(root, "storage/outputs/validation") / f"_sidecar_revalidate_{stamp}"
-    tmp_dir.mkdir(parents=True, exist_ok=True)
+        stamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+        tmp_dir = resolve(root, "storage/outputs/validation") / f"_sidecar_revalidate_{stamp}"
+        tmp_dir.mkdir(parents=True, exist_ok=True)
 
-    out_input = tmp_dir / "input_revalidate.csv"
-    written = 0
-    seen = set()
-    with out_input.open("w", encoding="utf-8", newline="") as fh:
-        writer = csv.DictWriter(fh, fieldnames=["PERIODO", "NRC", "TITULO", "METODO_EDUCATIVO"], delimiter=";")
-        writer.writeheader()
-        for src in sources:
-            for row in _read_rows(src):
-                nrc = str(row.get("NRC", "")).strip()
-                periodos = str(row.get("PERIODOS", "") or row.get("PERIODO", "")).strip()
-                titulo = str(row.get("TITULO_FUENTE", "") or row.get("TITULO", "")).strip()
-                metodo = str(row.get("METODOS", "") or row.get("METODO_EDUCATIVO", "")).strip()
-                if not nrc:
-                    continue
-                periods = [p.strip() for p in periodos.replace("|", ",").split(",") if p.strip()] or [""]
-                for per in periods:
-                    key = (per, nrc)
-                    if key in seen:
+        out_input = tmp_dir / "input_revalidate.csv"
+        written = 0
+        seen = set()
+        with out_input.open("w", encoding="utf-8", newline="") as fh:
+            writer = csv.DictWriter(fh, fieldnames=["PERIODO", "NRC", "TITULO", "METODO_EDUCATIVO"], delimiter=";")
+            writer.writeheader()
+            for src in sources:
+                for row in _read_rows(src):
+                    nrc = str(row.get("NRC", "")).strip()
+                    periodos = str(row.get("PERIODOS", "") or row.get("PERIODO", "")).strip()
+                    titulo = str(row.get("TITULO_FUENTE", "") or row.get("TITULO", "")).strip()
+                    metodo = str(row.get("METODOS", "") or row.get("METODO_EDUCATIVO", "")).strip()
+                    if not nrc:
                         continue
-                    seen.add(key)
-                    writer.writerow({"PERIODO": per, "NRC": nrc, "TITULO": titulo, "METODO_EDUCATIVO": metodo})
-                    written += 1
+                    periods = [p.strip() for p in periodos.replace("|", ",").split(",") if p.strip()] or [""]
+                    for per in periods:
+                        key = (per, nrc)
+                        if key in seen:
+                            continue
+                        seen.add(key)
+                        writer.writerow({"PERIODO": per, "NRC": nrc, "TITULO": titulo, "METODO_EDUCATIVO": metodo})
+                        written += 1
 
-    if written == 0:
-        raise SystemExit("No se generaron filas para revalidacion")
+        if written == 0:
+            raise SystemExit("No se generaron filas para revalidacion")
 
-    out_xlsx = tmp_dir / "REVALIDACION_PENDIENTES_RESULTADO.xlsx"
+        out_xlsx = resolve(root, args.output) if args.output else tmp_dir / "REVALIDACION_PENDIENTES_RESULTADO.xlsx"
+        if sinm_csv:
+            print(f"[INFO] Fuente SIN_MATRICULA: {sinm_csv}")
+        if vacias_csv:
+            print(f"[INFO] Fuente AULAS_VACIAS: {vacias_csv}")
+        print(f"[INFO] Revalidacion input: {out_input}")
+        print(f"[INFO] Revalidacion output: {out_xlsx}")
+
     cmd = [
         args.python or runtime.get("pythonCommand", "python3"),
         str(sidecar_root / "moodle_categorizacion_aulas.py"),
@@ -159,9 +201,6 @@ def revalidate(args, cfg: Dict, root: Path) -> int:
     ]
     if args.headless or runtime.get("headless", False):
         cmd.append("--headless")
-
-    print(f"[INFO] Revalidacion input: {out_input}")
-    print(f"[INFO] Revalidacion output: {out_xlsx}")
     return run_cmd(cmd, sidecar_root)
 
 
@@ -217,9 +256,14 @@ def main() -> int:
     p_classify.add_argument("--python")
     p_classify.add_argument("--headless", action="store_true")
     p_classify.add_argument("--no-resume", action="store_true")
+    p_classify.add_argument("--prelogin-all-modalidades", action="store_true")
+    p_classify.add_argument("--prelogin-modalidades", default="")
+    p_classify.add_argument("--modalidades-permitidas", default="")
 
     p_revalidate = sub.add_parser("revalidate", help="Revalida pendientes SIN_MATRICULA/AULAS_VACIAS")
     p_revalidate.add_argument("--mode", choices=["sin_matricula", "aulas_vacias", "ambos"], default="ambos")
+    p_revalidate.add_argument("--input-dir", dest="input_dir")
+    p_revalidate.add_argument("--output")
     p_revalidate.add_argument("--workers", type=int)
     p_revalidate.add_argument("--browser")
     p_revalidate.add_argument("--python")

@@ -56,6 +56,16 @@ export type AdapterRunResult = {
   notes: string[];
 };
 
+function isProjectRootCandidate(candidate: string): boolean {
+  if (!candidate) return false;
+  const root = path.resolve(candidate);
+  return (
+    fs.existsSync(path.join(root, 'package.json')) &&
+    fs.existsSync(path.join(root, 'apps', 'api')) &&
+    fs.existsSync(path.join(root, 'tools', 'moodle-sidecar'))
+  );
+}
+
 type PrismaLike = {
   course: {
     findMany: (args: any) => Promise<any[]>;
@@ -296,11 +306,14 @@ function usefulTemplate(value: string | null | undefined): boolean {
 }
 
 export function resolveProjectRoot(fromCwd = process.cwd()): string {
+  const envRoot = process.env.SEGUIMIENTO_PROJECT_ROOT?.trim();
+  if (envRoot && isProjectRootCandidate(envRoot)) {
+    return path.resolve(envRoot);
+  }
+
   let current = path.resolve(fromCwd);
   for (let i = 0; i < 8; i += 1) {
-    const marker = path.join(current, 'apps', 'api');
-    const pkg = path.join(current, 'package.json');
-    if (fs.existsSync(marker) && fs.existsSync(pkg)) return current;
+    if (isProjectRootCandidate(current)) return current;
     const parent = path.dirname(current);
     if (parent === current) break;
     current = parent;

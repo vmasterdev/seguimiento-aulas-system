@@ -327,6 +327,25 @@ function classifyHeuristic(input: {
   };
 }
 
+function classifyWithoutRealMoodleAccess(input: {
+  templateDeclared: string | null;
+  subjectName: string | null;
+  moodleStatus: string | null;
+}): Pick<ClassificationResult, 'status' | 'detectedTemplate' | 'errorCode' | 'notes'> {
+  const heuristic = classifyHeuristic(input);
+
+  if (heuristic.status === 'DESCARTADO_NO_EXISTE') {
+    return heuristic;
+  }
+
+  return {
+    status: 'REVISAR_MANUAL',
+    detectedTemplate: heuristic.detectedTemplate,
+    errorCode: 'OTRO',
+    notes: `Automatizacion Moodle sin acceso real. ${heuristic.notes} El curso no se marca OK hasta revisar Moodle con sesion valida.`,
+  };
+}
+
 function urlIndicaLogin(url: string): boolean {
   const value = String(url ?? '').toLowerCase();
   if (!value) return true;
@@ -595,7 +614,7 @@ async function processJob(job: Job<MoodleClassifyJob>): Promise<ClassificationRe
 
   try {
     if (!hasAnyMoodleTarget() || !hasRealMoodleCredentials()) {
-      const heuristic = classifyHeuristic({
+      const heuristic = classifyWithoutRealMoodleAccess({
         templateDeclared: course.templateDeclared,
         subjectName: course.subjectName,
         moodleStatus: course.moodleCheck?.status ?? null,
@@ -726,7 +745,10 @@ async function bootstrap() {
           resolvedModality: result.resolvedModality,
           resolvedBaseUrl: result.resolvedBaseUrl,
           searchQuery: result.searchQuery,
-          resolvedAt: new Date(),
+          resolvedAt:
+            result.status === 'DESCARTADO_NO_EXISTE' || !!result.moodleCourseUrl || !!result.moodleCourseId
+              ? new Date()
+              : null,
           lastAttemptAt: new Date(),
         },
       });
