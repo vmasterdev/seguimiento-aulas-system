@@ -1,0 +1,10 @@
+[START] 2026-03-17T17:27:29.831Z
+[CWD] /mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\ORGANIZAR TODO\banner buscador de docente en nrc - BORRAR'; & 'C:\Program Files\nodejs\node.exe' 'C:\Users\Duvan\Documents\ORGANIZAR TODO\banner buscador de docente en nrc - BORRAR\scripts\auth-windows.cjs'
+
+Completa el login y el 2FA en Edge para Banner/Microsoft. Cuando termines, vuelve a esta terminal y presiona Enter para guardar la sesion.
+
+[END] 2026-03-17T17:29:26.787Z
+[STATUS] CANCELLED
+[EXIT_CODE] null

@@ -1,0 +1,7 @@
+[START] 2026-03-10T19:39:14.696Z
+[CMD] /mnt/c/WINDOWS/system32/cmd.exe "/c" "py" "-3" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\tools\\moodle-sidecar\\sidecar_runner.py" "revalidate" "--input-dir" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-batches\\2026-03-10T19-39-14-111Z_revalidate_aulas_vacias" "--output" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\REVALIDACION_WINDOWS_SMOKE1.xlsx" "--mode" "aulas_vacias" "--workers" "1" "--browser" "edge" "--python" "py"
+
+
+[END] 2026-03-10T19:40:22.633Z
+[STATUS] CANCELLED
+[EXIT_CODE] null

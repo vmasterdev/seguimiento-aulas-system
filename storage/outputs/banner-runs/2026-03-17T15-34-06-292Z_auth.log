@@ -1,0 +1,16 @@
+[START] 2026-03-17T15:34:06.293Z
+[CWD] /mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR
+[EXECUTABLE] node
+[CMD] node --import tsx "src/cli.ts" "auth"
+
+Error: No fue posible conectar con Edge en http://127.0.0.1:9222 dentro de 15000ms
+    at waitForRemoteDebugging (/mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR/src/cli.ts:45:9)
+    at async <anonymous> (/mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR/src/cli.ts:140:11)
+    at async runWithContext (/mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR/src/cli.ts:109:12)
+    at async Command.<anonymous> (/mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR/src/cli.ts:127:7)
+    at async Command.parseAsync (/mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR/node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/command.js:1104:5)
+    at async main (/mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR/src/cli.ts:250:3)
+
+[END] 2026-03-17T15:34:49.150Z
+[STATUS] FAILED
+[EXIT_CODE] 1

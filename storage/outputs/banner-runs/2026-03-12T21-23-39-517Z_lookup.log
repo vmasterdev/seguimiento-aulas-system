@@ -1,0 +1,27 @@
+[START] 2026-03-12T21:23:39.517Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\banner buscador de docente en nrc'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'lookup' '--nrc' '72305' '--period' '202615' '--query-name' 'ui-test-2'
+
+[2026-03-12T21:23:40.659Z] INFO Iniciando lote Banner {
+  queryId: 'cmmnz685o0000t23gjpzqyoex',
+  totalRequested: 1,
+  pending: 1,
+  workers: 1
+}
+[2026-03-12T21:24:03.200Z] INFO Sesion backend restaurada desde workspace Banner
+[2026-03-12T21:24:08.658Z] WARN Fallback a fetch del navegador por respuesta SSO/HTML { status: 200 }
+Error: page.evaluate: TypeError: Failed to fetch
+    at eval (eval at evaluate (:290:30), <anonymous>:1:53)
+    at UtilityScript.evaluate (<anonymous>:292:16)
+    at UtilityScript.<anonymous> (<anonymous>:1:44)
+    at BatchService.process (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\services\batchService.ts:177:15)
+    at async <anonymous> (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:192:25)
+    at async runWithContext (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:109:12)
+    at async Command.<anonymous> (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:191:7)
+    at async Command.parseAsync (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\node_modules\.pnpm\commander@13.1.0\node_modules\commander\lib\command.js:1104:5)
+    at async main (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:254:3)
+
+[END] 2026-03-12T21:24:11.908Z
+[STATUS] FAILED
+[EXIT_CODE] 1

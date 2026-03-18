@@ -1,0 +1,21 @@
+[START] 2026-03-18T12:54:01.927Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node "/home/uvan/banner-docente-runner/scripts/auth-windows.cjs" "start"
+
+Completa el login y el 2FA en Edge para Banner/Microsoft. Cuando termines, vuelve al sistema y pulsa Guardar sesion Banner.
+{
+  "authSessionPath": "/home/uvan/banner-batch-run-20260317-1508/storage/auth/banner-auth-session.json",
+  "remoteDebuggingUrl": "http://172.29.48.1:9223",
+  "userDataDir": "C:\\Users\\Duvan\\AppData\\Local\\Temp\\banner-docente-edge-profile-1773838443289",
+  "storageStatePath": "/home/uvan/banner-batch-run-20260317-1508/storage/auth/banner-storage-state.json"
+}
+
+[AUTH_PENDING] 2026-03-18T12:54:08.368Z
+
+[CONFIRM_START] 2026-03-18T12:58:14.926Z
+[CONFIRM_CMD] node "/home/uvan/banner-docente-runner/scripts/auth-windows.cjs" "confirm"
+
+
+[CONFIRM_ERROR] Command failed: node /home/uvan/banner-docente-runner/scripts/auth-windows.cjs confirm
+

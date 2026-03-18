@@ -1,0 +1,55 @@
+[START] 2026-03-17T21:06:45.198Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node --import tsx "src/cli.ts" "lookup" "--nrc" "75608" "--period" "202610" "--query-name" "ui-smoke-75608-20260317"
+
+[2026-03-17T21:06:51.664Z] INFO Iniciando lote Banner {
+  queryId: 'cmmv3rux50000t24mwlvgij5t',
+  totalRequested: 1,
+  pending: 1,
+  workers: 1
+}
+[2026-03-17T21:07:11.514Z] INFO Sesion restaurada desde storageState
+[2026-03-17T21:07:25.098Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: '309e5d87-2e2c-42f9-83b1-e8fb1534bb3e' }
+[2026-03-17T21:07:25.099Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmv3rux50000t24mwlvgij5t',
+  worker: 1,
+  nrc: '75608',
+  period: '202610'
+}
+[2026-03-17T21:07:25.100Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmv3rux50000t24mwlvgij5t',
+  worker: 1,
+  nrc: '75608',
+  period: '202610'
+}
+[2026-03-17T21:07:25.516Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmv3rux50000t24mwlvgij5t',
+  worker: 1,
+  nrc: '75608',
+  period: '202610',
+  status: 'ENCONTRADO'
+}
+{
+  "queryId": "cmmv3rux50000t24mwlvgij5t",
+  "queryName": "ui-smoke-75608-20260317",
+  "processed": 1,
+  "total": 1,
+  "counts": {
+    "ENCONTRADO": 1,
+    "SIN_DOCENTE": 0,
+    "NO_ENCONTRADO": 0,
+    "ERROR": 0
+  }
+}
+
+[AUTO_EXPORT] cmmv3rux50000t24mwlvgij5t
+[2026-03-17T21:07:27.051Z] INFO Exportacion completada { queryId: 'cmmv3rux50000t24mwlvgij5t', formats: [ 'csv', 'json' ] }
+{
+  "csvPath": "storage/exports/ui-smoke-75608-20260317-2026-03-17T21-07-27.048Z.csv",
+  "jsonPath": "storage/exports/ui-smoke-75608-20260317-2026-03-17T21-07-27.048Z.json"
+}
+
+[END] 2026-03-17T21:07:27.084Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

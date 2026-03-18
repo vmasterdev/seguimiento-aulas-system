@@ -1,0 +1,70 @@
+
+> @seguimiento/api@0.1.0 start /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/apps/api
+> node --enable-source-maps dist/apps/api/src/main.js
+
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [Bootstrap] Inicializando API...
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [NestFactory] Starting Nest application... +66ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] DatabaseModule dependencies initialized +50ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] AppModule dependencies initialized +6ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] MoodleUrlResolverAdapterModule dependencies initialized +3ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] QueueModule dependencies initialized +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] StatsModule dependencies initialized +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] CoursesModule dependencies initialized +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] SamplingModule dependencies initialized +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] EvaluationModule dependencies initialized +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] OutboxModule dependencies initialized +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] TeachersModule dependencies initialized +2ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [InstanceLoader] ImportModule dependencies initialized +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [Bootstrap] Nest app creada.
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] HealthController {/}: +53ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/, GET} route +5ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/health, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] ImportController {/import}: +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/import/csv, POST} route +2ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/import/teachers-xlsx, POST} route +2ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] QueueController {/queue}: +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/queue/enqueue-classify, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/queue/retry, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/queue/stats, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] StatsController {/stats}: +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/stats/overview, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] CoursesController {/courses}: +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/courses/missing-teacher/list, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/courses, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/courses/:id, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/courses/:id/manual, PATCH} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/courses/:id/teacher, PATCH} route +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/courses/:id/deactivate, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/courses/:id/checklist-temporal, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] SamplingController {/sampling}: +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/sampling/generate, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/sampling, GET} route +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/sampling/review-queue, GET} route +2ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] EvaluationController {/evaluation}: +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/evaluation/score, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/evaluation/manual-override, POST} route +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/evaluation/recalculate, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/evaluation/replicate-sampled, POST} route +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/evaluation/nrc-trace, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/evaluation, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] OutboxController {/outbox}: +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/outbox/generate, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/outbox/export-eml, POST} route +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/outbox/send, POST} route +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/outbox/resend-updated, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/outbox/resend-by-course, POST} route +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/outbox, GET} route +2ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/outbox/tracking, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] MoodleUrlResolverAdapterController {/integrations/moodle-sidecar}: +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/integrations/moodle-sidecar/config, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/integrations/moodle-sidecar/import, POST} route +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] MoodleSidecarRunnerController {/integrations/moodle-sidecar/run}: +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/integrations/moodle-sidecar/run/status, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/integrations/moodle-sidecar/run/start, POST} route +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/integrations/moodle-sidecar/run/cancel, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RoutesResolver] TeachersController {/teachers}: +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/teachers, GET} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/teachers, POST} route +0ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [RouterExplorer] Mapped {/teachers/import-csv, POST} route +1ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [NestApplication] Nest application successfully started +151ms
+[Nest] 18299  - 03/06/2026, 8:21:27 AM     LOG [Bootstrap] API listening on http://localhost:3001

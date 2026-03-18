@@ -1,0 +1,30 @@
+[START] 2026-03-14T02:56:46.877Z
+[CMD] C:\WINDOWS\system32\cmd.exe "/c" "py" "-3" "-u" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\tools\\moodle-sidecar\\sidecar_runner.py" "attendance" "--input-json" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-extract-batches\\2026-03-14T02-56-46-846Z_attendance\\attendance_input.json" "--output-dir" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-extract-batches\\2026-03-14T02-56-46-846Z_attendance\\attendance_exports" "--browser" "chrome" "--python" "py"
+
+[CMD] py C:\Users\Duvan\Documents\seguimiento-aulas-system\tools\moodle-sidecar\moodle_attendance_exports.py --input-json C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-extract-batches\2026-03-14T02-56-46-846Z_attendance\attendance_input.json --output-dir C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-extract-batches\2026-03-14T02-56-46-846Z_attendance\attendance_exports --browser chrome
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[INFO] Sesion iniciada en DISTANCIA.
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Exportes de asistencia generados en C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-extract-batches\2026-03-14T02-56-46-846Z_attendance\attendance_exports
+[INFO] Cursos procesados: 10
+[INFO] Descargas exitosas: 7
+[INFO] Errores: 1
+
+[END] 2026-03-14T03:00:56.499Z
+[STATUS] FAILED
+[EXIT_CODE] 1

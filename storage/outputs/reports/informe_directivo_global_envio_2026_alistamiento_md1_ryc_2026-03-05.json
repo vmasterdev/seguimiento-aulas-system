@@ -1,0 +1,58 @@
+{
+  "generatedAt": "2026-03-05T21:20:10.296Z",
+  "scope": {
+    "periods": [
+      "202610",
+      "202611",
+      "202612",
+      "202615",
+      "202621",
+      "202641"
+    ],
+    "phase": "ALISTAMIENTO",
+    "moments": [
+      "MD1",
+      "1"
+    ]
+  },
+  "summary": {
+    "teachersTotal": 253,
+    "teachersWithEmail": 230,
+    "sampleTeachers": 212,
+    "reportsGenerated": 358,
+    "reportsSent": 343,
+    "reportsPending": 15,
+    "sentRate": 95.8,
+    "sentByMoment": {
+      "MD1": 159,
+      "RYC1": 184
+    },
+    "academicSnapshot": {
+      "high": 810,
+      "mid": 74,
+      "followUp": 272
+    }
+  },
+  "pendingTeachers": [
+    {
+      "recipientName": "ANA, FERRO MORENO L.",
+      "teacherId": "1141374",
+      "period": {
+        "code": "202615"
+      },
+      "moment": "1"
+    },
+    {
+      "recipientName": "ANA, FERRO MORENO L.",
+      "teacherId": "1141374",
+      "period": {
+        "code": "202615"
+      },
+      "moment": "MD1"
+    }
+  ],
+  "files": {
+    "html": "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/reports/informe_directivo_global_envio_2026_alistamiento_md1_ryc_2026-03-05.html",
+    "json": "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/reports/informe_directivo_global_envio_2026_alistamiento_md1_ryc_2026-03-05.json"
+  }
+}

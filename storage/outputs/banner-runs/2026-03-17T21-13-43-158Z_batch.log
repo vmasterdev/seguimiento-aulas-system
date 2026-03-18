@@ -1,0 +1,55 @@
+[START] 2026-03-17T21:13:43.159Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node --import tsx "src/cli.ts" "batch" "--input" "/mnt/c/Users/Duvan/Documents/storage/outputs/banner-batches/2026-03-17T21-13-43-112Z_all/nrc_banner_batch.csv" "--query-name" "ui-autoimport-smoke-20260317" "--workers" "1"
+
+[2026-03-17T21:13:46.017Z] INFO Iniciando lote Banner {
+  queryId: 'cmmv40qnd0000t2o1bnq9w6tj',
+  totalRequested: 1,
+  pending: 1,
+  workers: 1
+}
+[2026-03-17T21:14:01.351Z] INFO Sesion restaurada desde storageState
+[2026-03-17T21:14:08.539Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: '8810e145-3870-4f10-b0fe-1c64d8463ce9' }
+[2026-03-17T21:14:08.548Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmv40qnd0000t2o1bnq9w6tj',
+  worker: 1,
+  nrc: '75608',
+  period: '202610'
+}
+[2026-03-17T21:14:08.549Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmv40qnd0000t2o1bnq9w6tj',
+  worker: 1,
+  nrc: '75608',
+  period: '202610'
+}
+[2026-03-17T21:14:09.396Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmv40qnd0000t2o1bnq9w6tj',
+  worker: 1,
+  nrc: '75608',
+  period: '202610',
+  status: 'ENCONTRADO'
+}
+{
+  "queryId": "cmmv40qnd0000t2o1bnq9w6tj",
+  "queryName": "ui-autoimport-smoke-20260317",
+  "processed": 1,
+  "total": 1,
+  "counts": {
+    "ENCONTRADO": 1,
+    "SIN_DOCENTE": 0,
+    "NO_ENCONTRADO": 0,
+    "ERROR": 0
+  }
+}
+
+[AUTO_EXPORT] cmmv40qnd0000t2o1bnq9w6tj
+[2026-03-17T21:14:13.928Z] INFO Exportacion completada { queryId: 'cmmv40qnd0000t2o1bnq9w6tj', formats: [ 'csv', 'json' ] }
+{
+  "csvPath": "storage/exports/ui-autoimport-smoke-20260317-2026-03-17T21-14-13.924Z.csv",
+  "jsonPath": "storage/exports/ui-autoimport-smoke-20260317-2026-03-17T21-14-13.924Z.json"
+}
+
+[END] 2026-03-17T21:14:13.995Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

@@ -1,0 +1,289 @@
+[START] 2026-03-10T15:26:21.072Z
+[CMD] python3 "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/sidecar_runner.py" "classify" "--input-dir" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-batches/2026-03-10T15-26-20-985Z_all" "--output" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_VACIO_20260310.xlsx" "--workers" "4" "--browser" "edge" "--prelogin-all-modalidades"
+
+[INFO] Catalogo Distancia 4.0: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/CURSOS DISTANCIA 4.0.xlsx
+[INFO] Cursos en catalogo Distancia 4.0: 445
+[INFO] NRC totales: 365
+[INFO] NRC ya procesados: 0
+[INFO] NRC pendientes: 365
+[INFO] Prioridad de periodos: 202615
+[INFO] CSV checkpoint: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_VACIO_20260310.csv
+[INFO] Excel final: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_VACIO_20260310.xlsx
+[INFO] Reporte sin matricula: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_VACIO_20260310_SIN_MATRICULA.xlsx
+[INFO] Reporte aulas vacias/sin participantes: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_VACIO_20260310_AULAS_VACIAS.xlsx
+[INFO] Perfil navegador root: /home/uvan/.cache/seguimiento-aulas/moodle-sidecar
+[INFO] Headless: NO
+[INFO] Workers: 4
+[INFO] Modo estricto por modalidad: SI
+[INFO] Consulta NRC solo 5 digitos: NO
+[INFO] Consulta NRC 5 digitos segun archivo/modalidad: SI
+[INFO] Pre-login inicial de modalidades: PRESENCIAL, POSGRADOS, MOOCs, DISTANCIA
+[INFO] Modo multi-worker activado.
+[WARN] Ejecutar varios workers sin headless abrira multiples ventanas del navegador.
+[INFO] Reutilizando perfil existente para worker 1: /home/uvan/.cache/seguimiento-aulas/moodle-sidecar/edge_profile_aulas_uniminuto_w1
+[INFO] Reutilizando perfil existente para worker 2: /home/uvan/.cache/seguimiento-aulas/moodle-sidecar/edge_profile_aulas_uniminuto_w2
+[INFO] Reutilizando perfil existente para worker 3: /home/uvan/.cache/seguimiento-aulas/moodle-sidecar/edge_profile_aulas_uniminuto_w3
+[INFO] Reutilizando perfil existente para worker 4: /home/uvan/.cache/seguimiento-aulas/moodle-sidecar/edge_profile_aulas_uniminuto_w4
+[W2/4] [WARN] Fallo al abrir EDGE con perfil actual: Message: unknown error: JavaScript code failed
+from unknown command: 'Runtime.evaluate' wasn't found
+  (Session info: MicrosoftEdge=145.0.3800.70)
+Stacktrace:
+#0 0x55f4a8e9b53e <unknown>
+#1 0x55f4a88701c4 <unknown>
+#2 0x55f4a88586f7 <unknown>
+#3 0x55f4a88571d2 <unknown>
+#4 0x55f4a88573df <unknown>
+#5 0x55f4a8884242 <unknown>
+#6 0x55f4a8878ee6 <unknown>
+#7 0x55f4a8878daf <unknown>
+#8 0x55f4a8849d47 <unknown>
+#9 0x55f4a8848c9e <unknown>
+#10 0x55f4a891f302 <unknown>
+#11 0x55f4a890b110 <unknown>
+#12 0x55f4a88b6207 <unknown>
+#13 0x55f4a88b6e41 <unknown>
+#14 0x55f4a8e661ab <unknown>
+#15 0x55f4a8e692e5 <unknown>
+#16 0x55f4a8e68dad <unknown>
+#17 0x55f4a8e569b9 <unknown>
+#18 0x55f4a8e69b52 <unknown>
+#19 0x55f4a8e3fdae <unknown>
+#20 0x55f4a8e88b68 <unknown>
+#21 0x55f4a8e88da6 <unknown>
+#22 0x55f4a8e99e23 <unknown>
+#23 0x7636d809caa4 <unknown>
+#24 0x7636d8129c6c <unknown>
+
+[W2/4] [INFO] Reintentando con perfil limpio...
+[INFO] Borrando perfil de Edge corrupto...
+[W1/4] [WARN] Fallo al abrir EDGE con perfil actual: Message: unknown error: JavaScript code failed
+from unknown command: 'Runtime.evaluate' wasn't found
+  (Session info: MicrosoftEdge=145.0.3800.70)
+Stacktrace:
+#0 0x5a5dfd9e853e <unknown>
+#1 0x5a5dfd3bd1c4 <unknown>
+#2 0x5a5dfd3a56f7 <unknown>
+#3 0x5a5dfd3a41d2 <unknown>
+#4 0x5a5dfd3a43df <unknown>
+#5 0x5a5dfd3d1242 <unknown>
+#6 0x5a5dfd3c5ee6 <unknown>
+#7 0x5a5dfd3c5daf <unknown>
+#8 0x5a5dfd396d47 <unknown>
+#9 0x5a5dfd395c9e <unknown>
+#10 0x5a5dfd46c302 <unknown>
+#11 0x5a5dfd458110 <unknown>
+#12 0x5a5dfd403207 <unknown>
+#13 0x5a5dfd403e41 <unknown>
+#14 0x5a5dfd9b31ab <unknown>
+#15 0x5a5dfd9b62e5 <unknown>
+#16 0x5a5dfd9b5dad <unknown>
+#17 0x5a5dfd9a39b9 <unknown>
+#18 0x5a5dfd9b6b52 <unknown>
+#19 0x5a5dfd98cdae <unknown>
+#20 0x5a5dfd9d5b68 <unknown>
+#21 0x5a5dfd9d5da6 <unknown>
+#22 0x5a5dfd9e6e23 <unknown>
+#23 0x74f06149caa4 <unknown>
+#24 0x74f061529c6c <unknown>
+
+[W1/4] [INFO] Reintentando con perfil limpio...
+[INFO] Borrando perfil de Edge corrupto...
+[W3/4] [WARN] Fallo al abrir EDGE con perfil actual: Message: unknown error: JavaScript code failed
+from unknown command: 'Runtime.evaluate' wasn't found
+  (Session info: MicrosoftEdge=145.0.3800.70)
+Stacktrace:
+#0 0x5bac7c46153e <unknown>
+#1 0x5bac7be361c4 <unknown>
+#2 0x5bac7be1e6f7 <unknown>
+#3 0x5bac7be1d1d2 <unknown>
+#4 0x5bac7be1d3df <unknown>
+#5 0x5bac7be4a242 <unknown>
+#6 0x5bac7be3eee6 <unknown>
+#7 0x5bac7be3edaf <unknown>
+#8 0x5bac7be0fd47 <unknown>
+#9 0x5bac7be0ec9e <unknown>
+#10 0x5bac7bee5302 <unknown>
+#11 0x5bac7bed1110 <unknown>
+#12 0x5bac7be7c207 <unknown>
+#13 0x5bac7be7ce41 <unknown>
+#14 0x5bac7c42c1ab <unknown>
+#15 0x5bac7c42f2e5 <unknown>
+#16 0x5bac7c42edad <unknown>
+#17 0x5bac7c41c9b9 <unknown>
+#18 0x5bac7c42fb52 <unknown>
+#19 0x5bac7c405dae <unknown>
+#20 0x5bac7c44eb68 <unknown>
+#21 0x5bac7c44eda6 <unknown>
+#22 0x5bac7c45fe23 <unknown>
+#23 0x796f7449caa4 <unknown>
+#24 0x796f74529c6c <unknown>
+
+[W3/4] [INFO] Reintentando con perfil limpio...
+[INFO] Borrando perfil de Edge corrupto...
+[W4/4] [WARN] Fallo al abrir EDGE con perfil actual: Message: unknown error: JavaScript code failed
+from unknown command: 'Runtime.evaluate' wasn't found
+  (Session info: MicrosoftEdge=145.0.3800.70)
+Stacktrace:
+#0 0x63ad54d6b53e <unknown>
+#1 0x63ad547401c4 <unknown>
+#2 0x63ad547286f7 <unknown>
+#3 0x63ad547271d2 <unknown>
+#4 0x63ad547273df <unknown>
+#5 0x63ad54754242 <unknown>
+#6 0x63ad54748ee6 <unknown>
+#7 0x63ad54748daf <unknown>
+#8 0x63ad54719d47 <unknown>
+#9 0x63ad54718c9e <unknown>
+#10 0x63ad547ef302 <unknown>
+#11 0x63ad547db110 <unknown>
+#12 0x63ad54786207 <unknown>
+#13 0x63ad54786e41 <unknown>
+#14 0x63ad54d361ab <unknown>
+#15 0x63ad54d392e5 <unknown>
+#16 0x63ad54d38dad <unknown>
+#17 0x63ad54d269b9 <unknown>
+#18 0x63ad54d39b52 <unknown>
+#19 0x63ad54d0fdae <unknown>
+#20 0x63ad54d58b68 <unknown>
+#21 0x63ad54d58da6 <unknown>
+#22 0x63ad54d69e23 <unknown>
+#23 0x752beac9caa4 <unknown>
+#24 0x752bead29c6c <unknown>
+
+[W4/4] [INFO] Reintentando con perfil limpio...
+[INFO] Borrando perfil de Edge corrupto...
+[W1/4] [ERROR] No se pudo abrir EDGE: Message: unknown error: JavaScript code failed
+from unknown command: 'Runtime.evaluate' wasn't found
+  (Session info: MicrosoftEdge=145.0.3800.70)
+Stacktrace:
+#0 0x5ea7d66d853e <unknown>
+#1 0x5ea7d60ad1c4 <unknown>
+#2 0x5ea7d60956f7 <unknown>
+#3 0x5ea7d60941d2 <unknown>
+#4 0x5ea7d60943df <unknown>
+#5 0x5ea7d60c1242 <unknown>
+#6 0x5ea7d60b5ee6 <unknown>
+#7 0x5ea7d60b5daf <unknown>
+#8 0x5ea7d6086d47 <unknown>
+#9 0x5ea7d6085c9e <unknown>
+#10 0x5ea7d615c302 <unknown>
+#11 0x5ea7d6148110 <unknown>
+#12 0x5ea7d60f3207 <unknown>
+#13 0x5ea7d60f3e41 <unknown>
+#14 0x5ea7d66a31ab <unknown>
+#15 0x5ea7d66a62e5 <unknown>
+#16 0x5ea7d66a5dad <unknown>
+#17 0x5ea7d66939b9 <unknown>
+#18 0x5ea7d66a6b52 <unknown>
+#19 0x5ea7d667cdae <unknown>
+#20 0x5ea7d66c5b68 <unknown>
+#21 0x5ea7d66c5da6 <unknown>
+#22 0x5ea7d66d6e23 <unknown>
+#23 0x7eb446c9caa4 <unknown>
+#24 0x7eb446d29c6c <unknown>
+
+[INFO] Worker 1 finalizado: 0/92 registros.
+[W2/4] [ERROR] No se pudo abrir EDGE: Message: unknown error: JavaScript code failed
+from unknown command: 'Runtime.evaluate' wasn't found
+  (Session info: MicrosoftEdge=145.0.3800.70)
+Stacktrace:
+#0 0x5e43d64eb53e <unknown>
+#1 0x5e43d5ec01c4 <unknown>
+#2 0x5e43d5ea86f7 <unknown>
+#3 0x5e43d5ea71d2 <unknown>
+#4 0x5e43d5ea73df <unknown>
+#5 0x5e43d5ed4242 <unknown>
+#6 0x5e43d5ec8ee6 <unknown>
+#7 0x5e43d5ec8daf <unknown>
+#8 0x5e43d5e99d47 <unknown>
+#9 0x5e43d5e98c9e <unknown>
+#10 0x5e43d5f6f302 <unknown>
+#11 0x5e43d5f5b110 <unknown>
+#12 0x5e43d5f06207 <unknown>
+#13 0x5e43d5f06e41 <unknown>
+#14 0x5e43d64b61ab <unknown>
+#15 0x5e43d64b92e5 <unknown>
+#16 0x5e43d64b8dad <unknown>
+#17 0x5e43d64a69b9 <unknown>
+#18 0x5e43d64b9b52 <unknown>
+#19 0x5e43d648fdae <unknown>
+#20 0x5e43d64d8b68 <unknown>
+#21 0x5e43d64d8da6 <unknown>
+#22 0x5e43d64e9e23 <unknown>
+#23 0x7cb61409caa4 <unknown>
+#24 0x7cb614129c6c <unknown>
+
+[INFO] Worker 2 finalizado: 0/91 registros.
+[W4/4] [ERROR] No se pudo abrir EDGE: HTTPConnectionPool(host='localhost', port=39031): Read timed out. (read timeout=120)
+[INFO] Worker 4 finalizado: 0/91 registros.
+[W3/4] [ERROR] No se pudo abrir EDGE: HTTPConnectionPool(host='localhost', port=35655): Read timed out. (read timeout=120)
+[INFO] Worker 3 finalizado: 0/91 registros.
+[INFO] Filas consolidadas al checkpoint: 0
+[INFO] Filas consolidadas en sin matricula: 0
+[WARN] Quedaron 365 NRC sin fila consolidada tras multi-worker. Iniciando pasada de recuperacion secuencial...
+[W1/1] [WARN] Fallo al abrir EDGE con perfil actual: Message: session not created: Chrome instance exited. Examine ChromeDriver verbose log to determine the cause.; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+#0 0x60fc6206053e <unknown>
+#1 0x60fc61a351c4 <unknown>
+#2 0x60fc61a73acf <unknown>
+#3 0x60fc61a6cc4d <unknown>
+#4 0x60fc61abdeda <unknown>
+#5 0x60fc61abd69c <unknown>
+#6 0x60fc61a7b207 <unknown>
+#7 0x60fc61a7be41 <unknown>
+#8 0x60fc6202b1ab <unknown>
+#9 0x60fc6202e2e5 <unknown>
+#10 0x60fc6202ddad <unknown>
+#11 0x60fc6201b9b9 <unknown>
+#12 0x60fc6202eb52 <unknown>
+#13 0x60fc62004dae <unknown>
+#14 0x60fc6204db68 <unknown>
+#15 0x60fc6204dda6 <unknown>
+#16 0x60fc6205ee23 <unknown>
+#17 0x73dd0a09caa4 <unknown>
+#18 0x73dd0a129c6c <unknown>
+
+[W1/1] [INFO] Reintentando con perfil limpio...
+[INFO] Borrando perfil de Edge corrupto...
+[W1/1] [ERROR] No se pudo abrir EDGE: Message: unknown error: JavaScript code failed
+from unknown command: 'Runtime.evaluate' wasn't found
+  (Session info: MicrosoftEdge=145.0.3800.70)
+Stacktrace:
+#0 0x5f84b36db53e <unknown>
+#1 0x5f84b30b01c4 <unknown>
+#2 0x5f84b30986f7 <unknown>
+#3 0x5f84b30971d2 <unknown>
+#4 0x5f84b30973df <unknown>
+#5 0x5f84b30c4242 <unknown>
+#6 0x5f84b30b8ee6 <unknown>
+#7 0x5f84b30b8daf <unknown>
+#8 0x5f84b3089d47 <unknown>
+#9 0x5f84b3088c9e <unknown>
+#10 0x5f84b315f302 <unknown>
+#11 0x5f84b314b110 <unknown>
+#12 0x5f84b30f6207 <unknown>
+#13 0x5f84b30f6e41 <unknown>
+#14 0x5f84b36a61ab <unknown>
+#15 0x5f84b36a92e5 <unknown>
+#16 0x5f84b36a8dad <unknown>
+#17 0x5f84b36969b9 <unknown>
+#18 0x5f84b36a9b52 <unknown>
+#19 0x5f84b367fdae <unknown>
+#20 0x5f84b36c8b68 <unknown>
+#21 0x5f84b36c8da6 <unknown>
+#22 0x5f84b36d9e23 <unknown>
+#23 0x777f8169caa4 <unknown>
+#24 0x777f81729c6c <unknown>
+
+[INFO] Recuperacion secuencial: 0 procesados | 0 consolidados | 0 sin matricula.
+[WARN] Aun faltan 365 NRC tras recuperacion. Ejemplo: 72307, 72313, 72411, 72415, 72428, 72434, 72436, 72467, 72469, 72532
+
+[FIN] Proceso completado.
+[OK] CSV: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_VACIO_20260310.csv
+[OK] Excel: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_VACIO_20260310.xlsx
+[INFO] No se encontraron aulas vacias/sin participantes para reporte dedicado.
+[CMD] python3 /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/moodle_categorizacion_aulas.py --browser edge --input-dir /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-batches/2026-03-10T15-26-20-985Z_all --output /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_VACIO_20260310.xlsx --workers 4 --resume --modo-estricto-modalidad --nrc-5-segun-archivo --prelogin-all-modalidades
+
+[END] 2026-03-10T15:31:52.428Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

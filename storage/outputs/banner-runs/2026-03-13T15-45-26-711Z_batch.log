@@ -1,0 +1,3859 @@
+[START] 2026-03-13T15:45:26.711Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\banner buscador de docente en nrc'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'batch' '--input' 'C:\Users\Duvan\Documents\storage\outputs\banner-batches\2026-03-13T15-45-26-669Z_missing_teacher\nrc_banner_batch.csv' '--query-name' 'banner-rpaca' '--query-id' 'cmmp25coq0000t2qc80gj9sgw' '--workers' '3'
+
+[2026-03-13T15:45:28.518Z] INFO Iniciando lote Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  totalRequested: 201,
+  pending: 201,
+  workers: 3
+}
+[2026-03-13T15:45:37.297Z] INFO Sesion restaurada desde storageState
+[2026-03-13T15:45:40.087Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: '84a356ea-1b1f-49f8-bf16-55f99ce92060' }
+[2026-03-13T15:45:40.090Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1813',
+  period: '202685'
+}
+[2026-03-13T15:45:40.097Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1813',
+  period: '202685'
+}
+[2026-03-13T15:45:40.253Z] INFO Sesion restaurada desde storageState
+[2026-03-13T15:45:42.367Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1813',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:42.371Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1816',
+  period: '202685'
+}
+[2026-03-13T15:45:42.372Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1816',
+  period: '202685'
+}
+[2026-03-13T15:45:43.673Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: 'b42a6dec-fec8-4858-bc35-a5dd349a44be' }
+[2026-03-13T15:45:43.675Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1814',
+  period: '202685'
+}
+[2026-03-13T15:45:43.676Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1814',
+  period: '202685'
+}
+[2026-03-13T15:45:44.255Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1816',
+  period: '202685',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:44.255Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1823',
+  period: '202685'
+}
+[2026-03-13T15:45:44.255Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1823',
+  period: '202685'
+}
+[2026-03-13T15:45:44.340Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1814',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:44.340Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1821',
+  period: '202685'
+}
+[2026-03-13T15:45:44.341Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1821',
+  period: '202685'
+}
+[2026-03-13T15:45:44.613Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1823',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:44.614Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1826',
+  period: '202685'
+}
+[2026-03-13T15:45:44.614Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1826',
+  period: '202685'
+}
+[2026-03-13T15:45:44.692Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1821',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:44.692Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1824',
+  period: '202685'
+}
+[2026-03-13T15:45:44.692Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1824',
+  period: '202685'
+}
+[2026-03-13T15:45:44.788Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1826',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:44.788Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1829',
+  period: '202685'
+}
+[2026-03-13T15:45:44.789Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1829',
+  period: '202685'
+}
+[2026-03-13T15:45:45.140Z] INFO Sesion restaurada desde storageState
+[2026-03-13T15:45:45.854Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1824',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:45.856Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1827',
+  period: '202685'
+}
+[2026-03-13T15:45:45.873Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1827',
+  period: '202685'
+}
+[2026-03-13T15:45:45.950Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1829',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:45.953Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1832',
+  period: '202685'
+}
+[2026-03-13T15:45:45.954Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1832',
+  period: '202685'
+}
+[2026-03-13T15:45:46.615Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1827',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:46.616Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1830',
+  period: '202685'
+}
+[2026-03-13T15:45:46.616Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1830',
+  period: '202685'
+}
+[2026-03-13T15:45:46.721Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1832',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:46.721Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1835',
+  period: '202685'
+}
+[2026-03-13T15:45:46.721Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1835',
+  period: '202685'
+}
+[2026-03-13T15:45:46.891Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1835',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:46.891Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1838',
+  period: '202685'
+}
+[2026-03-13T15:45:46.892Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1838',
+  period: '202685'
+}
+[2026-03-13T15:45:46.971Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1830',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:46.971Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1833',
+  period: '202685'
+}
+[2026-03-13T15:45:46.971Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1833',
+  period: '202685'
+}
+[2026-03-13T15:45:47.351Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1838',
+  period: '202685',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:47.351Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1853',
+  period: '202685'
+}
+[2026-03-13T15:45:47.351Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1853',
+  period: '202685'
+}
+[2026-03-13T15:45:47.430Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1833',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:47.430Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1836',
+  period: '202685'
+}
+[2026-03-13T15:45:47.431Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1836',
+  period: '202685'
+}
+[2026-03-13T15:45:47.667Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1853',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:47.667Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1856',
+  period: '202685'
+}
+[2026-03-13T15:45:47.668Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1856',
+  period: '202685'
+}
+[2026-03-13T15:45:47.782Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1836',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:47.782Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1851',
+  period: '202685'
+}
+[2026-03-13T15:45:47.782Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1851',
+  period: '202685'
+}
+[2026-03-13T15:45:47.860Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1856',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:47.861Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1859',
+  period: '202685'
+}
+[2026-03-13T15:45:47.861Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1859',
+  period: '202685'
+}
+[2026-03-13T15:45:48.052Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1851',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:48.052Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1854',
+  period: '202685'
+}
+[2026-03-13T15:45:48.052Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1854',
+  period: '202685'
+}
+[2026-03-13T15:45:48.086Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: 'ecdbdfb3-7e4e-4dfc-be69-fd25f0c66f4b' }
+[2026-03-13T15:45:48.086Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1815',
+  period: '202685'
+}
+[2026-03-13T15:45:48.086Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1815',
+  period: '202685'
+}
+[2026-03-13T15:45:51.663Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1859',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:51.664Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1862',
+  period: '202685'
+}
+[2026-03-13T15:45:51.664Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1862',
+  period: '202685'
+}
+[2026-03-13T15:45:51.755Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1815',
+  period: '202685',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:51.755Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1822',
+  period: '202685'
+}
+[2026-03-13T15:45:51.755Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1822',
+  period: '202685'
+}
+[2026-03-13T15:45:51.990Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1854',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:52.031Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1857',
+  period: '202685'
+}
+[2026-03-13T15:45:52.032Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1857',
+  period: '202685'
+}
+[2026-03-13T15:45:52.194Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1862',
+  period: '202685',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:52.234Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1865',
+  period: '202685'
+}
+[2026-03-13T15:45:52.234Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1865',
+  period: '202685'
+}
+[2026-03-13T15:45:52.437Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1822',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:52.438Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1825',
+  period: '202685'
+}
+[2026-03-13T15:45:52.438Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1825',
+  period: '202685'
+}
+[2026-03-13T15:45:52.685Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1857',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:52.686Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1860',
+  period: '202685'
+}
+[2026-03-13T15:45:52.686Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1860',
+  period: '202685'
+}
+[2026-03-13T15:45:52.767Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1865',
+  period: '202685',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:52.773Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1868',
+  period: '202685'
+}
+[2026-03-13T15:45:52.773Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1868',
+  period: '202685'
+}
+[2026-03-13T15:45:52.807Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1825',
+  period: '202685',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:52.807Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1828',
+  period: '202685'
+}
+[2026-03-13T15:45:52.808Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1828',
+  period: '202685'
+}
+[2026-03-13T15:45:53.069Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1828',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:53.069Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1831',
+  period: '202685'
+}
+[2026-03-13T15:45:53.072Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1831',
+  period: '202685'
+}
+[2026-03-13T15:45:53.258Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1860',
+  period: '202685',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:53.294Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1863',
+  period: '202685'
+}
+[2026-03-13T15:45:53.294Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1863',
+  period: '202685'
+}
+[2026-03-13T15:45:53.350Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1868',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:53.365Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1871',
+  period: '202685'
+}
+[2026-03-13T15:45:53.366Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1871',
+  period: '202685'
+}
+[2026-03-13T15:45:53.605Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1831',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:53.606Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1834',
+  period: '202685'
+}
+[2026-03-13T15:45:53.606Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1834',
+  period: '202685'
+}
+[2026-03-13T15:45:54.163Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1863',
+  period: '202685',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:54.163Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1866',
+  period: '202685'
+}
+[2026-03-13T15:45:54.163Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1866',
+  period: '202685'
+}
+[2026-03-13T15:45:54.216Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1871',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:54.217Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '70272',
+  period: '202621'
+}
+[2026-03-13T15:45:54.217Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '70272',
+  period: '202621'
+}
+[2026-03-13T15:45:54.258Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1834',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:54.258Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1837',
+  period: '202685'
+}
+[2026-03-13T15:45:54.272Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1837',
+  period: '202685'
+}
+[2026-03-13T15:45:54.641Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1837',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:54.641Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1852',
+  period: '202685'
+}
+[2026-03-13T15:45:54.642Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1852',
+  period: '202685'
+}
+[2026-03-13T15:45:54.704Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1866',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:54.706Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1869',
+  period: '202685'
+}
+[2026-03-13T15:45:54.706Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1869',
+  period: '202685'
+}
+[2026-03-13T15:45:54.821Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '70272',
+  period: '202621',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:54.847Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79556',
+  period: '202621'
+}
+[2026-03-13T15:45:54.848Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79556',
+  period: '202621'
+}
+[2026-03-13T15:45:55.249Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1852',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:55.249Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1855',
+  period: '202685'
+}
+[2026-03-13T15:45:55.249Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1855',
+  period: '202685'
+}
+[2026-03-13T15:45:55.408Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79556',
+  period: '202621',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:55.409Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79600',
+  period: '202621'
+}
+[2026-03-13T15:45:55.409Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79600',
+  period: '202621'
+}
+[2026-03-13T15:45:55.457Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1869',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:55.458Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1872',
+  period: '202685'
+}
+[2026-03-13T15:45:55.458Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1872',
+  period: '202685'
+}
+[2026-03-13T15:45:55.698Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1855',
+  period: '202685',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:55.699Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1858',
+  period: '202685'
+}
+[2026-03-13T15:45:55.699Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1858',
+  period: '202685'
+}
+[2026-03-13T15:45:55.818Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79600',
+  period: '202621',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:55.819Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79711',
+  period: '202621'
+}
+[2026-03-13T15:45:55.819Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79711',
+  period: '202621'
+}
+[2026-03-13T15:45:55.881Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1872',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:55.881Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '70286',
+  period: '202621'
+}
+[2026-03-13T15:45:55.881Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '70286',
+  period: '202621'
+}
+[2026-03-13T15:45:55.986Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1858',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:55.986Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1861',
+  period: '202685'
+}
+[2026-03-13T15:45:55.987Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1861',
+  period: '202685'
+}
+[2026-03-13T15:45:56.241Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79711',
+  period: '202621',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:56.242Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72516',
+  period: '202615'
+}
+[2026-03-13T15:45:56.242Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72516',
+  period: '202615'
+}
+[2026-03-13T15:45:56.286Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '70286',
+  period: '202621',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:56.286Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79558',
+  period: '202621'
+}
+[2026-03-13T15:45:56.286Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79558',
+  period: '202621'
+}
+[2026-03-13T15:45:56.344Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1861',
+  period: '202685',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:56.351Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1864',
+  period: '202685'
+}
+[2026-03-13T15:45:56.353Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1864',
+  period: '202685'
+}
+[2026-03-13T15:45:57.608Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72516',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:57.608Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72559',
+  period: '202615'
+}
+[2026-03-13T15:45:57.608Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72559',
+  period: '202615'
+}
+[2026-03-13T15:45:57.643Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1864',
+  period: '202685',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:57.643Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1867',
+  period: '202685'
+}
+[2026-03-13T15:45:57.643Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1867',
+  period: '202685'
+}
+[2026-03-13T15:45:57.691Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79558',
+  period: '202621',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:57.699Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79606',
+  period: '202621'
+}
+[2026-03-13T15:45:57.699Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79606',
+  period: '202621'
+}
+[2026-03-13T15:45:57.877Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72559',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:57.877Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72774',
+  period: '202615'
+}
+[2026-03-13T15:45:57.878Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72774',
+  period: '202615'
+}
+[2026-03-13T15:45:58.138Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1867',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:58.139Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1870',
+  period: '202685'
+}
+[2026-03-13T15:45:58.139Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1870',
+  period: '202685'
+}
+[2026-03-13T15:45:58.184Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79606',
+  period: '202621',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:58.185Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79766',
+  period: '202621'
+}
+[2026-03-13T15:45:58.188Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79766',
+  period: '202621'
+}
+[2026-03-13T15:45:58.241Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72774',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:58.241Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '73297',
+  period: '202615'
+}
+[2026-03-13T15:45:58.242Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '73297',
+  period: '202615'
+}
+[2026-03-13T15:45:58.475Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1870',
+  period: '202685',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:58.475Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '70080',
+  period: '202641'
+}
+[2026-03-13T15:45:58.475Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '70080',
+  period: '202641'
+}
+[2026-03-13T15:45:58.926Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '73297',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:45:58.926Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '73627',
+  period: '202615'
+}
+[2026-03-13T15:45:58.926Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '73627',
+  period: '202615'
+}
+[2026-03-13T15:45:59.031Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79766',
+  period: '202621',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:59.031Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '72522',
+  period: '202615'
+}
+[2026-03-13T15:45:59.031Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '72522',
+  period: '202615'
+}
+[2026-03-13T15:45:59.076Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '70080',
+  period: '202641',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:59.076Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79334',
+  period: '202621'
+}
+[2026-03-13T15:45:59.076Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79334',
+  period: '202621'
+}
+[2026-03-13T15:45:59.266Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '73627',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:59.267Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '73726',
+  period: '202615'
+}
+[2026-03-13T15:45:59.267Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '73726',
+  period: '202615'
+}
+[2026-03-13T15:45:59.375Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '72522',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:59.376Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '72630',
+  period: '202615'
+}
+[2026-03-13T15:45:59.376Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '72630',
+  period: '202615'
+}
+[2026-03-13T15:45:59.523Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79334',
+  period: '202621',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:59.524Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79599',
+  period: '202621'
+}
+[2026-03-13T15:45:59.524Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79599',
+  period: '202621'
+}
+[2026-03-13T15:45:59.583Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '72630',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:59.583Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '72830',
+  period: '202615'
+}
+[2026-03-13T15:45:59.583Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '72830',
+  period: '202615'
+}
+[2026-03-13T15:45:59.702Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '73726',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:59.703Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79690',
+  period: '202615'
+}
+[2026-03-13T15:45:59.703Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79690',
+  period: '202615'
+}
+[2026-03-13T15:45:59.764Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '72830',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:59.765Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '73302',
+  period: '202615'
+}
+[2026-03-13T15:45:59.765Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '73302',
+  period: '202615'
+}
+[2026-03-13T15:45:59.913Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79599',
+  period: '202621',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:45:59.914Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79610',
+  period: '202621'
+}
+[2026-03-13T15:45:59.915Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79610',
+  period: '202621'
+}
+[2026-03-13T15:45:59.966Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '73302',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:45:59.967Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '73703',
+  period: '202615'
+}
+[2026-03-13T15:45:59.967Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '73703',
+  period: '202615'
+}
+[2026-03-13T15:46:00.019Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79690',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:00.019Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79831',
+  period: '202615'
+}
+[2026-03-13T15:46:00.019Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79831',
+  period: '202615'
+}
+[2026-03-13T15:46:00.123Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79610',
+  period: '202621',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:00.123Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '72436',
+  period: '202615'
+}
+[2026-03-13T15:46:00.123Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '72436',
+  period: '202615'
+}
+[2026-03-13T15:46:00.263Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '73703',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:00.263Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79455',
+  period: '202615'
+}
+[2026-03-13T15:46:00.263Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79455',
+  period: '202615'
+}
+[2026-03-13T15:46:00.326Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '79831',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:00.327Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84288',
+  period: '202615'
+}
+[2026-03-13T15:46:00.327Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84288',
+  period: '202615'
+}
+[2026-03-13T15:46:00.380Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '72436',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:00.381Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '72554',
+  period: '202615'
+}
+[2026-03-13T15:46:00.381Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '72554',
+  period: '202615'
+}
+[2026-03-13T15:46:00.461Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79455',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:00.461Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79711',
+  period: '202615'
+}
+[2026-03-13T15:46:00.461Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79711',
+  period: '202615'
+}
+[2026-03-13T15:46:00.534Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84288',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:00.534Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84335',
+  period: '202615'
+}
+[2026-03-13T15:46:00.535Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84335',
+  period: '202615'
+}
+[2026-03-13T15:46:00.603Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '72554',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:00.603Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '72755',
+  period: '202615'
+}
+[2026-03-13T15:46:00.603Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '72755',
+  period: '202615'
+}
+[2026-03-13T15:46:00.754Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '79711',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:00.754Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84259',
+  period: '202615'
+}
+[2026-03-13T15:46:00.754Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84259',
+  period: '202615'
+}
+[2026-03-13T15:46:00.846Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84335',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:00.846Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84582',
+  period: '202615'
+}
+[2026-03-13T15:46:00.846Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84582',
+  period: '202615'
+}
+[2026-03-13T15:46:00.915Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '72755',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:00.915Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '73127',
+  period: '202615'
+}
+[2026-03-13T15:46:00.915Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '73127',
+  period: '202615'
+}
+[2026-03-13T15:46:00.967Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84259',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:00.967Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84317',
+  period: '202615'
+}
+[2026-03-13T15:46:00.967Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84317',
+  period: '202615'
+}
+[2026-03-13T15:46:01.053Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '73127',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:01.053Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '73368',
+  period: '202615'
+}
+[2026-03-13T15:46:01.053Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '73368',
+  period: '202615'
+}
+[2026-03-13T15:46:01.103Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84582',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:01.103Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84896',
+  period: '202615'
+}
+[2026-03-13T15:46:01.103Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84896',
+  period: '202615'
+}
+[2026-03-13T15:46:01.143Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84317',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:01.143Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84487',
+  period: '202615'
+}
+[2026-03-13T15:46:01.143Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84487',
+  period: '202615'
+}
+[2026-03-13T15:46:01.196Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '73368',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:01.197Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '73706',
+  period: '202615'
+}
+[2026-03-13T15:46:01.197Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '73706',
+  period: '202615'
+}
+[2026-03-13T15:46:01.250Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '84896',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:01.250Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85109',
+  period: '202615'
+}
+[2026-03-13T15:46:01.250Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85109',
+  period: '202615'
+}
+[2026-03-13T15:46:01.304Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84487',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:01.305Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84638',
+  period: '202615'
+}
+[2026-03-13T15:46:01.305Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84638',
+  period: '202615'
+}
+[2026-03-13T15:46:01.460Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84638',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:01.460Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84897',
+  period: '202615'
+}
+[2026-03-13T15:46:01.460Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84897',
+  period: '202615'
+}
+[2026-03-13T15:46:01.498Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '73706',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:01.498Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79605',
+  period: '202615'
+}
+[2026-03-13T15:46:01.498Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79605',
+  period: '202615'
+}
+[2026-03-13T15:46:01.611Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85109',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:01.611Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85146',
+  period: '202615'
+}
+[2026-03-13T15:46:01.611Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85146',
+  period: '202615'
+}
+[2026-03-13T15:46:01.647Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '84897',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:01.648Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85127',
+  period: '202615'
+}
+[2026-03-13T15:46:01.648Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85127',
+  period: '202615'
+}
+[2026-03-13T15:46:01.780Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79605',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:01.780Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79730',
+  period: '202615'
+}
+[2026-03-13T15:46:01.780Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79730',
+  period: '202615'
+}
+[2026-03-13T15:46:01.908Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85127',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:01.909Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85149',
+  period: '202615'
+}
+[2026-03-13T15:46:01.909Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85149',
+  period: '202615'
+}
+[2026-03-13T15:46:02.066Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85146',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:02.066Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85165',
+  period: '202615'
+}
+[2026-03-13T15:46:02.066Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85165',
+  period: '202615'
+}
+[2026-03-13T15:46:02.127Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '79730',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:02.127Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84273',
+  period: '202615'
+}
+[2026-03-13T15:46:02.127Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84273',
+  period: '202615'
+}
+[2026-03-13T15:46:02.190Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85149',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:02.194Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85173',
+  period: '202615'
+}
+[2026-03-13T15:46:02.196Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85173',
+  period: '202615'
+}
+[2026-03-13T15:46:02.364Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84273',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:02.364Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84331',
+  period: '202615'
+}
+[2026-03-13T15:46:02.364Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84331',
+  period: '202615'
+}
+[2026-03-13T15:46:02.406Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85165',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:02.406Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85187',
+  period: '202615'
+}
+[2026-03-13T15:46:02.406Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85187',
+  period: '202615'
+}
+[2026-03-13T15:46:02.486Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85173',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:02.486Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85188',
+  period: '202615'
+}
+[2026-03-13T15:46:02.487Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85188',
+  period: '202615'
+}
+[2026-03-13T15:46:02.541Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84331',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:02.541Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84492',
+  period: '202615'
+}
+[2026-03-13T15:46:02.542Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84492',
+  period: '202615'
+}
+[2026-03-13T15:46:02.677Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85187',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:02.677Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85191',
+  period: '202615'
+}
+[2026-03-13T15:46:02.677Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85191',
+  period: '202615'
+}
+[2026-03-13T15:46:02.783Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85188',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:02.784Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85198',
+  period: '202615'
+}
+[2026-03-13T15:46:02.784Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85198',
+  period: '202615'
+}
+[2026-03-13T15:46:02.871Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84492',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:02.871Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84894',
+  period: '202615'
+}
+[2026-03-13T15:46:02.872Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84894',
+  period: '202615'
+}
+[2026-03-13T15:46:03.003Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85191',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:03.003Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85227',
+  period: '202615'
+}
+[2026-03-13T15:46:03.006Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85227',
+  period: '202615'
+}
+[2026-03-13T15:46:03.104Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '84894',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:03.105Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85108',
+  period: '202615'
+}
+[2026-03-13T15:46:03.105Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85108',
+  period: '202615'
+}
+[2026-03-13T15:46:03.171Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85198',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:03.172Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85238',
+  period: '202615'
+}
+[2026-03-13T15:46:03.172Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85238',
+  period: '202615'
+}
+[2026-03-13T15:46:03.325Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85227',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:03.325Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85246',
+  period: '202615'
+}
+[2026-03-13T15:46:03.325Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85246',
+  period: '202615'
+}
+[2026-03-13T15:46:03.386Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85108',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:03.387Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85130',
+  period: '202615'
+}
+[2026-03-13T15:46:03.387Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85130',
+  period: '202615'
+}
+[2026-03-13T15:46:03.442Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85238',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:03.442Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85247',
+  period: '202615'
+}
+[2026-03-13T15:46:03.442Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85247',
+  period: '202615'
+}
+[2026-03-13T15:46:03.610Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85246',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:03.610Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85265',
+  period: '202615'
+}
+[2026-03-13T15:46:03.610Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85265',
+  period: '202615'
+}
+[2026-03-13T15:46:03.672Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85130',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:03.673Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85164',
+  period: '202615'
+}
+[2026-03-13T15:46:03.673Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85164',
+  period: '202615'
+}
+[2026-03-13T15:46:03.714Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85247',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:03.714Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85267',
+  period: '202615'
+}
+[2026-03-13T15:46:03.714Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85267',
+  period: '202615'
+}
+[2026-03-13T15:46:03.765Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85265',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:03.766Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85270',
+  period: '202615'
+}
+[2026-03-13T15:46:03.766Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85270',
+  period: '202615'
+}
+[2026-03-13T15:46:03.875Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85267',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:03.875Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85290',
+  period: '202615'
+}
+[2026-03-13T15:46:03.875Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85290',
+  period: '202615'
+}
+[2026-03-13T15:46:03.933Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85270',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:03.933Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85357',
+  period: '202615'
+}
+[2026-03-13T15:46:03.933Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85357',
+  period: '202615'
+}
+[2026-03-13T15:46:04.006Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85164',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:04.007Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85181',
+  period: '202615'
+}
+[2026-03-13T15:46:04.007Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85181',
+  period: '202615'
+}
+[2026-03-13T15:46:04.152Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85290',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:04.157Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85360',
+  period: '202615'
+}
+[2026-03-13T15:46:04.157Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85360',
+  period: '202615'
+}
+[2026-03-13T15:46:04.305Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85357',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:04.306Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85362',
+  period: '202615'
+}
+[2026-03-13T15:46:04.306Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85362',
+  period: '202615'
+}
+[2026-03-13T15:46:04.390Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85181',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:04.390Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85190',
+  period: '202615'
+}
+[2026-03-13T15:46:04.391Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85190',
+  period: '202615'
+}
+[2026-03-13T15:46:04.454Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85360',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:04.456Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85363',
+  period: '202615'
+}
+[2026-03-13T15:46:04.456Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85363',
+  period: '202615'
+}
+[2026-03-13T15:46:04.603Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85362',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:04.603Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85714',
+  period: '202615'
+}
+[2026-03-13T15:46:04.603Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85714',
+  period: '202615'
+}
+[2026-03-13T15:46:04.699Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85363',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:04.699Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85719',
+  period: '202615'
+}
+[2026-03-13T15:46:04.699Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85719',
+  period: '202615'
+}
+[2026-03-13T15:46:04.765Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85190',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:04.765Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85214',
+  period: '202615'
+}
+[2026-03-13T15:46:04.765Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85214',
+  period: '202615'
+}
+[2026-03-13T15:46:04.851Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '85714',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:04.851Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1112',
+  period: '202612'
+}
+[2026-03-13T15:46:04.851Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1112',
+  period: '202612'
+}
+[2026-03-13T15:46:04.959Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '85719',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:04.959Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1113',
+  period: '202612'
+}
+[2026-03-13T15:46:04.959Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1113',
+  period: '202612'
+}
+[2026-03-13T15:46:05.126Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85214',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:05.127Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85245',
+  period: '202615'
+}
+[2026-03-13T15:46:05.127Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85245',
+  period: '202615'
+}
+[2026-03-13T15:46:05.173Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1112',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:05.173Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1115',
+  period: '202612'
+}
+[2026-03-13T15:46:05.173Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1115',
+  period: '202612'
+}
+[2026-03-13T15:46:05.315Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1113',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:05.315Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1116',
+  period: '202612'
+}
+[2026-03-13T15:46:05.315Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1116',
+  period: '202612'
+}
+[2026-03-13T15:46:05.426Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85245',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:05.426Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85250',
+  period: '202615'
+}
+[2026-03-13T15:46:05.427Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85250',
+  period: '202615'
+}
+[2026-03-13T15:46:05.483Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1115',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:05.483Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1118',
+  period: '202612'
+}
+[2026-03-13T15:46:05.484Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1118',
+  period: '202612'
+}
+[2026-03-13T15:46:05.690Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1116',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:05.690Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1119',
+  period: '202612'
+}
+[2026-03-13T15:46:05.690Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1119',
+  period: '202612'
+}
+[2026-03-13T15:46:05.788Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85250',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:05.788Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85269',
+  period: '202615'
+}
+[2026-03-13T15:46:05.788Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85269',
+  period: '202615'
+}
+[2026-03-13T15:46:05.868Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1118',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:05.872Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1121',
+  period: '202612'
+}
+[2026-03-13T15:46:05.872Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1121',
+  period: '202612'
+}
+[2026-03-13T15:46:06.072Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85269',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:06.073Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85355',
+  period: '202615'
+}
+[2026-03-13T15:46:06.073Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85355',
+  period: '202615'
+}
+[2026-03-13T15:46:06.136Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1119',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:06.140Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1122',
+  period: '202612'
+}
+[2026-03-13T15:46:06.142Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1122',
+  period: '202612'
+}
+[2026-03-13T15:46:06.352Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1121',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:06.352Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1124',
+  period: '202612'
+}
+[2026-03-13T15:46:06.353Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1124',
+  period: '202612'
+}
+[2026-03-13T15:46:06.495Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85355',
+  period: '202615',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:06.501Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85361',
+  period: '202615'
+}
+[2026-03-13T15:46:06.534Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85361',
+  period: '202615'
+}
+[2026-03-13T15:46:07.049Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1122',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:07.050Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1125',
+  period: '202612'
+}
+[2026-03-13T15:46:07.050Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1125',
+  period: '202612'
+}
+[2026-03-13T15:46:07.460Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1124',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:07.461Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1127',
+  period: '202612'
+}
+[2026-03-13T15:46:07.470Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1127',
+  period: '202612'
+}
+[2026-03-13T15:46:07.518Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85361',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:07.519Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85364',
+  period: '202615'
+}
+[2026-03-13T15:46:07.519Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85364',
+  period: '202615'
+}
+[2026-03-13T15:46:07.917Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1125',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:07.918Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1128',
+  period: '202612'
+}
+[2026-03-13T15:46:07.918Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1128',
+  period: '202612'
+}
+[2026-03-13T15:46:08.016Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '85364',
+  period: '202615',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:08.017Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1111',
+  period: '202612'
+}
+[2026-03-13T15:46:08.017Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1111',
+  period: '202612'
+}
+[2026-03-13T15:46:08.055Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1127',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:08.055Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1130',
+  period: '202612'
+}
+[2026-03-13T15:46:08.056Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1130',
+  period: '202612'
+}
+[2026-03-13T15:46:08.255Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1128',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:08.266Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1131',
+  period: '202612'
+}
+[2026-03-13T15:46:08.266Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1131',
+  period: '202612'
+}
+[2026-03-13T15:46:08.517Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1111',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:08.517Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1114',
+  period: '202612'
+}
+[2026-03-13T15:46:08.517Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1114',
+  period: '202612'
+}
+[2026-03-13T15:46:08.638Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1130',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:08.638Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1133',
+  period: '202612'
+}
+[2026-03-13T15:46:08.638Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1133',
+  period: '202612'
+}
+[2026-03-13T15:46:08.702Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1131',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:08.702Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1134',
+  period: '202612'
+}
+[2026-03-13T15:46:08.702Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1134',
+  period: '202612'
+}
+[2026-03-13T15:46:08.836Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1114',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:08.836Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1117',
+  period: '202612'
+}
+[2026-03-13T15:46:08.836Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1117',
+  period: '202612'
+}
+[2026-03-13T15:46:09.171Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1133',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:09.171Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1138',
+  period: '202612'
+}
+[2026-03-13T15:46:09.171Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1138',
+  period: '202612'
+}
+[2026-03-13T15:46:09.217Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1134',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:09.217Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1139',
+  period: '202612'
+}
+[2026-03-13T15:46:09.218Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1139',
+  period: '202612'
+}
+[2026-03-13T15:46:09.259Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1117',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:09.259Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1120',
+  period: '202612'
+}
+[2026-03-13T15:46:09.259Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1120',
+  period: '202612'
+}
+[2026-03-13T15:46:09.529Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1138',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:09.531Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1141',
+  period: '202612'
+}
+[2026-03-13T15:46:09.531Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1141',
+  period: '202612'
+}
+[2026-03-13T15:46:09.572Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1139',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:09.572Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1142',
+  period: '202612'
+}
+[2026-03-13T15:46:09.572Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1142',
+  period: '202612'
+}
+[2026-03-13T15:46:09.623Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1120',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:09.623Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1123',
+  period: '202612'
+}
+[2026-03-13T15:46:09.623Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1123',
+  period: '202612'
+}
+[2026-03-13T15:46:09.852Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1141',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:09.853Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1144',
+  period: '202612'
+}
+[2026-03-13T15:46:09.853Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1144',
+  period: '202612'
+}
+[2026-03-13T15:46:09.938Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1123',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:09.938Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1126',
+  period: '202612'
+}
+[2026-03-13T15:46:09.938Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1126',
+  period: '202612'
+}
+[2026-03-13T15:46:09.976Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1142',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:09.976Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1145',
+  period: '202612'
+}
+[2026-03-13T15:46:09.976Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1145',
+  period: '202612'
+}
+[2026-03-13T15:46:10.185Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1144',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:10.186Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1148',
+  period: '202612'
+}
+[2026-03-13T15:46:10.186Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1148',
+  period: '202612'
+}
+[2026-03-13T15:46:10.281Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1126',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:10.282Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1129',
+  period: '202612'
+}
+[2026-03-13T15:46:10.282Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1129',
+  period: '202612'
+}
+[2026-03-13T15:46:10.321Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1145',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:10.321Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1163',
+  period: '202612'
+}
+[2026-03-13T15:46:10.321Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1163',
+  period: '202612'
+}
+[2026-03-13T15:46:10.504Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1148',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:10.505Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1165',
+  period: '202612'
+}
+[2026-03-13T15:46:10.505Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1165',
+  period: '202612'
+}
+[2026-03-13T15:46:10.566Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1129',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:10.566Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1132',
+  period: '202612'
+}
+[2026-03-13T15:46:10.567Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1132',
+  period: '202612'
+}
+[2026-03-13T15:46:10.618Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1163',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:10.619Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1166',
+  period: '202612'
+}
+[2026-03-13T15:46:10.619Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1166',
+  period: '202612'
+}
+[2026-03-13T15:46:10.780Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1165',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:10.781Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1168',
+  period: '202612'
+}
+[2026-03-13T15:46:10.781Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1168',
+  period: '202612'
+}
+[2026-03-13T15:46:10.842Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1132',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:10.842Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1137',
+  period: '202612'
+}
+[2026-03-13T15:46:10.842Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1137',
+  period: '202612'
+}
+[2026-03-13T15:46:10.927Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1166',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:10.927Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1258',
+  period: '202612'
+}
+[2026-03-13T15:46:10.927Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1258',
+  period: '202612'
+}
+[2026-03-13T15:46:11.066Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1168',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:11.066Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1260',
+  period: '202612'
+}
+[2026-03-13T15:46:11.066Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1260',
+  period: '202612'
+}
+[2026-03-13T15:46:11.116Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1137',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:11.116Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1140',
+  period: '202612'
+}
+[2026-03-13T15:46:11.116Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1140',
+  period: '202612'
+}
+[2026-03-13T15:46:11.223Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1258',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:11.224Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1261',
+  period: '202612'
+}
+[2026-03-13T15:46:11.224Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1261',
+  period: '202612'
+}
+[2026-03-13T15:46:11.348Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1260',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:11.348Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1263',
+  period: '202612'
+}
+[2026-03-13T15:46:11.349Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1263',
+  period: '202612'
+}
+[2026-03-13T15:46:11.384Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1140',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:11.384Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1143',
+  period: '202612'
+}
+[2026-03-13T15:46:11.384Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1143',
+  period: '202612'
+}
+[2026-03-13T15:46:11.499Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1261',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:11.499Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1264',
+  period: '202612'
+}
+[2026-03-13T15:46:11.499Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1264',
+  period: '202612'
+}
+[2026-03-13T15:46:11.624Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '1263',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:11.624Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '75098',
+  period: '202611'
+}
+[2026-03-13T15:46:11.624Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '75098',
+  period: '202611'
+}
+[2026-03-13T15:46:11.672Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1143',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:11.672Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1146',
+  period: '202612'
+}
+[2026-03-13T15:46:11.672Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1146',
+  period: '202612'
+}
+[2026-03-13T15:46:11.766Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '1264',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:11.766Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '75099',
+  period: '202611'
+}
+[2026-03-13T15:46:11.766Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '75099',
+  period: '202611'
+}
+[2026-03-13T15:46:12.008Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '75098',
+  period: '202611',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:12.008Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '81017',
+  period: '202611'
+}
+[2026-03-13T15:46:12.009Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '81017',
+  period: '202611'
+}
+[2026-03-13T15:46:12.050Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1146',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:12.050Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1164',
+  period: '202612'
+}
+[2026-03-13T15:46:12.050Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1164',
+  period: '202612'
+}
+[2026-03-13T15:46:12.110Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '75099',
+  period: '202611',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:12.121Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '81291',
+  period: '202611'
+}
+[2026-03-13T15:46:12.123Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '81291',
+  period: '202611'
+}
+[2026-03-13T15:46:12.342Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1164',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:12.342Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1167',
+  period: '202612'
+}
+[2026-03-13T15:46:12.343Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1167',
+  period: '202612'
+}
+[2026-03-13T15:46:12.396Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '81291',
+  period: '202611',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:12.396Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '81294',
+  period: '202611'
+}
+[2026-03-13T15:46:12.397Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '81294',
+  period: '202611'
+}
+[2026-03-13T15:46:12.456Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '81017',
+  period: '202611',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:12.457Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '81293',
+  period: '202611'
+}
+[2026-03-13T15:46:12.458Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '81293',
+  period: '202611'
+}
+[2026-03-13T15:46:12.557Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '81294',
+  period: '202611',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:12.557Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '81347',
+  period: '202611'
+}
+[2026-03-13T15:46:12.557Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '81347',
+  period: '202611'
+}
+[2026-03-13T15:46:12.677Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1167',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:12.678Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1259',
+  period: '202612'
+}
+[2026-03-13T15:46:12.678Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1259',
+  period: '202612'
+}
+[2026-03-13T15:46:12.733Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '81293',
+  period: '202611',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:12.734Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '81345',
+  period: '202611'
+}
+[2026-03-13T15:46:12.734Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '81345',
+  period: '202611'
+}
+[2026-03-13T15:46:12.865Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '81347',
+  period: '202611',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:12.865Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87337',
+  period: '202610'
+}
+[2026-03-13T15:46:12.866Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87337',
+  period: '202610'
+}
+[2026-03-13T15:46:13.014Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1259',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:13.014Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1262',
+  period: '202612'
+}
+[2026-03-13T15:46:13.014Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1262',
+  period: '202612'
+}
+[2026-03-13T15:46:13.135Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87337',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:13.136Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87347',
+  period: '202610'
+}
+[2026-03-13T15:46:13.137Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87347',
+  period: '202610'
+}
+[2026-03-13T15:46:13.199Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '81345',
+  period: '202611',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:13.200Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87335',
+  period: '202610'
+}
+[2026-03-13T15:46:13.201Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87335',
+  period: '202610'
+}
+[2026-03-13T15:46:13.350Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '1262',
+  period: '202612',
+  status: 'SIN_DOCENTE'
+}
+[2026-03-13T15:46:13.350Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '75097',
+  period: '202611'
+}
+[2026-03-13T15:46:13.351Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '75097',
+  period: '202611'
+}
+[2026-03-13T15:46:13.401Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87335',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:13.402Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87342',
+  period: '202610'
+}
+[2026-03-13T15:46:13.402Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87342',
+  period: '202610'
+}
+[2026-03-13T15:46:13.449Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87347',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:13.449Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87372',
+  period: '202610'
+}
+[2026-03-13T15:46:13.449Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87372',
+  period: '202610'
+}
+[2026-03-13T15:46:13.640Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87342',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:13.641Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87359',
+  period: '202610'
+}
+[2026-03-13T15:46:13.641Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87359',
+  period: '202610'
+}
+[2026-03-13T15:46:13.766Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '75097',
+  period: '202611',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:13.766Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '75260',
+  period: '202611'
+}
+[2026-03-13T15:46:13.766Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '75260',
+  period: '202611'
+}
+[2026-03-13T15:46:13.874Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87372',
+  period: '202610',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:13.875Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87682',
+  period: '202610'
+}
+[2026-03-13T15:46:13.876Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87682',
+  period: '202610'
+}
+[2026-03-13T15:46:13.953Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87359',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:13.954Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87478',
+  period: '202610'
+}
+[2026-03-13T15:46:13.955Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87478',
+  period: '202610'
+}
+[2026-03-13T15:46:14.289Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '75260',
+  period: '202611',
+  status: 'ENCONTRADO'
+}
+[2026-03-13T15:46:14.289Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '81292',
+  period: '202611'
+}
+[2026-03-13T15:46:14.289Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '81292',
+  period: '202611'
+}
+[2026-03-13T15:46:14.352Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 2,
+  nrc: '87682',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:14.417Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '87478',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:14.592Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '81292',
+  period: '202611',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:14.613Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '81295',
+  period: '202611'
+}
+[2026-03-13T15:46:14.613Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '81295',
+  period: '202611'
+}
+[2026-03-13T15:46:15.326Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '81295',
+  period: '202611',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:15.327Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87326',
+  period: '202610'
+}
+[2026-03-13T15:46:15.327Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87326',
+  period: '202610'
+}
+[2026-03-13T15:46:15.600Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87326',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:15.600Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87339',
+  period: '202610'
+}
+[2026-03-13T15:46:15.600Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87339',
+  period: '202610'
+}
+[2026-03-13T15:46:15.831Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87339',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:15.831Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87357',
+  period: '202610'
+}
+[2026-03-13T15:46:15.831Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87357',
+  period: '202610'
+}
+[2026-03-13T15:46:16.183Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87357',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:16.185Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87466',
+  period: '202610'
+}
+[2026-03-13T15:46:16.185Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87466',
+  period: '202610'
+}
+[2026-03-13T15:46:16.400Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87466',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+[2026-03-13T15:46:16.400Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87690',
+  period: '202610'
+}
+[2026-03-13T15:46:16.400Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87690',
+  period: '202610'
+}
+[2026-03-13T15:46:16.572Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 3,
+  nrc: '87690',
+  period: '202610',
+  status: 'NO_ENCONTRADO'
+}
+{
+  "queryId": "cmmp25coq0000t2qc80gj9sgw",
+  "queryName": "banner-rpaca-autoexport",
+  "processed": 202,
+  "total": 1,
+  "counts": {
+    "ENCONTRADO": 66,
+    "SIN_DOCENTE": 74,
+    "NO_ENCONTRADO": 62,
+    "ERROR": 0
+  }
+}
+
+[AUTO_EXPORT] cmmp25coq0000t2qc80gj9sgw
+[2026-03-13T15:46:24.073Z] INFO Exportacion completada { queryId: 'cmmp25coq0000t2qc80gj9sgw', formats: [ 'csv', 'json' ] }
+{
+  "csvPath": "storage\\exports\\banner-rpaca-autoexport-2026-03-13T15-46-24.062Z.csv",
+  "jsonPath": "storage\\exports\\banner-rpaca-autoexport-2026-03-13T15-46-24.062Z.json"
+}
+
+[END] 2026-03-13T15:46:25.686Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

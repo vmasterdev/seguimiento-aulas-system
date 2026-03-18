@@ -1,0 +1,8 @@
+[START] 2026-03-10T19:59:55.561Z
+[CMD] /mnt/c/WINDOWS/system32/cmd.exe "/c" "py" "-3" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\tools\\moodle-sidecar\\sidecar_runner.py" "revalidate" "--mode" "sin_matricula" "--workers" "3" "--browser" "edge" "--python" "py"
+
+No existen archivos para revalidar: SIN_MATRICULA / AULAS_VACIAS
+
+[END] 2026-03-10T19:59:56.106Z
+[STATUS] FAILED
+[EXIT_CODE] 1

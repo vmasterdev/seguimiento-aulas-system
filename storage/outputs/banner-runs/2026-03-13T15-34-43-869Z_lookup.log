@@ -1,0 +1,55 @@
+[START] 2026-03-13T15:34:43.870Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\banner buscador de docente en nrc'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'lookup' '--nrc' '72305' '--period' '202615' '--query-name' 'banner-rpaca-autoexport'
+
+[2026-03-13T15:34:44.889Z] INFO Iniciando lote Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  totalRequested: 1,
+  pending: 1,
+  workers: 1
+}
+[2026-03-13T15:34:51.621Z] INFO Sesion restaurada desde storageState
+[2026-03-13T15:34:54.362Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: 'e546d6ae-c4a2-45c3-ab4c-d1c87f2bc948' }
+[2026-03-13T15:34:54.363Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72305',
+  period: '202615'
+}
+[2026-03-13T15:34:54.364Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72305',
+  period: '202615'
+}
+[2026-03-13T15:34:54.678Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp25coq0000t2qc80gj9sgw',
+  worker: 1,
+  nrc: '72305',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+{
+  "queryId": "cmmp25coq0000t2qc80gj9sgw",
+  "queryName": "banner-rpaca-autoexport",
+  "processed": 1,
+  "total": 1,
+  "counts": {
+    "ENCONTRADO": 1,
+    "SIN_DOCENTE": 0,
+    "NO_ENCONTRADO": 0,
+    "ERROR": 0
+  }
+}
+
+[AUTO_EXPORT] cmmp25coq0000t2qc80gj9sgw
+[2026-03-13T15:34:58.677Z] INFO Exportacion completada { queryId: 'cmmp25coq0000t2qc80gj9sgw', formats: [ 'csv', 'json' ] }
+{
+  "csvPath": "storage\\exports\\banner-rpaca-autoexport-2026-03-13T15-34-58.667Z.csv",
+  "jsonPath": "storage\\exports\\banner-rpaca-autoexport-2026-03-13T15-34-58.667Z.json"
+}
+
+[END] 2026-03-13T15:34:55.973Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

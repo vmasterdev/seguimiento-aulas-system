@@ -1,0 +1,14 @@
+[START] 2026-03-13T15:26:47.198Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\banner buscador de docente en nrc'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'auth'
+
+Completa el login y el 2FA en Edge para Banner/Microsoft. Cuando termines, vuelve a esta terminal y presiona Enter para que navegue a SSASECT y guarde la sesion.
+[2026-03-13T15:27:19.835Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: 'b7279524-c079-44e1-81bd-235312af2b86' }
+{
+  "storageStatePath": "C:\\Users\\Duvan\\Documents\\banner buscador de docente en nrc\\storage\\auth\\banner-storage-state.json"
+}
+
+[END] 2026-03-13T15:27:29.243Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

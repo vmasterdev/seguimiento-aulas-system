@@ -1,0 +1,35 @@
+[START] 2026-03-08T13:43:47.305Z
+[CMD] python3 "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/sidecar_runner.py" "classify" "--input-dir" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-batches/2026-03-08T13-43-47-149Z_all" "--output" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/_smoke_db_headless_1.xlsx" "--workers" "1" "--browser" "edge" "--headless" "--no-resume"
+
+[INFO] Catalogo Distancia 4.0: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/CURSOS DISTANCIA 4.0.xlsx
+[INFO] Cursos en catalogo Distancia 4.0: 445
+[INFO] NRC totales: 1
+[INFO] NRC ya procesados: 0
+[INFO] NRC pendientes: 1
+[INFO] Prioridad de periodos: 202615
+[INFO] CSV checkpoint: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/_smoke_db_headless_1.csv
+[INFO] Excel final: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/_smoke_db_headless_1.xlsx
+[INFO] Reporte sin matricula: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/_smoke_db_headless_1_SIN_MATRICULA.xlsx
+[INFO] Reporte aulas vacias/sin participantes: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/_smoke_db_headless_1_AULAS_VACIAS.xlsx
+[INFO] Perfil navegador root: /home/uvan/.cache/seguimiento-aulas/moodle-sidecar
+[INFO] Headless: SI
+[INFO] Workers: 1
+[INFO] Modo estricto por modalidad: SI
+[INFO] Consulta NRC solo 5 digitos: NO
+[INFO] Consulta NRC 5 digitos segun archivo/modalidad: SI
+[INFO] Migrando perfil legado de Edge desde /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto hacia /home/uvan/.cache/seguimiento-aulas/moodle-sidecar/edge_profile_aulas_uniminuto...
+
+================================================================================
+[W1/1] [1/1] NRC 72305 | Periodos: 202615 | Metodos: DIST
+[W1/1] [WARN] Error procesando NRC 72305: No hay sesion activa en DISTANCIA para modo headless. Ejecuta una corrida visible (sin headless) para autenticar.
+[W1/1] [ERROR] Worker detenido por falta de sesion en modo headless. Ejecuta una corrida visible para autenticar.
+[INFO] Registros procesados en esta corrida: 1
+
+[FIN] Proceso completado.
+[OK] CSV: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/_smoke_db_headless_1.csv
+[OK] Excel: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/_smoke_db_headless_1.xlsx
+[INFO] No se encontraron aulas vacias/sin participantes para reporte dedicado.
+
+[END] 2026-03-08T13:44:53.803Z
+[STATUS] CANCELLED
+[EXIT_CODE] null

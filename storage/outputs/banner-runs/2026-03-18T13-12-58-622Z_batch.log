@@ -1,0 +1,325 @@
+[START] 2026-03-18T13:12:58.622Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node --import tsx "src/cli.ts" "batch" "--input" "/mnt/c/Users/Duvan/Documents/storage/outputs/banner-batches/2026-03-18T13-12-58-580Z_all/nrc_banner_batch.csv" "--query-name" "smoke-parallel-20260318" "--workers" "3"
+
+[2026-03-18T13:12:59.982Z] INFO Iniciando lote Banner {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  totalRequested: 6,
+  pending: 6,
+  workers: 3
+}
+[2026-03-18T13:13:10.290Z] INFO Sesion restaurada desde storageState
+[2026-03-18T13:13:14.672Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: '02077d76-f7cf-4ee6-96a5-bca02dc5dfeb' }
+[2026-03-18T13:13:15.177Z] INFO Bootstrap backend WORKSPACE_INIT { task: '15c34add-75cf-443f-98e1-85175b2f5938', taskName: 'GUAINIT' }
+[2026-03-18T13:13:15.219Z] INFO Bootstrap backend respuesta {
+  step: 'CALL_FORM',
+  task: '15c34add-75cf-443f-98e1-85175b2f5938',
+  taskName: 'GUAINIT',
+  blockNames: [ 'GUISETI', '$MAIN$_BLOCK', 'BANNER_FOOTER_DATA' ]
+}
+[2026-03-18T13:13:15.637Z] INFO Bootstrap backend respuesta {
+  step: 'UNLOCK_GLOBALS',
+  task: 'f368b7aa-149a-42b6-abd8-3782bdd83d1f',
+  taskName: 'SSASECT',
+  blockNames: [
+    'BUTTON_CONTROL_BLOCK',
+    'KEY_BLOCK',
+    'FORM_HEADER',
+    'MENU_CONTROL',
+    'BANNER_FOOTER_DATA'
+  ]
+}
+[2026-03-18T13:13:15.638Z] INFO Sesion backend Banner inicializada { taskId: 'f368b7aa-149a-42b6-abd8-3782bdd83d1f' }
+[2026-03-18T13:13:16.001Z] INFO Bootstrap backend WORKSPACE_INIT { task: '3f7277e3-aa4d-4de9-809e-8c00d68ecc80', taskName: 'GUAINIT' }
+[2026-03-18T13:13:16.037Z] INFO Bootstrap backend respuesta {
+  step: 'CALL_FORM',
+  task: '3f7277e3-aa4d-4de9-809e-8c00d68ecc80',
+  taskName: 'GUAINIT',
+  blockNames: [ 'GUISETI', '$MAIN$_BLOCK', 'BANNER_FOOTER_DATA' ]
+}
+[2026-03-18T13:13:16.476Z] INFO Bootstrap backend respuesta {
+  step: 'UNLOCK_GLOBALS',
+  task: 'f2d59549-88fb-4d01-b22f-cffaf4a883cd',
+  taskName: 'SSASECT',
+  blockNames: [
+    'KEY_BLOCK',
+    'BUTTON_CONTROL_BLOCK',
+    'MENU_CONTROL',
+    'FORM_HEADER',
+    'BANNER_FOOTER_DATA'
+  ]
+}
+[2026-03-18T13:13:16.477Z] INFO Sesion backend Banner inicializada { taskId: 'f2d59549-88fb-4d01-b22f-cffaf4a883cd' }
+[2026-03-18T13:13:16.529Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 3,
+  nrc: '75620',
+  period: '202610'
+}
+[2026-03-18T13:13:16.530Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 3,
+  nrc: '75620',
+  period: '202610'
+}
+[2026-03-18T13:13:16.538Z] WARN Fallo lookup backend, reinicializando tarea Banner {
+  nrc: '75620',
+  period: '202610',
+  attempt: 1,
+  error: 'apiRequestContext.post: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.549Z] WARN No fue posible guardar screenshot {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75620',
+  error: 'Error: page.screenshot: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.558Z] WARN No fue posible guardar HTML {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75620',
+  error: 'Error: page.content: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.559Z] ERROR Error consultando NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75620',
+  period: '202610',
+  error: 'apiRequestContext.post: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.572Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 1,
+  nrc: '75608',
+  period: '202610'
+}
+[2026-03-18T13:13:16.573Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 1,
+  nrc: '75608',
+  period: '202610'
+}
+[2026-03-18T13:13:16.575Z] WARN Fallo lookup backend, reinicializando tarea Banner {
+  nrc: '75608',
+  period: '202610',
+  attempt: 1,
+  error: 'apiRequestContext.post: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.577Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: '02077d76-f7cf-4ee6-96a5-bca02dc5dfeb' }
+[2026-03-18T13:13:16.579Z] WARN Fallo lookup backend, reinicializando tarea Banner {
+  nrc: '75608',
+  period: '202610',
+  attempt: 2,
+  error: 'apiRequestContext.post: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.582Z] WARN No fue posible guardar screenshot {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75608',
+  error: 'Error: page.screenshot: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.583Z] WARN No fue posible guardar HTML {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75608',
+  error: 'Error: page.content: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.584Z] ERROR Error consultando NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75608',
+  period: '202610',
+  error: 'No fue posible consultar NRC 75608 por backend'
+}
+[2026-03-18T13:13:16.614Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 3,
+  nrc: '75620',
+  period: '202610',
+  status: 'ERROR'
+}
+[2026-03-18T13:13:16.615Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 3,
+  nrc: '75623',
+  period: '202610'
+}
+[2026-03-18T13:13:16.615Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 3,
+  nrc: '75623',
+  period: '202610'
+}
+[2026-03-18T13:13:16.627Z] WARN No fue posible guardar screenshot {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75623',
+  error: 'Error: page.screenshot: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.629Z] WARN No fue posible guardar HTML {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75623',
+  error: 'Error: page.content: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.630Z] ERROR Error consultando NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75623',
+  period: '202610',
+  error: 'apiRequestContext.post: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.671Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 2,
+  nrc: '75619',
+  period: '202610'
+}
+[2026-03-18T13:13:16.671Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 2,
+  nrc: '75619',
+  period: '202610'
+}
+[2026-03-18T13:13:16.672Z] WARN Fallo lookup backend, reinicializando tarea Banner {
+  nrc: '75619',
+  period: '202610',
+  attempt: 1,
+  error: 'apiRequestContext.post: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.677Z] WARN No fue posible guardar screenshot {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75619',
+  error: 'Error: page.screenshot: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.682Z] WARN No fue posible guardar HTML {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75619',
+  error: 'Error: page.content: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.683Z] ERROR Error consultando NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75619',
+  period: '202610',
+  error: 'apiRequestContext.post: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.711Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 2,
+  nrc: '75619',
+  period: '202610',
+  status: 'ERROR'
+}
+[2026-03-18T13:13:16.712Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 2,
+  nrc: '75622',
+  period: '202610'
+}
+[2026-03-18T13:13:16.713Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 2,
+  nrc: '75622',
+  period: '202610'
+}
+[2026-03-18T13:13:16.719Z] WARN No fue posible guardar screenshot {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75622',
+  error: 'Error: page.screenshot: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.720Z] WARN No fue posible guardar HTML {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75622',
+  error: 'Error: page.content: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.720Z] ERROR Error consultando NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75622',
+  period: '202610',
+  error: 'apiRequestContext.post: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.740Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 3,
+  nrc: '75623',
+  period: '202610',
+  status: 'ERROR'
+}
+[2026-03-18T13:13:16.887Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 2,
+  nrc: '75622',
+  period: '202610',
+  status: 'ERROR'
+}
+[2026-03-18T13:13:16.945Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 1,
+  nrc: '75608',
+  period: '202610',
+  status: 'ERROR'
+}
+[2026-03-18T13:13:16.946Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 1,
+  nrc: '75621',
+  period: '202610'
+}
+[2026-03-18T13:13:16.946Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 1,
+  nrc: '75621',
+  period: '202610'
+}
+[2026-03-18T13:13:16.948Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: '02077d76-f7cf-4ee6-96a5-bca02dc5dfeb' }
+[2026-03-18T13:13:16.951Z] WARN Fallo lookup backend, reinicializando tarea Banner {
+  nrc: '75621',
+  period: '202610',
+  attempt: 1,
+  error: 'apiRequestContext.post: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.954Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: '02077d76-f7cf-4ee6-96a5-bca02dc5dfeb' }
+[2026-03-18T13:13:16.957Z] WARN Fallo lookup backend, reinicializando tarea Banner {
+  nrc: '75621',
+  period: '202610',
+  attempt: 2,
+  error: 'apiRequestContext.post: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.960Z] WARN No fue posible guardar screenshot {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75621',
+  error: 'Error: page.screenshot: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.960Z] WARN No fue posible guardar HTML {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75621',
+  error: 'Error: page.content: Target page, context or browser has been closed'
+}
+[2026-03-18T13:13:16.961Z] ERROR Error consultando NRC {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  nrc: '75621',
+  period: '202610',
+  error: 'No fue posible consultar NRC 75621 por backend'
+}
+[2026-03-18T13:13:16.981Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmw2abkm0000t22eagfqfq3l',
+  worker: 1,
+  nrc: '75621',
+  period: '202610',
+  status: 'ERROR'
+}
+{
+  "queryId": "cmmw2abkm0000t22eagfqfq3l",
+  "queryName": "smoke-parallel-20260318",
+  "processed": 6,
+  "total": 6,
+  "counts": {
+    "ENCONTRADO": 0,
+    "SIN_DOCENTE": 0,
+    "NO_ENCONTRADO": 0,
+    "ERROR": 6
+  }
+}
+
+[AUTO_EXPORT] cmmw2abkm0000t22eagfqfq3l
+[2026-03-18T13:13:18.655Z] INFO Exportacion completada { queryId: 'cmmw2abkm0000t22eagfqfq3l', formats: [ 'csv', 'json' ] }
+{
+  "csvPath": "storage/exports/smoke-parallel-20260318-2026-03-18T13-13-18.653Z.csv",
+  "jsonPath": "storage/exports/smoke-parallel-20260318-2026-03-18T13-13-18.653Z.json"
+}
+
+[END] 2026-03-18T13:13:18.676Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

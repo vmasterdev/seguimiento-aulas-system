@@ -1,0 +1,90 @@
+[START] 2026-03-13T19:22:27.046Z
+[CMD] /mnt/c/WINDOWS/system32/cmd.exe "/c" "py" "-3" "-u" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\tools\\moodle-sidecar\\sidecar_runner.py" "classify" "--input-dir" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-batches\\2026-03-13T19-22-26-863Z_all" "--output" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T19-22-26-863Z_all.xlsx" "--workers" "1" "--browser" "chrome" "--prelogin-all-modalidades" "--python" "py"
+
+[CMD] py C:\Users\Duvan\Documents\seguimiento-aulas-system\tools\moodle-sidecar\moodle_categorizacion_aulas.py --browser chrome --input-dir C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-batches\2026-03-13T19-22-26-863Z_all --output C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T19-22-26-863Z_all.xlsx --workers 1 --resume --modo-estricto-modalidad --nrc-5-segun-archivo --prelogin-all-modalidades
+[INFO] Catalogo Distancia 4.0: C:\Users\Duvan\Documents\seguimiento-aulas-system\tools\moodle-sidecar\CURSOS DISTANCIA 4.0.xlsx
+[INFO] Cursos en catalogo Distancia 4.0: 445
+[INFO] NRC totales: 9
+[INFO] NRC ya procesados: 0
+[INFO] NRC pendientes: 9
+[INFO] Prioridad de periodos: 202615
+[INFO] CSV checkpoint: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T19-22-26-863Z_all.csv
+[INFO] Excel final: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T19-22-26-863Z_all.xlsx
+[INFO] Reporte sin matricula: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T19-22-26-863Z_all_SIN_MATRICULA.xlsx
+[INFO] Reporte aulas vacias/sin participantes: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T19-22-26-863Z_all_AULAS_VACIAS.xlsx
+[INFO] Perfil navegador root: C:\Users\Duvan\.cache\seguimiento-aulas\moodle-sidecar
+[INFO] Headless: NO
+[INFO] Workers: 1
+[INFO] Modo estricto por modalidad: SI
+[INFO] Consulta NRC solo 5 digitos: NO
+[INFO] Consulta NRC 5 digitos segun archivo/modalidad: SI
+[INFO] Pre-login inicial de modalidades: PRESENCIAL, POSGRADOS, MOOCs, DISTANCIA
+[W1/1] [INFO] Pre-login inicial: PRESENCIAL, POSGRADOS, MOOCs, DISTANCIA
+
+[LOGIN PRESENCIAL] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[INFO] Sesion iniciada en PRESENCIAL.
+[INFO] Sesion activa detectada en POSGRADOS (redirigida).
+[INFO] Sesion activa detectada en MOOCs (redirigida).
+[INFO] Sesion activa detectada en DISTANCIA (redirigida).
+
+================================================================================
+[W1/1] [1/9] NRC 68200 | Periodos: 202641 | Metodos: TRAD
+[W1/1] [INFO] NRC 68200 | Participantes: 14 | Vacia por participantes: NO (14 participantes encontrados)
+[W1/1] [OK] NRC 68200 | Modalidad: POSGRADOS | Tipo: distancia 4.0 | mod_links=39
+
+================================================================================
+[W1/1] [2/9] NRC 68201 | Periodos: 202641 | Metodos: DIST
+[W1/1] [INFO] NRC 68201 | Participantes: 13 | Vacia por participantes: NO (13 participantes encontrados)
+[W1/1] [OK] NRC 68201 | Modalidad: POSGRADOS | Tipo: distancia 4.0 | mod_links=40
+
+================================================================================
+[W1/1] [3/9] NRC 68202 | Periodos: 202641 | Metodos: TRAD
+[W1/1] [INFO] NRC 68202 | Participantes: 13 | Vacia por participantes: NO (13 participantes encontrados)
+[W1/1] [OK] NRC 68202 | Modalidad: POSGRADOS | Tipo: vacia | mod_links=2
+
+================================================================================
+[W1/1] [4/9] NRC 68204 | Periodos: 202641 | Metodos: TRAD
+[W1/1] [INFO] NRC 68204 | Participantes: 23 | Vacia por participantes: NO (23 participantes encontrados)
+[W1/1] [OK] NRC 68204 | Modalidad: POSGRADOS | Tipo: distancia 4.0 | mod_links=37
+
+================================================================================
+[W1/1] [5/9] NRC 68205 | Periodos: 202641 | Metodos: TRAD
+[W1/1] [INFO] NRC 68205 | Participantes: 23 | Vacia por participantes: NO (23 participantes encontrados)
+[W1/1] [OK] NRC 68205 | Modalidad: POSGRADOS | Tipo: distancia 4.0 | mod_links=44
+
+================================================================================
+[W1/1] [6/9] NRC 68206 | Periodos: 202641 | Metodos: TRAD
+[W1/1] [INFO] NRC 68206 | Participantes: 25 | Vacia por participantes: NO (25 participantes encontrados)
+[W1/1] [OK] NRC 68206 | Modalidad: POSGRADOS | Tipo: innovame | mod_links=63
+
+================================================================================
+[W1/1] [7/9] NRC 68207 | Periodos: 202641 | Metodos: TRAD
+[W1/1] [INFO] NRC 68207 | Participantes: 23 | Vacia por participantes: NO (23 participantes encontrados)
+[W1/1] [OK] NRC 68207 | Modalidad: POSGRADOS | Tipo: distancia 4.0 | mod_links=42
+
+================================================================================
+[W1/1] [8/9] NRC 70080 | Periodos: 202641 | Metodos: TRAD
+[W1/1] [INFO] NRC 70080 | Participantes: 13 | Vacia por participantes: NO (13 participantes encontrados)
+[W1/1] [OK] NRC 70080 | Modalidad: POSGRADOS | Tipo: distancia 4.0 | mod_links=39
+
+================================================================================
+[W1/1] [9/9] NRC 70081 | Periodos: 202641 | Metodos: TRAD
+[W1/1] [INFO] NRC 70081 | Participantes: 23 | Vacia por participantes: NO (23 participantes encontrados)
+[W1/1] [OK] NRC 70081 | Modalidad: POSGRADOS | Tipo: vacia | mod_links=2
+[INFO] Registros procesados en esta corrida: 9
+
+[FIN] Proceso completado.
+[OK] CSV: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T19-22-26-863Z_all.csv
+[OK] Excel: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T19-22-26-863Z_all.xlsx
+[OK] CSV aulas vacias/sin participantes: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T19-22-26-863Z_all_AULAS_VACIAS.csv (2 filas)
+[OK] Excel aulas vacias/sin participantes: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T19-22-26-863Z_all_AULAS_VACIAS.xlsx
+
+[END] 2026-03-13T19:24:40.522Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

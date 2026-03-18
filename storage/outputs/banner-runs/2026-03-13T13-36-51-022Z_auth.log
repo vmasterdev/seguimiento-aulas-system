@@ -1,0 +1,10 @@
+[START] 2026-03-13T13:36:51.024Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\banner buscador de docente en nrc'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'auth'
+
+Completa el login y el 2FA en Edge en genesisgo. Cuando termines, vuelve a esta terminal y presiona Enter para que navegue a SSASECT y guarde la sesion.
+
+[END] 2026-03-13T13:48:25.446Z
+[STATUS] FAILED
+[EXIT_CODE] null

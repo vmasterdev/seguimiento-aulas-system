@@ -1,0 +1,181 @@
+[START] 2026-03-09T21:01:28.117Z
+[CMD] python3 "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/sidecar_runner.py" "backup" "--nrc-csv" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-backups/2026-03-09T21-01-28-076Z_all_backup/nrcs_backup.csv" "--login-wait-seconds" "300" "--backup-timeout" "240"
+
+[INFO] Se encontraron 10 filas con NRC en el archivo.
+[INFO] Modalidades detectadas en el CSV: distancia
+
+[LOGIN DISTANCIA] Se abrió la página de inicio de sesión de DISTANCIA.
+1) En la ventana del navegador, haz clic en 'Iniciar sesión con Microsoft' (o similar).
+2) Ingresa tu CORREO y CONTRASEÑA institucional.
+3) Completa el AUTENTICADOR (Microsoft Authenticator).
+4) Marca 'mantener la sesión iniciada' si aparece.
+5) Cuando ya estés en la página principal de esta modalidad (por ejemplo .../my/), el proceso continuará automáticamente.
+
+[INFO] Sesión iniciada en DISTANCIA.
+
+============================================================
+[CURSO] DISTANCIA | NRC: 15-72305 | PERIODO: 202615 | PROGRAMA: Contaduría Pública Distancia - Sur
+[INFO] Buscando curso para NRC 15-72305: https://distancia.aulasuniminuto.edu.co/course/search.php?areaids=core_course-course&q=15-72305
+[OK] Resultado encontrado: 'Fundamentos de Matematicas' (id=2565). Entrando al curso...
+[INTENTO] Curso 15-72305 (DISTANCIA) - intento 1/3
+[INFO] Abriendo página de copia de seguridad: https://distancia.aulasuniminuto.edu.co/backup/backup.php?id=2565
+[INFO] Haciendo clic en 'Saltar al último paso'...
+[OK] Se hizo clic en 'Saltar al último paso'.
+[INFO] Esperando resultado de la copia de seguridad (timeout 240 s)...
+[OK] Se detectó mensaje de copia de seguridad exitosa.
+[INFO] Haciendo clic en 'Continuar'...
+[OK] Se hizo clic en 'Continuar' y se abrió la página de copias de seguridad.
+[INFO] Descargando archivo de copia: Descargar
+[INFO] Esperando a que se complete la descarga de la copia...
+[OK] Copia renombrada y movida a: /home/uvan/Downloads/moodle_backups/DISTANCIA/Contaduría Pública Distancia - Sur/15-72305 Fundamentos de Matematicas.mbz
+
+============================================================
+[CURSO] DISTANCIA | NRC: 15-72307 | PERIODO: 202615 | PROGRAMA: Administración de Empresas - Sur
+[INFO] Buscando curso para NRC 15-72307: https://distancia.aulasuniminuto.edu.co/course/search.php?areaids=core_course-course&q=15-72307
+[OK] Resultado encontrado: 'Calculo Diferencial e Integral' (id=2656). Entrando al curso...
+[INTENTO] Curso 15-72307 (DISTANCIA) - intento 1/3
+[INFO] Abriendo página de copia de seguridad: https://distancia.aulasuniminuto.edu.co/backup/backup.php?id=2656
+[INFO] Haciendo clic en 'Saltar al último paso'...
+[OK] Se hizo clic en 'Saltar al último paso'.
+[INFO] Esperando resultado de la copia de seguridad (timeout 240 s)...
+[OK] Se detectó mensaje de copia de seguridad exitosa.
+[INFO] Haciendo clic en 'Continuar'...
+[OK] Se hizo clic en 'Continuar' y se abrió la página de copias de seguridad.
+[INFO] Descargando archivo de copia: Descargar
+[INFO] Esperando a que se complete la descarga de la copia...
+[OK] Copia renombrada y movida a: /home/uvan/Downloads/moodle_backups/DISTANCIA/Administración de Empresas - Sur/15-72307 Calculo Diferencial e Integral.mbz
+
+============================================================
+[CURSO] DISTANCIA | NRC: 15-72308 | PERIODO: 202615 | PROGRAMA: Administración en Seguridad y Salud en el Trabajo - Sur
+[INFO] Buscando curso para NRC 15-72308: https://distancia.aulasuniminuto.edu.co/course/search.php?areaids=core_course-course&q=15-72308
+[OK] Resultado encontrado: 'Proceso Administrativo' (id=3078). Entrando al curso...
+[INTENTO] Curso 15-72308 (DISTANCIA) - intento 1/3
+[INFO] Abriendo página de copia de seguridad: https://distancia.aulasuniminuto.edu.co/backup/backup.php?id=3078
+[INFO] Haciendo clic en 'Saltar al último paso'...
+[OK] Se hizo clic en 'Saltar al último paso'.
+[INFO] Esperando resultado de la copia de seguridad (timeout 240 s)...
+[OK] Se detectó mensaje de copia de seguridad exitosa.
+[INFO] Haciendo clic en 'Continuar'...
+[OK] Se hizo clic en 'Continuar' y se abrió la página de copias de seguridad.
+[INFO] Descargando archivo de copia: Descargar
+[INFO] Esperando a que se complete la descarga de la copia...
+[OK] Copia renombrada y movida a: /home/uvan/Downloads/moodle_backups/DISTANCIA/Administración en Seguridad y Salud en el Trabajo - Sur/15-72308 Proceso Administrativo.mbz
+
+============================================================
+[CURSO] DISTANCIA | NRC: 15-72313 | PERIODO: 202615 | PROGRAMA: Contaduría Pública Distancia - Sur
+[INFO] Buscando curso para NRC 15-72313: https://distancia.aulasuniminuto.edu.co/course/search.php?areaids=core_course-course&q=15-72313
+[OK] Resultado encontrado: 'Estadistica Inferencia' (id=989). Entrando al curso...
+[INTENTO] Curso 15-72313 (DISTANCIA) - intento 1/3
+[INFO] Abriendo página de copia de seguridad: https://distancia.aulasuniminuto.edu.co/backup/backup.php?id=989
+[INFO] Haciendo clic en 'Saltar al último paso'...
+[OK] Se hizo clic en 'Saltar al último paso'.
+[INFO] Esperando resultado de la copia de seguridad (timeout 240 s)...
+[OK] Se detectó mensaje de copia de seguridad exitosa.
+[INFO] Haciendo clic en 'Continuar'...
+[OK] Se hizo clic en 'Continuar' y se abrió la página de copias de seguridad.
+[INFO] Descargando archivo de copia: Descargar
+[INFO] Esperando a que se complete la descarga de la copia...
+[OK] Copia renombrada y movida a: /home/uvan/Downloads/moodle_backups/DISTANCIA/Contaduría Pública Distancia - Sur/15-72313 Estadistica Inferencia.mbz
+
+============================================================
+[CURSO] DISTANCIA | NRC: 15-72314 | PERIODO: 202615 | PROGRAMA: Administración de Empresas - Sur
+[INFO] Buscando curso para NRC 15-72314: https://distancia.aulasuniminuto.edu.co/course/search.php?areaids=core_course-course&q=15-72314
+[OK] Resultado encontrado: 'Direccion y Control' (id=2452). Entrando al curso...
+[INTENTO] Curso 15-72314 (DISTANCIA) - intento 1/3
+[INFO] Abriendo página de copia de seguridad: https://distancia.aulasuniminuto.edu.co/backup/backup.php?id=2452
+[INFO] Haciendo clic en 'Saltar al último paso'...
+[OK] Se hizo clic en 'Saltar al último paso'.
+[INFO] Esperando resultado de la copia de seguridad (timeout 240 s)...
+[OK] Se detectó mensaje de copia de seguridad exitosa.
+[INFO] Haciendo clic en 'Continuar'...
+[OK] Se hizo clic en 'Continuar' y se abrió la página de copias de seguridad.
+[INFO] Descargando archivo de copia: Descargar
+[INFO] Esperando a que se complete la descarga de la copia...
+[OK] Copia renombrada y movida a: /home/uvan/Downloads/moodle_backups/DISTANCIA/Administración de Empresas - Sur/15-72314 Direccion y Control.mbz
+
+============================================================
+[CURSO] DISTANCIA | NRC: 15-72326 | PERIODO: 202615 | PROGRAMA: Contaduría Pública Distancia - Sur
+[INFO] Buscando curso para NRC 15-72326: https://distancia.aulasuniminuto.edu.co/course/search.php?areaids=core_course-course&q=15-72326
+[OK] Resultado encontrado: 'Lectura y Escritura en el Cont' (id=2604). Entrando al curso...
+[INTENTO] Curso 15-72326 (DISTANCIA) - intento 1/3
+[INFO] Abriendo página de copia de seguridad: https://distancia.aulasuniminuto.edu.co/backup/backup.php?id=2604
+[INFO] Haciendo clic en 'Saltar al último paso'...
+[OK] Se hizo clic en 'Saltar al último paso'.
+[INFO] Esperando resultado de la copia de seguridad (timeout 240 s)...
+[OK] Se detectó mensaje de copia de seguridad exitosa.
+[INFO] Haciendo clic en 'Continuar'...
+[OK] Se hizo clic en 'Continuar' y se abrió la página de copias de seguridad.
+[INFO] Descargando archivo de copia: Descargar
+[INFO] Esperando a que se complete la descarga de la copia...
+[OK] Copia renombrada y movida a: /home/uvan/Downloads/moodle_backups/DISTANCIA/Contaduría Pública Distancia - Sur/15-72326 Lectura y Escritura en el Cont.mbz
+
+============================================================
+[CURSO] DISTANCIA | NRC: 15-72330 | PERIODO: 202615 | PROGRAMA: Administración en Seguridad y Salud en el Trabajo - Centro
+[INFO] Buscando curso para NRC 15-72330: https://distancia.aulasuniminuto.edu.co/course/search.php?areaids=core_course-course&q=15-72330
+[OK] Resultado encontrado: 'Ergonomia' (id=772). Entrando al curso...
+[INTENTO] Curso 15-72330 (DISTANCIA) - intento 1/3
+[INFO] Abriendo página de copia de seguridad: https://distancia.aulasuniminuto.edu.co/backup/backup.php?id=772
+[INFO] Haciendo clic en 'Saltar al último paso'...
+[OK] Se hizo clic en 'Saltar al último paso'.
+[INFO] Esperando resultado de la copia de seguridad (timeout 240 s)...
+[OK] Se detectó mensaje de copia de seguridad exitosa.
+[INFO] Haciendo clic en 'Continuar'...
+[OK] Se hizo clic en 'Continuar' y se abrió la página de copias de seguridad.
+[INFO] Descargando archivo de copia: Descargar
+[INFO] Esperando a que se complete la descarga de la copia...
+[OK] Copia renombrada y movida a: /home/uvan/Downloads/moodle_backups/DISTANCIA/Administración en Seguridad y Salud en el Trabajo - Centro/15-72330 Ergonomia.mbz
+
+============================================================
+[CURSO] DISTANCIA | NRC: 15-72331 | PERIODO: 202615 | PROGRAMA: Administración en Seguridad y Salud en el Trabajo - Centro
+[INFO] Buscando curso para NRC 15-72331: https://distancia.aulasuniminuto.edu.co/course/search.php?areaids=core_course-course&q=15-72331
+[OK] Resultado encontrado: 'Riesgos Mecanicos y Electricos' (id=1763). Entrando al curso...
+[INTENTO] Curso 15-72331 (DISTANCIA) - intento 1/3
+[INFO] Abriendo página de copia de seguridad: https://distancia.aulasuniminuto.edu.co/backup/backup.php?id=1763
+[INFO] Haciendo clic en 'Saltar al último paso'...
+[OK] Se hizo clic en 'Saltar al último paso'.
+[INFO] Esperando resultado de la copia de seguridad (timeout 240 s)...
+[OK] Se detectó mensaje de copia de seguridad exitosa.
+[INFO] Haciendo clic en 'Continuar'...
+[OK] Se hizo clic en 'Continuar' y se abrió la página de copias de seguridad.
+[INFO] Descargando archivo de copia: Descargar
+[INFO] Esperando a que se complete la descarga de la copia...
+[OK] Copia renombrada y movida a: /home/uvan/Downloads/moodle_backups/DISTANCIA/Administración en Seguridad y Salud en el Trabajo - Centro/15-72331 Riesgos Mecanicos y Electricos.mbz
+
+============================================================
+[CURSO] DISTANCIA | NRC: 15-72332 | PERIODO: 202615 | PROGRAMA: Administración en Seguridad y Salud en el Trabajo - Centro
+[INFO] Buscando curso para NRC 15-72332: https://distancia.aulasuniminuto.edu.co/course/search.php?areaids=core_course-course&q=15-72332
+[OK] Resultado encontrado: 'Riesgos Fisicos' (id=1414). Entrando al curso...
+[INTENTO] Curso 15-72332 (DISTANCIA) - intento 1/3
+[INFO] Abriendo página de copia de seguridad: https://distancia.aulasuniminuto.edu.co/backup/backup.php?id=1414
+[INFO] Haciendo clic en 'Saltar al último paso'...
+[OK] Se hizo clic en 'Saltar al último paso'.
+[INFO] Esperando resultado de la copia de seguridad (timeout 240 s)...
+[OK] Se detectó mensaje de copia de seguridad exitosa.
+[INFO] Haciendo clic en 'Continuar'...
+[OK] Se hizo clic en 'Continuar' y se abrió la página de copias de seguridad.
+[INFO] Descargando archivo de copia: Descargar
+[INFO] Esperando a que se complete la descarga de la copia...
+[OK] Copia renombrada y movida a: /home/uvan/Downloads/moodle_backups/DISTANCIA/Administración en Seguridad y Salud en el Trabajo - Centro/15-72332 Riesgos Fisicos.mbz
+
+============================================================
+[CURSO] DISTANCIA | NRC: 15-72334 | PERIODO: 202615 | PROGRAMA: Administración en Seguridad y Salud en el Trabajo - Centro
+[INFO] Buscando curso para NRC 15-72334: https://distancia.aulasuniminuto.edu.co/course/search.php?areaids=core_course-course&q=15-72334
+[OK] Resultado encontrado: 'Epidemiologia' (id=966). Entrando al curso...
+[INTENTO] Curso 15-72334 (DISTANCIA) - intento 1/3
+[INFO] Abriendo página de copia de seguridad: https://distancia.aulasuniminuto.edu.co/backup/backup.php?id=966
+[INFO] Haciendo clic en 'Saltar al último paso'...
+[OK] Se hizo clic en 'Saltar al último paso'.
+[INFO] Esperando resultado de la copia de seguridad (timeout 240 s)...
+[OK] Se detectó mensaje de copia de seguridad exitosa.
+[INFO] Haciendo clic en 'Continuar'...
+[OK] Se hizo clic en 'Continuar' y se abrió la página de copias de seguridad.
+[INFO] Descargando archivo de copia: Descargar
+[INFO] Esperando a que se complete la descarga de la copia...
+[OK] Copia renombrada y movida a: /home/uvan/Downloads/moodle_backups/DISTANCIA/Administración en Seguridad y Salud en el Trabajo - Centro/15-72334 Epidemiologia.mbz
+
+[FIN] Se procesaron todas las filas del CSV (todas las modalidades mezcladas).
+[CMD] python3 /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/moodle_backups.py --nrc-csv /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-backups/2026-03-09T21-01-28-076Z_all_backup/nrcs_backup.csv --login-wait-seconds 300 --backup-timeout 240
+
+[END] 2026-03-09T21:11:16.361Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

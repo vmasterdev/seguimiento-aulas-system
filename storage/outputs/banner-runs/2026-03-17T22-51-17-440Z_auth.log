@@ -1,0 +1,12 @@
+[START] 2026-03-17T22:51:17.441Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node "/home/uvan/banner-docente-runner/scripts/auth-windows.cjs" "start"
+
+
+[PROCESS_ERROR] Command failed: node /home/uvan/banner-docente-runner/scripts/auth-windows.cjs start
+
+
+[END] 2026-03-17T22:53:00.643Z
+[STATUS] FAILED
+[EXIT_CODE] 1

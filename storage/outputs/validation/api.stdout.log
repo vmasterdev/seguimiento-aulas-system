@@ -1,0 +1,92 @@
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32mInicializando API...[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[NestFactory] [39m[32mStarting Nest application...[39m[38;5;3m +13ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mDatabaseModule dependencies initialized[39m[38;5;3m +49ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mAppModule dependencies initialized[39m[38;5;3m +12ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMoodleAnalyticsModule dependencies initialized[39m[38;5;3m +5ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mQueueModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mStatsModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mCoursesModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mSamplingModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mEvaluationModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mOutboxModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mMoodleUrlResolverAdapterModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mTeachersModule dependencies initialized[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[InstanceLoader] [39m[32mImportModule dependencies initialized[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[Bootstrap] [39m[32mNest app creada.[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mHealthController {/}:[39m[38;5;3m +14ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/, GET} route[39m[38;5;3m +5ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/health, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mImportController {/import}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/import/csv, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/import/teachers-xlsx, POST} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mQueueController {/queue}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/queue/enqueue-classify, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/queue/retry, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/queue/stats, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mStatsController {/stats}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/stats/overview, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mCoursesController {/courses}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/courses/missing-teacher/list, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/courses/moodle-followup/list, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/courses, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/courses/:id, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/courses/:id/manual, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/courses/:id/teacher, PATCH} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/courses/:id/deactivate, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/courses/deactivate-batch, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/courses/:id/checklist-temporal, POST} route[39m[38;5;3m +6ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mSamplingController {/sampling}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sampling/generate, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sampling, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/sampling/review-queue, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mEvaluationController {/evaluation}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/evaluation/score, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/evaluation/manual-override, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/evaluation/recalculate, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/evaluation/replicate-sampled, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/evaluation/nrc-trace, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/evaluation, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mOutboxController {/outbox}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox/generate, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox/export-eml, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox/send, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox/resend-updated, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox/resend-by-course, POST} route[39m[38;5;3m +6ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox/preview-by-course, POST} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox/workshop-invitation/prepare, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox/options, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox/:id/preview, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/outbox/tracking, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMoodleUrlResolverAdapterController {/integrations/moodle-sidecar}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/config, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/import, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMoodleSidecarRunnerController {/integrations/moodle-sidecar/run}:[39m[38;5;3m +2ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/status, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/batch/options, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/batch/preview, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/revalidate/preview, POST} route[39m[38;5;3m +4ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/extract/preview, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/start, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/start-from-db, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/start-backup-from-db, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/start-attendance-from-db, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/start-activity-from-db, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/start-participants-from-db, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/start-revalidate-from-db, POST} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/cancel, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/artifact-summary, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-sidecar/run/download, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mTeachersController {/teachers}:[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/teachers, GET} route[39m[38;5;3m +2ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/teachers, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/teachers/import-csv, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RoutesResolver] [39m[32mMoodleAnalyticsController {/integrations/moodle-analytics}:[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-analytics/import/attendance, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-analytics/import/activity, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-analytics/import/participants, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-analytics/import/banner-enrollment, POST} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-analytics/options, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-analytics/overview, GET} route[39m[38;5;3m +1ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[RouterExplorer] [39m[32mMapped {/integrations/moodle-analytics/attendance/date-report, GET} route[39m[38;5;3m +0ms[39m
+[32m[Nest] 35616  - [39m14/03/2026, 7:59:32 a. m. [32m    LOG[39m [38;5;3m[NestApplication] [39m[32mNest application successfully started[39m[38;5;3m +76ms[39m

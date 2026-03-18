@@ -1,0 +1,27 @@
+[START] 2026-03-17T21:58:19.154Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node "/home/uvan/banner-docente-runner/scripts/auth-windows.cjs" "start"
+
+Completa el login y el 2FA en Edge para Banner/Microsoft. Cuando termines, vuelve al sistema y pulsa Guardar sesion Banner.
+{
+  "authSessionPath": "/home/uvan/banner-batch-run-20260317-1508/storage/auth/banner-auth-session.json",
+  "remoteDebuggingUrl": "http://127.0.0.1:9222",
+  "userDataDir": "C:\\Users\\Duvan\\AppData\\Local\\Temp\\banner-docente-edge-profile-1773784705278",
+  "storageStatePath": "/home/uvan/banner-batch-run-20260317-1508/storage/auth/banner-storage-state.json"
+}
+[warn] Edge abrio la ventana de login, pero el endpoint CDP aun no responde en http://127.0.0.1:9222. Podras usar 'Guardar sesion Banner' cuando termines el login.
+
+[AUTH_PENDING] 2026-03-17T21:58:42.968Z
+
+[CONFIRM_START] 2026-03-17T22:46:53.398Z
+[CONFIRM_CMD] node "/home/uvan/banner-docente-runner/scripts/auth-windows.cjs" "confirm"
+
+
+[CONFIRM_ERROR] Command failed: node /home/uvan/banner-docente-runner/scripts/auth-windows.cjs confirm
+Error: No fue posible conectar con Edge en http://127.0.0.1:9222 dentro de 120000ms
+    at waitForRemoteDebugging (/home/uvan/banner-batch-run-20260317-1508/scripts/auth-windows.cjs:52:9)
+    at async connectToBanner (/home/uvan/banner-batch-run-20260317-1508/scripts/auth-windows.cjs:193:3)
+    at async confirmManualAuth (/home/uvan/banner-batch-run-20260317-1508/scripts/auth-windows.cjs:274:29)
+    at async main (/home/uvan/banner-batch-run-20260317-1508/scripts/auth-windows.cjs:381:5)
+

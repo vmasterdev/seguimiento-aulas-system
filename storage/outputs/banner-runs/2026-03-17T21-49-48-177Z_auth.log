@@ -1,0 +1,16 @@
+[START] 2026-03-17T21:49:48.177Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node "/home/uvan/banner-docente-runner/scripts/auth-windows.cjs" "start"
+
+
+[PROCESS_ERROR] Command failed: node /home/uvan/banner-docente-runner/scripts/auth-windows.cjs start
+Error: No fue posible conectar con Edge en http://127.0.0.1:9222 dentro de 45000ms
+    at waitForRemoteDebugging (/home/uvan/banner-batch-run-20260317-1508/scripts/auth-windows.cjs:52:9)
+    at async startManualAuth (/home/uvan/banner-batch-run-20260317-1508/scripts/auth-windows.cjs:218:3)
+    at async main (/home/uvan/banner-batch-run-20260317-1508/scripts/auth-windows.cjs:353:5)
+
+
+[END] 2026-03-17T21:50:36.346Z
+[STATUS] FAILED
+[EXIT_CODE] 1

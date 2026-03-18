@@ -1,0 +1,267 @@
+{
+  "generatedAt": "2026-03-05T14:45:57.697Z",
+  "scope": {
+    "periods": [
+      "202610",
+      "202611",
+      "202612",
+      "202615",
+      "202621",
+      "202641"
+    ],
+    "phase": "ALISTAMIENTO",
+    "moments": [
+      "MD1",
+      "1"
+    ],
+    "audience": "DOCENTE"
+  },
+  "kpis": {
+    "teachersTotal": 253,
+    "teachersWithEmail": 230,
+    "teachersWithoutEmail": 23,
+    "coursesTotal": 1729,
+    "coursesWithTeacher": 1572,
+    "coursesWithoutTeacher": 157,
+    "sampleGroupsTotal": 352,
+    "sampleTeachersDistinct": 212,
+    "evaluationsTotal": 1156,
+    "evaluationsReviewed": 283,
+    "evaluationsReplicated": 873,
+    "outboxAll": 358,
+    "outboxSent": 303,
+    "outboxDraft": 2
+  },
+  "outboxByStatus": [
+    {
+      "status": "DRAFT",
+      "count": 2
+    },
+    {
+      "status": "EXPORTED",
+      "count": 53
+    },
+    {
+      "status": "SENT_AUTO",
+      "count": 303
+    }
+  ],
+  "outboxByPeriodMoment": [
+    {
+      "periodCode": "202615",
+      "moment": "1",
+      "status": "DRAFT",
+      "count": 1
+    },
+    {
+      "periodCode": "202615",
+      "moment": "1",
+      "status": "EXPORTED",
+      "count": 45
+    },
+    {
+      "periodCode": "202615",
+      "moment": "1",
+      "status": "SENT_AUTO",
+      "count": 54
+    },
+    {
+      "periodCode": "202615",
+      "moment": "MD1",
+      "status": "DRAFT",
+      "count": 1
+    },
+    {
+      "periodCode": "202615",
+      "moment": "MD1",
+      "status": "EXPORTED",
+      "count": 8
+    },
+    {
+      "periodCode": "202615",
+      "moment": "MD1",
+      "status": "SENT_AUTO",
+      "count": 142
+    },
+    {
+      "periodCode": "202610",
+      "moment": "1",
+      "status": "SENT_AUTO",
+      "count": 73
+    },
+    {
+      "periodCode": "202611",
+      "moment": "1",
+      "status": "SENT_AUTO",
+      "count": 14
+    },
+    {
+      "periodCode": "202621",
+      "moment": "1",
+      "status": "SENT_AUTO",
+      "count": 3
+    },
+    {
+      "periodCode": "202621",
+      "moment": "MD1",
+      "status": "SENT_AUTO",
+      "count": 13
+    },
+    {
+      "periodCode": "202641",
+      "moment": "1",
+      "status": "SENT_AUTO",
+      "count": 2
+    },
+    {
+      "periodCode": "202641",
+      "moment": "MD1",
+      "status": "SENT_AUTO",
+      "count": 2
+    }
+  ],
+  "evalByBand": {
+    "Excelente": 495,
+    "Bueno": 235,
+    "Aceptable": 76,
+    "Insatisfactorio": 350
+  },
+  "evalByMoment": {
+    "1": {
+      "reviewed": 225,
+      "replicated": 433,
+      "total": 658
+    },
+    "MD1": {
+      "reviewed": 58,
+      "replicated": 440,
+      "total": 498
+    }
+  },
+  "evalByPeriodMoment": [
+    {
+      "periodCode": "202615",
+      "moment": "MD1",
+      "reviewed": 48,
+      "replicated": 426,
+      "total": 474
+    },
+    {
+      "periodCode": "202610",
+      "moment": "1",
+      "reviewed": 52,
+      "replicated": 260,
+      "total": 312
+    },
+    {
+      "periodCode": "202611",
+      "moment": "1",
+      "reviewed": 28,
+      "replicated": 16,
+      "total": 44
+    },
+    {
+      "periodCode": "202612",
+      "moment": "1",
+      "reviewed": 49,
+      "replicated": 0,
+      "total": 49
+    },
+    {
+      "periodCode": "202615",
+      "moment": "1",
+      "reviewed": 84,
+      "replicated": 153,
+      "total": 237
+    },
+    {
+      "periodCode": "202621",
+      "moment": "MD1",
+      "reviewed": 8,
+      "replicated": 14,
+      "total": 22
+    },
+    {
+      "periodCode": "202621",
+      "moment": "1",
+      "reviewed": 11,
+      "replicated": 2,
+      "total": 13
+    },
+    {
+      "periodCode": "202641",
+      "moment": "1",
+      "reviewed": 1,
+      "replicated": 2,
+      "total": 3
+    },
+    {
+      "periodCode": "202641",
+      "moment": "MD1",
+      "reviewed": 2,
+      "replicated": 0,
+      "total": 2
+    }
+  ],
+  "moodleByStatus": [
+    {
+      "status": "OK",
+      "count": 1120
+    },
+    {
+      "status": "PENDIENTE",
+      "count": 15
+    },
+    {
+      "status": "REVISAR_MANUAL",
+      "count": 21
+    }
+  ],
+  "missingRecipients": [
+    {
+      "period": {
+        "code": "202615"
+      },
+      "moment": "1",
+      "recipientName": "ANA, FERRO MORENO L.",
+      "teacherId": "1141374",
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615"
+    },
+    {
+      "period": {
+        "code": "202615"
+      },
+      "moment": "MD1",
+      "recipientName": "ANA, FERRO MORENO L.",
+      "teacherId": "1141374",
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO MD1 - 202615"
+    }
+  ],
+  "auditSendCounts": [
+    {
+      "action": "OUTBOX_REGENERATED",
+      "count": 1
+    },
+    {
+      "action": "OUTBOX_SEND_FAILED",
+      "count": 5
+    },
+    {
+      "action": "OUTBOX_SEND_SENT",
+      "count": 304
+    }
+  ],
+  "auditWindow": {
+    "firstTs": "2026-03-05T14:17:55.615Z",
+    "lastTs": "2026-03-05T14:33:22.834Z",
+    "totalEvents": 310
+  },
+  "insights": [
+    "Efectividad de envio final: 303/358 (84.6%) correos entregados al canal SMTP/Outlook.",
+    "Palanca de replicacion: 873/1156 evaluaciones (75.5%) fueron replicadas desde NRC base, reduciendo carga operativa manual.",
+    "Cobertura de asignacion docente en cursos 2026 (sin 80/85): 1572/1729 (90.9%).",
+    "Pendiente operativo puntual: 2 correos en borrador por ausencia de email docente (mismo docente ID 1141374).",
+    "Ventana de ejecucion final de envios: 05/03/2026, 09:17:55 a. m. a 05/03/2026, 09:33:22 a. m.."
+  ],
+  "htmlPath": "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/reports/reporte_ejecutivo_envio_final_alistamiento_2026_md1_ryc_2026-03-05.html"
+}

@@ -1,0 +1,39 @@
+[START] 2026-03-08T18:47:59.662Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[CMD] node "--import" "tsx" "src/cli.ts" "export" "--query-id" "cmm7tyq820000t2eo8tn50zll" "--format" "csv"
+
+/mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc/node_modules/.pnpm/@prisma+client@6.19.2_prism_6b2b1af085fe6797f5a5ea830937a8e3/node_modules/@prisma/client/src/runtime/core/engines/common/resolveEnginePath.ts:76
+  throw new PrismaClientInitializationError(errorMessage, config.clientVersion!)
+        ^
+
+
+PrismaClientInitializationError: Prisma Client could not locate the Query Engine for runtime "debian-openssl-3.0.x".
+
+This happened because Prisma Client was generated for "windows", but the actual deployment required "debian-openssl-3.0.x".
+Add "debian-openssl-3.0.x" to `binaryTargets` in the "schema.prisma" file and run `prisma generate` after saving it:
+
+generator client {
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x"]
+}
+
+The following locations have been searched:
+  /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc/node_modules/.pnpm/@prisma+client@6.19.2_prism_6b2b1af085fe6797f5a5ea830937a8e3/node_modules/.prisma/client
+  /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc/node_modules/.pnpm/@prisma+client@6.19.2_prism_6b2b1af085fe6797f5a5ea830937a8e3/node_modules/@prisma/client
+  C:\Users\Duvan\Documents\banner buscador de docente en nrc\node_modules\.pnpm\@prisma+client@6.19.2_prism_6b2b1af085fe6797f5a5ea830937a8e3\node_modules\@prisma\client
+  /tmp/prisma-engines
+  /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc/prisma
+    at ml (/mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc/node_modules/.pnpm/@prisma+client@6.19.2_prism_6b2b1af085fe6797f5a5ea830937a8e3/node_modules/@prisma/client/src/runtime/core/engines/common/resolveEnginePath.ts:76:9)
+    at async Object.loadLibrary (/mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc/node_modules/.pnpm/@prisma+client@6.19.2_prism_6b2b1af085fe6797f5a5ea830937a8e3/node_modules/@prisma/client/src/runtime/core/engines/library/DefaultLibraryLoader.ts:66:24)
+    at async Qr.loadEngine (/mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc/node_modules/.pnpm/@prisma+client@6.19.2_prism_6b2b1af085fe6797f5a5ea830937a8e3/node_modules/@prisma/client/src/runtime/core/engines/library/LibraryEngine.ts:292:22)
+    at async Qr.instantiateLibrary (/mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc/node_modules/.pnpm/@prisma+client@6.19.2_prism_6b2b1af085fe6797f5a5ea830937a8e3/node_modules/@prisma/client/src/runtime/core/engines/library/LibraryEngine.ts:243:5) {
+  clientVersion: '6.19.2',
+  errorCode: undefined,
+  retryable: undefined
+}
+
+Node.js v22.20.0
+
+[END] 2026-03-08T18:48:24.785Z
+[STATUS] FAILED
+[EXIT_CODE] 1

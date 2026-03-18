@@ -1,0 +1,84 @@
+{
+  "batchId": "2026-03-17T19-56-25-236Z_pending_banner",
+  "preparedAt": "2026-03-17T19:56:25.278Z",
+  "inputPath": "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/banner-batches/2026-03-17T19-56-25-236Z_pending_banner/nrc_banner_batch.csv",
+  "filters": {
+    "source": "PENDING_BANNER",
+    "periodCodes": [
+      "202641"
+    ],
+    "limit": 20
+  },
+  "total": 4,
+  "byPeriod": {
+    "202641": 4
+  },
+  "byYear": {
+    "2026": 4
+  },
+  "byBannerStatus": {
+    "SIN_DATO": 4
+  },
+  "sample": [
+    {
+      "courseId": "cmm2k0n4x04zr13uei9de5e0p",
+      "nrc": "41-68202",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "year": "2026",
+      "moment": "MD2",
+      "subjectName": "Evaluación de Proyectos",
+      "teacherName": "TRIANA GONZALEZ HERNANDO AUGUSTO",
+      "teacherId": "738594",
+      "bannerReviewStatus": null,
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv",
+      "programCode": "Posgrados - Centro",
+      "programName": "Posgrados - Centro"
+    },
+    {
+      "courseId": "cmm2k0n6b050113ue9tq0g0nz",
+      "nrc": "41-68205",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "year": "2026",
+      "moment": "MD2",
+      "subjectName": "Direccionamiento Estratégico",
+      "teacherName": "CASTELBLANCO CORREDOR ROGER HERLENDY",
+      "teacherId": "1103415",
+      "bannerReviewStatus": null,
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv",
+      "programCode": "MS Gerencia Innovación Proyect - Centro",
+      "programName": "MS Gerencia Innovación Proyect - Centro"
+    },
+    {
+      "courseId": "cmm2k0n8f050g13ueffcefiw8",
+      "nrc": "41-70080",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "year": "2026",
+      "moment": "MD2",
+      "subjectName": "Electiva I",
+      "teacherName": null,
+      "teacherId": null,
+      "bannerReviewStatus": null,
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv",
+      "programCode": "EGP1",
+      "programName": "ESP EN GERENCIA DE PROYECTOS"
+    },
+    {
+      "courseId": "cmm2k0n9e050l13uenynm7rgs",
+      "nrc": "41-70081",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "year": "2026",
+      "moment": "MD2",
+      "subjectName": "Electiva II",
+      "teacherName": "CRISTHIAN, BARBOSA ALFONSO C.",
+      "teacherId": "639098",
+      "bannerReviewStatus": null,
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv",
+      "programCode": "Posgrados - Centro",
+      "programName": "Posgrados - Centro"
+    }
+  ]
+}

@@ -1,0 +1,108 @@
+[START] 2026-03-18T13:14:31.527Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node --import tsx "src/cli.ts" "batch" "--input" "/mnt/c/Users/Duvan/Documents/storage/outputs/banner-batches/2026-03-18T13-14-31-442Z_all/nrc_banner_batch.csv" "--query-name" "smoke-single-safe-20260318" "--workers" "3"
+
+[2026-03-18T13:14:36.944Z] INFO Iniciando lote Banner {
+  queryId: 'cmmw2cecr0000t2fo3wgmngcp',
+  totalRequested: 3,
+  pending: 3,
+  workers: 1
+}
+[2026-03-18T13:14:50.199Z] INFO Sesion restaurada desde storageState
+[2026-03-18T13:14:56.283Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: '8b23bf9c-f3a2-4176-8751-209c7cb3828a' }
+[2026-03-18T13:14:56.284Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmw2cecr0000t2fo3wgmngcp',
+  worker: 1,
+  nrc: '75608',
+  period: '202610'
+}
+[2026-03-18T13:14:56.285Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmw2cecr0000t2fo3wgmngcp',
+  worker: 1,
+  nrc: '75608',
+  period: '202610'
+}
+[2026-03-18T13:14:56.684Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmw2cecr0000t2fo3wgmngcp',
+  worker: 1,
+  nrc: '75608',
+  period: '202610',
+  status: 'ENCONTRADO'
+}
+[2026-03-18T13:14:56.684Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmw2cecr0000t2fo3wgmngcp',
+  worker: 1,
+  nrc: '75619',
+  period: '202610'
+}
+[2026-03-18T13:14:56.685Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmw2cecr0000t2fo3wgmngcp',
+  worker: 1,
+  nrc: '75619',
+  period: '202610'
+}
+[2026-03-18T13:14:56.916Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmw2cecr0000t2fo3wgmngcp',
+  worker: 1,
+  nrc: '75619',
+  period: '202610',
+  status: 'ENCONTRADO'
+}
+[2026-03-18T13:14:56.917Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmw2cecr0000t2fo3wgmngcp',
+  worker: 1,
+  nrc: '75620',
+  period: '202610'
+}
+[2026-03-18T13:14:56.917Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmw2cecr0000t2fo3wgmngcp',
+  worker: 1,
+  nrc: '75620',
+  period: '202610'
+}
+[2026-03-18T13:14:57.149Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmw2cecr0000t2fo3wgmngcp',
+  worker: 1,
+  nrc: '75620',
+  period: '202610',
+  status: 'ENCONTRADO'
+}
+{
+  "queryId": "cmmw2cecr0000t2fo3wgmngcp",
+  "queryName": "smoke-single-safe-20260318",
+  "processed": 3,
+  "total": 3,
+  "counts": {
+    "ENCONTRADO": 3,
+    "SIN_DOCENTE": 0,
+    "NO_ENCONTRADO": 0,
+    "ERROR": 0
+  }
+}
+
+[AUTO_EXPORT] cmmw2cecr0000t2fo3wgmngcp
+[2026-03-18T13:14:59.864Z] INFO Exportacion completada { queryId: 'cmmw2cecr0000t2fo3wgmngcp', formats: [ 'csv', 'json' ] }
+{
+  "csvPath": "storage/exports/smoke-single-safe-20260318-2026-03-18T13-14-59.861Z.csv",
+  "jsonPath": "storage/exports/smoke-single-safe-20260318-2026-03-18T13-14-59.861Z.json"
+}
+
+[AUTO_IMPORT]
+{
+  "ok": true,
+  "sourceFile": "smoke-single-safe-20260318-2026-03-18T13-14-59.861Z.csv",
+  "rows": 3,
+  "updatedCourses": 3,
+  "linkedTeachers": 3,
+  "clearedTeachers": 0,
+  "noCourseMatch": 0,
+  "invalidRows": 0,
+  "statusCounts": {
+    "ENCONTRADO": 3
+  }
+}
+
+[END] 2026-03-18T13:15:02.070Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

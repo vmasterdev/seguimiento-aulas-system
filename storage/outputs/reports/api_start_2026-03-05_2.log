@@ -1,0 +1,4 @@
+
+> @seguimiento/api@0.1.0 start /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/apps/api
+> node --enable-source-maps dist/apps/api/src/main.js
+

@@ -1,0 +1,44 @@
+[START] 2026-03-13T13:43:05.952Z
+[CMD] /mnt/c/WINDOWS/system32/cmd.exe "/c" "py" "-3" "-u" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\tools\\moodle-sidecar\\sidecar_runner.py" "classify" "--input-dir" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-batches\\2026-03-13T13-43-05-131Z_all" "--output" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-43-05-131Z_all.xlsx" "--workers" "1" "--browser" "chrome" "--python" "py"
+
+[CMD] py C:\Users\Duvan\Documents\seguimiento-aulas-system\tools\moodle-sidecar\moodle_categorizacion_aulas.py --browser chrome --input-dir C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-batches\2026-03-13T13-43-05-131Z_all --output C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-43-05-131Z_all.xlsx --workers 1 --resume --modo-estricto-modalidad --nrc-5-segun-archivo
+[INFO] Catalogo Distancia 4.0: C:\Users\Duvan\Documents\seguimiento-aulas-system\tools\moodle-sidecar\CURSOS DISTANCIA 4.0.xlsx
+[INFO] Cursos en catalogo Distancia 4.0: 445
+[INFO] NRC totales: 1
+[INFO] NRC ya procesados: 0
+[INFO] NRC pendientes: 1
+[INFO] Prioridad de periodos: 202615
+[INFO] CSV checkpoint: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-43-05-131Z_all.csv
+[INFO] Excel final: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-43-05-131Z_all.xlsx
+[INFO] Reporte sin matricula: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-43-05-131Z_all_SIN_MATRICULA.xlsx
+[INFO] Reporte aulas vacias/sin participantes: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-43-05-131Z_all_AULAS_VACIAS.xlsx
+[INFO] Perfil navegador root: C:\Users\Duvan\.cache\seguimiento-aulas\moodle-sidecar
+[INFO] Headless: NO
+[INFO] Workers: 1
+[INFO] Modo estricto por modalidad: SI
+[INFO] Consulta NRC solo 5 digitos: NO
+[INFO] Consulta NRC 5 digitos segun archivo/modalidad: SI
+
+================================================================================
+[W1/1] [1/1] NRC 72305 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[INFO] Sesion iniciada en DISTANCIA.
+[W1/1] [INFO] NRC 72305 | Participantes: 30 | Vacia por participantes: NO (30 participantes encontrados)
+[W1/1] [OK] NRC 72305 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=40
+[INFO] Registros procesados en esta corrida: 1
+
+[FIN] Proceso completado.
+[OK] CSV: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-43-05-131Z_all.csv
+[OK] Excel: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-43-05-131Z_all.xlsx
+[INFO] No se encontraron aulas vacias/sin participantes para reporte dedicado.
+
+[END] 2026-03-13T13:45:26.269Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

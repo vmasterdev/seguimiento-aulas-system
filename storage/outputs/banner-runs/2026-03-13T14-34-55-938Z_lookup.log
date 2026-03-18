@@ -1,0 +1,22 @@
+[START] 2026-03-13T14:34:55.938Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\banner buscador de docente en nrc'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'lookup' '--nrc' '72305' '--period' '202615' '--query-name' 'banner-rpaca'
+
+[2026-03-13T14:35:06.098Z] INFO Iniciando lote Banner {
+  queryId: 'cmmp00myz0000t28g280mq4tx',
+  totalRequested: 1,
+  pending: 1,
+  workers: 1
+}
+Error: No se encontro un selector editable
+    at BatchService.process (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\services\batchService.ts:177:15)
+    at async <anonymous> (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:187:25)
+    at async runWithContext (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:109:12)
+    at async Command.<anonymous> (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:186:7)
+    at async Command.parseAsync (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\node_modules\.pnpm\commander@13.1.0\node_modules\commander\lib\command.js:1104:5)
+    at async main (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:249:3)
+
+[END] 2026-03-13T14:37:04.051Z
+[STATUS] FAILED
+[EXIT_CODE] 1

@@ -1,0 +1,46 @@
+{
+  "batchId": "2026-03-10T19-42-32-154Z_revalidate_sin_matricula",
+  "preparedAt": "2026-03-10T19:42:32.199Z",
+  "filters": {
+    "periodCodes": [
+      "202615"
+    ],
+    "moments": [
+      "MD1",
+      "MD2",
+      "1"
+    ],
+    "mode": "sin_matricula",
+    "limit": 1
+  },
+  "total": 1,
+  "inputDir": "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-batches/2026-03-10T19-42-32-154Z_revalidate_sin_matricula",
+  "csvPath": "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-batches/2026-03-10T19-42-32-154Z_revalidate_sin_matricula/input_revalidate.csv",
+  "byPeriod": {
+    "202615": 1
+  },
+  "byMoment": {
+    "MD2": 1
+  },
+  "byStatus": {
+    "PENDIENTE": 1
+  },
+  "byTemplate": {
+    "UNKNOWN": 1
+  },
+  "sample": [
+    {
+      "courseId": "cmm2a5byu008ywl7y1jq8wt3e",
+      "nrc": "15-72516",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD2",
+      "title": "Proceso Administrativo",
+      "program": "Fac Ciencias Emp Adm Empresari",
+      "method": "TRAD",
+      "status": "PENDIENTE",
+      "template": "UNKNOWN",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    }
+  ]
+}

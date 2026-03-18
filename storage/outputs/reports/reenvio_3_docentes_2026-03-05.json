@@ -1,0 +1,69 @@
+{
+  "timestamp": "2026-03-05T22:48:17.254Z",
+  "forceTo": "jaime.lozano.a@uniminuto.edu",
+  "selected": [
+    {
+      "sourceId": "cmme0c2ut0001yemohsycr2ck",
+      "docente": "BARRIOS RIVERA ALEJANDRA"
+    },
+    {
+      "sourceId": "cmme0kcid0001mlhcdl9rc775",
+      "docente": "BEDOYA SANCHEZ OSCAR MAURICIO"
+    },
+    {
+      "sourceId": "cmm2k8wka07drdiwqu3ldk5un",
+      "docente": "BOCANEGRA ROCHA EVELIN DAMARIS"
+    }
+  ],
+  "regenerated": [
+    {
+      "docente": "BARRIOS RIVERA ALEJANDRA",
+      "regeneratedMessageId": "cmme2416w000210u3ntcsp985"
+    },
+    {
+      "docente": "BEDOYA SANCHEZ OSCAR MAURICIO",
+      "regeneratedMessageId": "cmme2419g000510u354ekr9tf"
+    },
+    {
+      "docente": "BOCANEGRA ROCHA EVELIN DAMARIS",
+      "regeneratedMessageId": "cmme241dc000810u37gqrppp4"
+    }
+  ],
+  "sentCount": 3,
+  "failedCount": 0,
+  "sent": [
+    {
+      "id": "cmme2416w000210u3ntcsp985",
+      "to": "jaime.lozano.a@uniminuto.edu",
+      "messageId": null
+    },
+    {
+      "id": "cmme2419g000510u354ekr9tf",
+      "to": "jaime.lozano.a@uniminuto.edu",
+      "messageId": null
+    },
+    {
+      "id": "cmme241dc000810u37gqrppp4",
+      "to": "jaime.lozano.a@uniminuto.edu",
+      "messageId": null
+    }
+  ],
+  "failed": [],
+  "docentesEnviados": [
+    {
+      "id": "cmme2416w000210u3ntcsp985",
+      "docente": "BARRIOS RIVERA ALEJANDRA",
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615"
+    },
+    {
+      "id": "cmme2419g000510u354ekr9tf",
+      "docente": "BEDOYA SANCHEZ OSCAR MAURICIO",
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615"
+    },
+    {
+      "id": "cmme241dc000810u37gqrppp4",
+      "docente": "BOCANEGRA ROCHA EVELIN DAMARIS",
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615"
+    }
+  ]
+}

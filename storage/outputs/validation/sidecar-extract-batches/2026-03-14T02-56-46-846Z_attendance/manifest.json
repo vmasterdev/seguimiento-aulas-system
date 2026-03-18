@@ -1,0 +1,187 @@
+{
+  "batchId": "2026-03-14T02-56-46-846Z_attendance",
+  "kind": "attendance",
+  "preparedAt": "2026-03-14T02:56:46.872Z",
+  "filters": {
+    "source": "ALL",
+    "periodCodes": [
+      "202615"
+    ],
+    "moments": [],
+    "templates": [],
+    "limit": 10
+  },
+  "total": 10,
+  "inputPath": "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-extract-batches\\2026-03-14T02-56-46-846Z_attendance\\attendance_input.json",
+  "outputDir": "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-extract-batches\\2026-03-14T02-56-46-846Z_attendance\\attendance_exports",
+  "byPeriod": {
+    "202615": 10
+  },
+  "byMoment": {
+    "1": 1,
+    "MD1": 6,
+    "MD2": 3
+  },
+  "byStatus": {
+    "OK": 10
+  },
+  "byTemplate": {
+    "D4": 8,
+    "VACIO": 2
+  },
+  "byModality": {
+    "DISTANCIA": 10
+  },
+  "sample": [
+    {
+      "courseId": "cmm2a5asw0002wl7ym11cnwgl",
+      "nrc": "15-72305",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Fundamentos de Matemáticas",
+      "program": "Contaduría Pública Distancia - Sur",
+      "template": "D4",
+      "status": "OK",
+      "moodleCourseUrl": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=2565",
+      "moodleCourseId": "2565",
+      "resolvedModality": "DISTANCIA",
+      "resolvedBaseUrl": "https://distancia.aulasuniminuto.edu.co"
+    },
+    {
+      "courseId": "cmm2a5atq0007wl7y330g8v18",
+      "nrc": "15-72307",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD2",
+      "title": "Cálculo Diferencial e Integral",
+      "program": "Administración de Empresas - Sur",
+      "template": "VACIO",
+      "status": "OK",
+      "moodleCourseUrl": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=2656",
+      "moodleCourseId": "2656",
+      "resolvedModality": "DISTANCIA",
+      "resolvedBaseUrl": "https://distancia.aulasuniminuto.edu.co"
+    },
+    {
+      "courseId": "cmm2a5auf000cwl7ynpvqicp2",
+      "nrc": "15-72308",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Proceso Administrativo",
+      "program": "Administración en Seguridad y Salud en el Trabajo - Sur",
+      "template": "D4",
+      "status": "OK",
+      "moodleCourseUrl": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=3078",
+      "moodleCourseId": "3078",
+      "resolvedModality": "DISTANCIA",
+      "resolvedBaseUrl": "https://distancia.aulasuniminuto.edu.co"
+    },
+    {
+      "courseId": "cmm2a5av3000hwl7ykrdfekcb",
+      "nrc": "15-72313",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD2",
+      "title": "Estadística Inferencia",
+      "program": "Contaduría Pública Distancia - Sur",
+      "template": "VACIO",
+      "status": "OK",
+      "moodleCourseUrl": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=989",
+      "moodleCourseId": "989",
+      "resolvedModality": "DISTANCIA",
+      "resolvedBaseUrl": "https://distancia.aulasuniminuto.edu.co"
+    },
+    {
+      "courseId": "cmm2a5avs000mwl7y9uvdz1ud",
+      "nrc": "15-72314",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Dirección y Control",
+      "program": "Administración de Empresas - Sur",
+      "template": "D4",
+      "status": "OK",
+      "moodleCourseUrl": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=2452",
+      "moodleCourseId": "2452",
+      "resolvedModality": "DISTANCIA",
+      "resolvedBaseUrl": "https://distancia.aulasuniminuto.edu.co"
+    },
+    {
+      "courseId": "cmm2a5awh000rwl7y4jher9v8",
+      "nrc": "15-72326",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "1",
+      "title": "Lectura y Escritura en el Cont",
+      "program": "Contaduría Pública Distancia - Sur",
+      "template": "D4",
+      "status": "OK",
+      "moodleCourseUrl": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=2604",
+      "moodleCourseId": "2604",
+      "resolvedModality": "DISTANCIA",
+      "resolvedBaseUrl": "https://distancia.aulasuniminuto.edu.co"
+    },
+    {
+      "courseId": "cmm2a5ax4000wwl7yumo7zj30",
+      "nrc": "15-72330",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Ergonomía",
+      "program": "Administración en Seguridad y Salud en el Trabajo - Centro",
+      "template": "D4",
+      "status": "OK",
+      "moodleCourseUrl": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=772",
+      "moodleCourseId": "772",
+      "resolvedModality": "DISTANCIA",
+      "resolvedBaseUrl": "https://distancia.aulasuniminuto.edu.co"
+    },
+    {
+      "courseId": "cmm2a5axs0011wl7yoz4m9x9n",
+      "nrc": "15-72331",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Riesgos Mecánicos y Eléctricos",
+      "program": "Administración en Seguridad y Salud en el Trabajo - Centro",
+      "template": "D4",
+      "status": "OK",
+      "moodleCourseUrl": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=1763",
+      "moodleCourseId": "1763",
+      "resolvedModality": "DISTANCIA",
+      "resolvedBaseUrl": "https://distancia.aulasuniminuto.edu.co"
+    },
+    {
+      "courseId": "cmm2a5aye0016wl7yv1csy5c4",
+      "nrc": "15-72332",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD2",
+      "title": "Riesgos Físicos",
+      "program": "Administración en Seguridad y Salud en el Trabajo - Centro",
+      "template": "D4",
+      "status": "OK",
+      "moodleCourseUrl": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=1414",
+      "moodleCourseId": "1414",
+      "resolvedModality": "DISTANCIA",
+      "resolvedBaseUrl": "https://distancia.aulasuniminuto.edu.co"
+    },
+    {
+      "courseId": "cmm2a5az1001bwl7y29wlci08",
+      "nrc": "15-72334",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Epidemiología",
+      "program": "Administración en Seguridad y Salud en el Trabajo - Centro",
+      "template": "D4",
+      "status": "OK",
+      "moodleCourseUrl": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=966",
+      "moodleCourseId": "966",
+      "resolvedModality": "DISTANCIA",
+      "resolvedBaseUrl": "https://distancia.aulasuniminuto.edu.co"
+    }
+  ]
+}

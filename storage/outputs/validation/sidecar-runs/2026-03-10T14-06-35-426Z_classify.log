@@ -1,0 +1,21 @@
+[START] 2026-03-10T14:06:35.430Z
+[CMD] python3 "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/sidecar_runner.py" "classify" "--input-dir" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-batches/2026-03-10T14-06-35-373Z_pending" "--output" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-10T14-06-35-373Z_pending.xlsx" "--workers" "3" "--browser" "edge" "--prelogin-all-modalidades" "--python" "python3"
+
+[INFO] Catalogo Distancia 4.0: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/CURSOS DISTANCIA 4.0.xlsx
+[INFO] Cursos en catalogo Distancia 4.0: 445
+Traceback (most recent call last):
+  File "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/moodle_categorizacion_aulas.py", line 2020, in <module>
+    main()
+  File "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/moodle_categorizacion_aulas.py", line 2016, in main
+    run(args)
+  File "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/moodle_categorizacion_aulas.py", line 1670, in run
+    records = cargar_nrcs(input_dir)
+              ^^^^^^^^^^^^^^^^^^^^^^
+  File "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/moodle_categorizacion_aulas.py", line 690, in cargar_nrcs
+    raise RuntimeError(f"No se encontraron CSV en {input_dir}")
+RuntimeError: No se encontraron CSV en /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-batches/2026-03-10T14-06-35-373Z_pending
+[CMD] python3 /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/moodle_categorizacion_aulas.py --browser edge --input-dir /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-batches/2026-03-10T14-06-35-373Z_pending --output /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-10T14-06-35-373Z_pending.xlsx --workers 3 --resume --modo-estricto-modalidad --nrc-5-segun-archivo --prelogin-all-modalidades
+
+[END] 2026-03-10T14:06:37.739Z
+[STATUS] FAILED
+[EXIT_CODE] 1

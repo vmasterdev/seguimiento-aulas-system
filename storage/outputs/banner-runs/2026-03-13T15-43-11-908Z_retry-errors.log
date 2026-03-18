@@ -1,0 +1,22 @@
+[START] 2026-03-13T15:43:11.908Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\banner buscador de docente en nrc'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'retry-errors' '--query-id' 'cmmp25coq0000t2qc80gj9sgw' '--workers' '3'
+
+[2026-03-13T15:43:13.654Z] INFO Reintentando NRC con error { queryId: 'cmmp25coq0000t2qc80gj9sgw', total: 0 }
+{
+  "queryId": "cmmp25coq0000t2qc80gj9sgw",
+  "queryName": "banner-rpaca-autoexport",
+  "processed": 0,
+  "total": 0,
+  "counts": {
+    "ENCONTRADO": 1,
+    "SIN_DOCENTE": 0,
+    "NO_ENCONTRADO": 0,
+    "ERROR": 0
+  }
+}
+
+[END] 2026-03-13T15:43:14.264Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0
