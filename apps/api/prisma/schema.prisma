@@ -1,5 +1,6 @@
 generator client {
-  provider = "prisma-client-js"
+  provider      = "prisma-client-js"
+  binaryTargets = ["native", "debian-openssl-3.0.x", "windows"]
 }
 
 datasource db {
@@ -85,6 +86,10 @@ model Course {
   updatedAt       DateTime @updatedAt
 
   moodleCheck     MoodleCheck?
+  attendanceReports MoodleAttendanceReport[]
+  activityReports MoodleActivityReport[]
+  participantReports MoodleParticipantReport[]
+  bannerEnrollmentReports BannerEnrollmentReport[]
   evaluations     Evaluation[]
   selectedInGroups SampleGroup[] @relation("SelectedCourse")
 
@@ -196,4 +201,201 @@ model AuditLog {
   entityId   String
   details    Json?
   createdAt  DateTime @default(now())
+}
+
+model MoodleAttendanceReport {
+  id                 String                  @id @default(cuid())
+  courseId           String
+  course             Course                  @relation(fields: [courseId], references: [id])
+  sourceRelativePath String                  @unique
+  importGroupKey     String?
+  label              String?
+  courseLabel        String?
+  groupLabel         String?
+  importedAt         DateTime                @default(now())
+  reportCreatedAt    DateTime?
+  totalStudents      Int                     @default(0)
+  totalSessions      Int                     @default(0)
+  coverageStart      String?
+  coverageEnd        String?
+  summaryJson        Json?
+  sessions           MoodleAttendanceSession[]
+  records            MoodleAttendanceRecord[]
+  entries            MoodleAttendanceEntry[]
+
+  @@index([courseId, importedAt])
+  @@index([courseId, importGroupKey])
+  @@index([coverageStart])
+  @@index([coverageEnd])
+}
+
+model MoodleAttendanceSession {
+  id               String                  @id @default(cuid())
+  reportId         String
+  report           MoodleAttendanceReport  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  sessionLabel     String
+  sessionDay       String?
+  sessionAt        DateTime?
+  columnIndex      Int
+  statusCodeTotals Json?
+  entries          MoodleAttendanceEntry[]
+
+  @@index([reportId, columnIndex])
+  @@index([sessionDay])
+}
+
+model MoodleAttendanceRecord {
+  id              String                  @id @default(cuid())
+  reportId        String
+  report          MoodleAttendanceReport  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  fullName        String
+  firstName       String?
+  lastName        String?
+  moodleUserId    String?
+  institutionalId String?
+  email           String?
+  sessionsTaken   Int?
+  scoreLabel      String?
+  percentage      Float?
+  entries         MoodleAttendanceEntry[]
+
+  @@index([reportId])
+  @@index([fullName])
+  @@index([email])
+}
+
+model MoodleAttendanceEntry {
+  id           String                  @id @default(cuid())
+  reportId     String
+  report       MoodleAttendanceReport  @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  sessionId    String
+  session      MoodleAttendanceSession @relation(fields: [sessionId], references: [id], onDelete: Cascade)
+  recordId     String
+  record       MoodleAttendanceRecord  @relation(fields: [recordId], references: [id], onDelete: Cascade)
+  rawValue     String?
+  statusCode   String?
+  present      Boolean?
+  justified    Boolean?
+  pointsEarned Float?
+  pointsPossible Float?
+
+  @@unique([sessionId, recordId])
+  @@index([reportId, statusCode])
+}
+
+model MoodleActivityReport {
+  id                 String               @id @default(cuid())
+  courseId           String
+  course             Course               @relation(fields: [courseId], references: [id])
+  sourceRelativePath String               @unique
+  importGroupKey     String?
+  importedAt         DateTime             @default(now())
+  totalEvents        Int                  @default(0)
+  uniqueUsers        Int                  @default(0)
+  coverageStart      String?
+  coverageEnd        String?
+  summaryJson        Json?
+  events             MoodleActivityEvent[]
+
+  @@index([courseId, importedAt])
+  @@index([courseId, importGroupKey])
+  @@index([coverageStart])
+  @@index([coverageEnd])
+}
+
+model MoodleActivityEvent {
+  id            String               @id @default(cuid())
+  reportId      String
+  report        MoodleActivityReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  eventAt       DateTime?
+  eventDay      String?
+  actorName     String
+  actorKey      String?
+  actorCategory String?
+  affectedUser  String?
+  eventContext  String?
+  component     String?
+  eventName     String?
+  description   String?
+  origin        String?
+  ipAddress     String?
+
+  @@index([reportId, eventDay])
+  @@index([actorName])
+  @@index([actorCategory])
+  @@index([component])
+  @@index([eventName])
+}
+
+model MoodleParticipantReport {
+  id                 String                    @id @default(cuid())
+  courseId           String
+  course             Course                    @relation(fields: [courseId], references: [id])
+  sourceRelativePath String                    @unique
+  importGroupKey     String?
+  importedAt         DateTime                  @default(now())
+  courseLabel        String?
+  totalParticipants  Int                       @default(0)
+  roleCounts         Json?
+  summaryJson        Json?
+  participants       MoodleParticipantRecord[]
+
+  @@index([courseId, importedAt])
+  @@index([courseId, importGroupKey])
+}
+
+model MoodleParticipantRecord {
+  id                String                  @id @default(cuid())
+  reportId          String
+  report            MoodleParticipantReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  fullName          String
+  email             String?
+  moodleUserId      String?
+  institutionalId   String?
+  rolesLabel        String?
+  rolesJson         Json?
+  groupsLabel       String?
+  lastAccessLabel   String?
+  statusLabel       String?
+  actorCategory     String?
+  rawJson           Json?
+
+  @@index([reportId])
+  @@index([fullName])
+  @@index([email])
+  @@index([actorCategory])
+}
+
+model BannerEnrollmentReport {
+  id                 String                   @id @default(cuid())
+  courseId           String
+  course             Course                   @relation(fields: [courseId], references: [id])
+  sourceRelativePath String                   @unique
+  importGroupKey     String?
+  importedAt         DateTime                 @default(now())
+  sourceLabel        String?
+  totalStudents      Int                      @default(0)
+  summaryJson        Json?
+  students           BannerEnrollmentRecord[]
+
+  @@index([courseId, importedAt])
+  @@index([courseId, importGroupKey])
+}
+
+model BannerEnrollmentRecord {
+  id                String                 @id @default(cuid())
+  reportId          String
+  report            BannerEnrollmentReport @relation(fields: [reportId], references: [id], onDelete: Cascade)
+  fullName          String
+  firstName         String?
+  lastName          String?
+  institutionalId   String?
+  email             String?
+  statusLabel       String?
+  rawJson           Json?
+
+  @@index([reportId])
+  @@index([fullName])
+  @@index([email])
+  @@index([institutionalId])
 }

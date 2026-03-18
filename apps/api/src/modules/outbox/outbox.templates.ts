@@ -16,9 +16,12 @@ export const BASE_REPORT_STYLE = `<style>
     }
     .top-strip {
       height: 10px;
+      background-color: #ffc300;
       background: linear-gradient(90deg, #ffc300 0%, #ffd95c 100%);
     }
     .hero {
+      background-color: #002b5c;
+      background: #002b5c;
       background: linear-gradient(120deg, #002b5c 0%, #0057a4 100%);
       color: #ffffff;
       padding: 20px 26px;

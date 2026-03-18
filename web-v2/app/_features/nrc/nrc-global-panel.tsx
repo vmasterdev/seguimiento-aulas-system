@@ -24,7 +24,8 @@ type SelectedSampleGroup = {
 type CourseItem = {
   id: string;
   nrc: string;
-  period: { code: string };
+  period: { code: string; semester?: number | null };
+  campusCode?: string | null;
   moment: string | null;
   subjectName: string | null;
   programCode: string | null;
@@ -38,7 +39,15 @@ type CourseItem = {
         fullName: string;
       }
     | null;
-  moodleCheck: { status: string; detectedTemplate: string | null } | null;
+  moodleCheck:
+    | {
+        status: string;
+        detectedTemplate: string | null;
+        moodleCourseUrl?: string | null;
+        moodleCourseId?: string | null;
+        resolvedModality?: string | null;
+      }
+    | null;
   bannerReviewStatus?: string | null;
   reviewExcluded?: boolean;
   reviewExcludedReason?: string | null;
@@ -48,6 +57,11 @@ type CourseItem = {
     active: boolean;
     reason: string | null;
     at: string | null;
+  };
+  moodleSidecarMetrics?: {
+    participants: number | null;
+    participantsDetected: boolean | null;
+    updatedAt: string | null;
   };
   evaluationSummary?: EvaluationSummary | null;
 };
@@ -199,7 +213,10 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
   const [teacherIdQuery, setTeacherIdQuery] = useState('');
   const [teacherNameQuery, setTeacherNameQuery] = useState('');
   const [periodFilter, setPeriodFilter] = useState('TODOS');
+  const [semesterFilter, setSemesterFilter] = useState('TODOS');
   const [momentFilter, setMomentFilter] = useState('TODOS');
+  const [programFilter, setProgramFilter] = useState('TODOS');
+  const [campusFilter, setCampusFilter] = useState('TODOS');
   const [teacherFilter, setTeacherFilter] = useState('TODOS');
   const [bannerFilter, setBannerFilter] = useState('TODOS');
   const [reviewableFilter, setReviewableFilter] = useState('TODOS');
@@ -238,8 +255,45 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
     [items],
   );
 
+  const semesters = useMemo(
+    () =>
+      [
+        'TODOS',
+        ...Array.from(
+          new Set(
+            items
+              .map((item) => item.period.semester)
+              .filter((value): value is number => typeof value === 'number' && Number.isFinite(value)),
+          ),
+        )
+          .sort((a, b) => a - b)
+          .map((value) => String(value)),
+      ],
+    [items],
+  );
+
   const moments = useMemo(
     () => ['TODOS', ...Array.from(new Set(items.map((item) => item.moment ?? '-'))).sort((a, b) => a.localeCompare(b, 'es'))],
+    [items],
+  );
+
+  const programs = useMemo(
+    () =>
+      [
+        'TODOS',
+        ...Array.from(new Set(items.map((item) => item.programName ?? item.programCode ?? '-'))).sort((a, b) =>
+          a.localeCompare(b, 'es'),
+        ),
+      ],
+    [items],
+  );
+
+  const campuses = useMemo(
+    () =>
+      [
+        'TODOS',
+        ...Array.from(new Set(items.map((item) => item.campusCode ?? '-'))).sort((a, b) => a.localeCompare(b, 'es')),
+      ],
     [items],
   );
 
@@ -255,7 +309,10 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
       .filter(({ item, score }) => {
         if (query.trim() && score <= 0) return false;
         if (periodFilter !== 'TODOS' && item.period.code !== periodFilter) return false;
+        if (semesterFilter !== 'TODOS' && String(item.period.semester ?? '-') !== semesterFilter) return false;
         if (momentFilter !== 'TODOS' && (item.moment ?? '-') !== momentFilter) return false;
+        if (programFilter !== 'TODOS' && (item.programName ?? item.programCode ?? '-') !== programFilter) return false;
+        if (campusFilter !== 'TODOS' && (item.campusCode ?? '-') !== campusFilter) return false;
         if (teacherFilter === 'CON_DOCENTE' && !item.teacherId) return false;
         if (teacherFilter === 'SIN_DOCENTE' && item.teacherId) return false;
         if (normalizedTeacherIdQuery) {
@@ -286,7 +343,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
         return left.item.nrc.localeCompare(right.item.nrc, 'es');
       })
       .map(({ item }) => item);
-  }, [bannerFilter, items, momentFilter, periodFilter, query, reviewableFilter, teacherFilter, teacherIdQuery, teacherNameQuery]);
+  }, [bannerFilter, campusFilter, items, momentFilter, periodFilter, programFilter, query, reviewableFilter, semesterFilter, teacherFilter, teacherIdQuery, teacherNameQuery]);
 
   const totalWithTeacher = useMemo(() => items.filter((item) => item.teacherId).length, [items]);
   const totalWithoutTeacher = useMemo(() => items.filter((item) => !item.teacherId).length, [items]);
@@ -306,6 +363,19 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
   const totalSelectedChecklist = useMemo(
     () => items.filter((item) => item.selectedForChecklist).length,
     [items],
+  );
+  const filteredParticipantsCourses = useMemo(
+    () => filteredItems.filter((item) => typeof item.moodleSidecarMetrics?.participants === 'number').length,
+    [filteredItems],
+  );
+  const filteredParticipants = useMemo(
+    () =>
+      filteredItems.reduce(
+        (sum, item) =>
+          sum + (typeof item.moodleSidecarMetrics?.participants === 'number' ? item.moodleSidecarMetrics.participants : 0),
+        0,
+      ),
+    [filteredItems],
   );
 
   function formatScore(value: number | null | undefined) {
@@ -353,6 +423,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                 modality: group.modality,
               })),
               checklistTemporal: detail.checklistTemporal,
+              moodleSidecarMetrics: detail.moodleSidecarMetrics,
               reviewExcluded: detail.reviewExcluded,
               reviewExcludedReason: detail.reviewExcludedReason,
               evaluationSummary: {
@@ -749,8 +820,10 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
   function exportCsv() {
     const header = [
       'periodo',
+      'semestre',
       'nrc',
       'momento',
+      'campus',
       'programa_codigo',
       'programa_nombre',
       'asignatura',
@@ -759,6 +832,8 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
       'banner_status',
       'moodle_status',
       'template',
+      'participantes_sidecar',
+      'participantes_detectados',
       'score_alistamiento',
       'score_ejecucion',
       'checklist_selected',
@@ -770,8 +845,10 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
       lines.push(
         [
           item.period.code,
+          item.period.semester ?? '',
           item.nrc,
           item.moment ?? '',
+          item.campusCode ?? '',
           item.programCode ?? '',
           item.programName ?? '',
           item.subjectName ?? '',
@@ -780,6 +857,12 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
           item.bannerReviewStatus ?? '',
           item.moodleCheck?.status ?? '',
           item.moodleCheck?.detectedTemplate ?? '',
+          item.moodleSidecarMetrics?.participants ?? '',
+          item.moodleSidecarMetrics?.participantsDetected == null
+            ? ''
+            : item.moodleSidecarMetrics.participantsDetected
+              ? 'SI'
+              : 'NO',
           item.evaluationSummary?.alistamientoScore ?? '',
           item.evaluationSummary?.ejecucionScore ?? '',
           item.selectedForChecklist ? 'SI' : 'NO',
@@ -815,6 +898,8 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
           <span className="badge">Seleccionados checklist: {totalSelectedChecklist}</span>
           <span className="badge">Excluidos: {totalReviewExcluded}</span>
           <span className="badge">Opcion de Grado / Practica: {totalGradoPractica}</span>
+          <span className="badge">Cursos con participantes visibles: {filteredParticipantsCourses}</span>
+          <span className="badge">Total estudiantes visibles: {filteredParticipants}</span>
           <span className="badge">Resultado filtro: {filteredItems.length}</span>
         </div>
       </div>
@@ -855,11 +940,41 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
           </select>
         </label>
         <label>
+          Semestre
+          <select value={semesterFilter} onChange={(event) => setSemesterFilter(event.target.value)}>
+            {semesters.map((semester) => (
+              <option key={semester} value={semester}>
+                {semester}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
           Momento
           <select value={momentFilter} onChange={(event) => setMomentFilter(event.target.value)}>
             {moments.map((moment) => (
               <option key={moment} value={moment}>
                 {moment}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Programa
+          <select value={programFilter} onChange={(event) => setProgramFilter(event.target.value)}>
+            {programs.map((program) => (
+              <option key={program} value={program}>
+                {program}
+              </option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Sede
+          <select value={campusFilter} onChange={(event) => setCampusFilter(event.target.value)}>
+            {campuses.map((campus) => (
+              <option key={campus} value={campus}>
+                {campus}
               </option>
             ))}
           </select>
@@ -914,6 +1029,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
               <th>Banner</th>
               <th>Moodle</th>
               <th>Plantilla</th>
+              <th>Participantes</th>
               <th>Calificacion</th>
               <th>Checklist</th>
               <th>Revision</th>
@@ -953,6 +1069,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                     <td>{item.bannerReviewStatus ?? '-'}</td>
                     <td>{item.moodleCheck?.status ?? 'SIN_CHECK'}</td>
                     <td>{item.moodleCheck?.detectedTemplate ?? '-'}</td>
+                    <td>{item.moodleSidecarMetrics?.participants ?? '-'}</td>
                     <td>{formatPhaseScore(item)}</td>
                     <td>
                       {item.selectedForChecklist ? (
@@ -983,7 +1100,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                   </tr>
                   {isExpanded ? (
                     <tr>
-                      <td colSpan={12}>
+                      <td colSpan={13}>
                         <div
                           style={{
                             background: 'rgba(255,255,255,0.9)',
@@ -1007,6 +1124,9 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                                 <span className="badge">
                                   Ult. calificacion: {formatScore(detail.evaluationSummary?.latestScore)}
                                 </span>
+                                <span className="badge">
+                                  Participantes sidecar: {detail.moodleSidecarMetrics?.participants ?? '-'}
+                                </span>
                               </div>
 
                               {detail.selectedSampleGroups?.length ? (
@@ -1017,6 +1137,31 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                                     .join(' | ')}
                                 </div>
                               ) : null}
+
+                              <div className="controls" style={{ marginTop: 10, marginBottom: 10 }}>
+                                <div className="actions" style={{ flex: '1 1 420px' }}>
+                                  <strong>URL Moodle:</strong>{' '}
+                                  {detail.moodleCheck?.moodleCourseUrl ? (
+                                    <>
+                                      <a
+                                        href={detail.moodleCheck.moodleCourseUrl}
+                                        target="_blank"
+                                        rel="noreferrer"
+                                        style={{ color: '#0a5972', textDecoration: 'underline', wordBreak: 'break-all' }}
+                                      >
+                                        {detail.moodleCheck.moodleCourseUrl}
+                                      </a>
+                                      <br />
+                                      <span className="code">
+                                        Course ID: {detail.moodleCheck.moodleCourseId ?? '-'} | Modalidad:{' '}
+                                        {detail.moodleCheck.resolvedModality ?? '-'}
+                                      </span>
+                                    </>
+                                  ) : (
+                                    <span className="code">Sin URL Moodle resuelta todavia para este NRC.</span>
+                                  )}
+                                </div>
+                              </div>
 
                               <div style={{ overflowX: 'auto' }}>
                                 <table>

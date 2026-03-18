@@ -51,6 +51,7 @@ export const OutboxGenerateSchema = z.object({
   moment: MomentSchema.optional(),
   moments: z.array(MomentSchema).min(1).max(6).optional(),
   audience: z.enum(["DOCENTE", "COORDINADOR", "GLOBAL"]).default("DOCENTE"),
+  coordinatorId: z.string().trim().min(1).optional(),
   recipientName: z.string().trim().min(1).max(160).optional(),
   recipientEmails: z.array(z.string().trim().email()).min(1).max(20).optional(),
 });
@@ -67,6 +68,7 @@ export const OutboxSendSchema = z.object({
   moment: MomentSchema.optional(),
   moments: z.array(MomentSchema).min(1).max(6).optional(),
   audience: z.enum(["DOCENTE", "COORDINADOR", "GLOBAL"]).optional(),
+  coordinatorId: z.string().trim().min(1).optional(),
   status: OutboxStatusSchema.optional(),
   limit: z.coerce.number().int().min(1).max(1000).optional(),
   forceTo: z.string().trim().email().optional(),

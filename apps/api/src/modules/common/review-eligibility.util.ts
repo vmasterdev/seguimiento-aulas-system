@@ -20,7 +20,30 @@ function normalizeText(value: string | null | undefined): string {
     .normalize('NFD')
     .replace(/[\u0300-\u036f]/g, '')
     .toUpperCase()
+    .replace(/\s+/g, ' ')
     .trim();
+}
+
+function collectNormalizedStrings(value: unknown, maxDepth = 3): string[] {
+  if (maxDepth < 0 || value == null) return [];
+  if (typeof value === 'string') {
+    const normalized = normalizeText(value);
+    return normalized ? [normalized] : [];
+  }
+  if (typeof value === 'number' || typeof value === 'boolean') {
+    return [];
+  }
+  if (Array.isArray(value)) {
+    return value.flatMap((item) => collectNormalizedStrings(item, maxDepth - 1));
+  }
+  if (typeof value === 'object') {
+    return Object.values(value as Record<string, unknown>).flatMap((item) => collectNormalizedStrings(item, maxDepth - 1));
+  }
+  return [];
+}
+
+function includesAnyMarker(values: string[], markers: string[]): boolean {
+  return values.some((value) => markers.some((marker) => value.includes(marker)));
 }
 
 export function readEnrolledCount(rawJson: unknown): number | null {
@@ -48,17 +71,22 @@ export function isVacioWithoutStudents(input: { rawJson: unknown; template: stri
 export function isOpcionGradoOrPractica(rawJson: unknown): boolean {
   const root = asRecord(rawJson);
   const row = asRecord(root.row);
-  const subject = normalizeText(
-    String(row.titulo ?? row.subject_name ?? row.asignatura ?? row.materia ?? row.subject ?? '').trim(),
-  );
-  if (!subject) return false;
+  const subjectFields = [
+    row.titulo,
+    row.subject_name,
+    row.asignatura,
+    row.materia,
+    row.subject,
+    row.course_name,
+    row.nombre_curso,
+  ];
+  const subjectValues = subjectFields.map((value) => normalizeText(String(value ?? '').trim())).filter(Boolean);
+  const globalValues = collectNormalizedStrings({ row, raw: root }, 2);
+  const optionGradoMarkers = ['OPCION DE GRADO', 'OPCION GRADO', 'TRABAJO DE GRADO'];
+  const practicaMarkers = ['PRACTICA', 'PRACTICAS'];
 
-  return (
-    subject.includes('OPCION DE GRADO') ||
-    subject.includes('OPCION GRADO') ||
-    subject.includes('PRACTICA') ||
-    subject.includes('PRACTICAS')
-  );
+  if (includesAnyMarker(globalValues, optionGradoMarkers)) return true;
+  return includesAnyMarker(subjectValues, practicaMarkers);
 }
 
 function isFinalCourseUrl(url: string | null | undefined): boolean {

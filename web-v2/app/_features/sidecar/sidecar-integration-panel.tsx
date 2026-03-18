@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
 
-type SidecarRunCommand = 'classify' | 'revalidate' | 'backup' | 'gui';
+type SidecarRunCommand = 'classify' | 'revalidate' | 'backup' | 'attendance' | 'activity' | 'participants' | 'gui';
 type RevalidateMode = 'sin_matricula' | 'aulas_vacias' | 'ambos';
 type ClassifySourceMode = 'DATABASE' | 'MANUAL_INPUT';
 type BackupSourceMode = 'DATABASE' | 'MANUAL_INPUT';
@@ -20,6 +20,7 @@ type SidecarStatus = {
     exitCode?: number | null;
     pid?: number;
     logPath: string;
+    outputPath?: string;
   } | null;
   lastRun: {
     id: string;
@@ -30,8 +31,10 @@ type SidecarStatus = {
     exitCode?: number | null;
     pid?: number;
     logPath: string;
+    outputPath?: string;
   } | null;
   logTail: string;
+  artifactSummary?: SidecarArtifactSummary | null;
 };
 
 type SidecarConfigResponse = {
@@ -62,6 +65,7 @@ type SidecarBatchPreview = {
     periodCodes: string[];
     moments: string[];
     templates?: string[];
+    nrcs?: string[];
     limit: number | null;
   };
   total: number;
@@ -69,6 +73,7 @@ type SidecarBatchPreview = {
   byMoment: Record<string, number>;
   byStatus: Record<string, number>;
   byTemplate: Record<string, number>;
+  byModality?: Record<string, number>;
   sample: Array<{
     courseId: string;
     nrc: string;
@@ -77,13 +82,93 @@ type SidecarBatchPreview = {
     moment: string;
     title: string;
     template: string;
-    method: string;
+    method?: string;
     status: string;
-    sourceFile: string;
+    sourceFile?: string;
+    moodleCourseUrl?: string | null;
+    moodleCourseId?: string | null;
+    resolvedModality?: string | null;
+  }>;
+};
+
+type SidecarArtifactSummary = {
+  kind: 'attendance' | 'activity' | 'participants';
+  startedAt: string;
+  endedAt: string;
+  outputDir: string;
+  totalCourses: number;
+  completedCourses: number;
+  failedCourses: number;
+  skippedCourses: number;
+  files: Array<{
+    kind: 'attendance' | 'activity' | 'participants';
+    nrc: string;
+    periodCode: string;
+    title: string;
+    label?: string;
+    fileName: string;
+    relativePath: string;
+    csvRelativePath?: string;
+    participants?: number;
+  }>;
+  items: Array<{
+    courseId?: string | null;
+    nrc: string;
+    periodCode: string;
+    title: string;
+    status: string;
+    message?: string | null;
+    downloads?: Array<{
+      fileName: string;
+      relativePath: string;
+      label?: string;
+    }>;
   }>;
 };
 
 type MoodleFollowupKind = 'sin_matricula' | 'no_encontrado' | 'ambos';
+
+type SidecarImportResult = {
+  ok?: boolean;
+  inputPath?: string;
+  dryRun?: boolean;
+  parsedRows?: number;
+  processedRows?: number;
+  updatedRows?: number;
+  skippedRows?: number;
+  skippedNoPeriod?: number;
+  noMatch?: number;
+  ambiguous?: number;
+  before?: {
+    totalNrc: number;
+    urlsFinalResueltas: number;
+    pendientes: number;
+    tiposUtiles: number;
+  };
+  after?: {
+    totalNrc: number;
+    urlsFinalResueltas: number;
+    pendientes: number;
+    tiposUtiles: number;
+  };
+  statusBreakdown?: Record<string, number>;
+  notes?: string[];
+  changes?: Array<{
+    courseId: string;
+    nrc: string;
+    periodCode: string;
+    subjectName: string | null;
+    previousStatus: string;
+    nextStatus: string;
+    previousTemplate: string;
+    nextTemplate: string;
+    previousUrl: string | null;
+    nextUrl: string | null;
+    changedStatus: boolean;
+    changedTemplate: boolean;
+    changedUrl: boolean;
+  }>;
+};
 
 type MoodleFollowupResponse = {
   ok: boolean;
@@ -139,6 +224,9 @@ const COMMAND_LABELS: Record<SidecarRunCommand, string> = {
   classify: 'Clasificar aulas desde Moodle',
   revalidate: 'Revalidar resultados anteriores',
   backup: 'Descargar respaldo de cursos',
+  attendance: 'Descargar asistencias de Moodle',
+  activity: 'Descargar actividad del curso',
+  participants: 'Descargar participantes y roles',
   gui: 'Abrir la interfaz manual del sidecar',
 };
 
@@ -149,6 +237,12 @@ const COMMAND_HELP: Record<SidecarRunCommand, string> = {
     'Sirve para volver a revisar cursos especiales, por ejemplo aulas vacias o registros sin matricula.',
   backup:
     'Descarga evidencias o respaldos de los NRC que indiques en un archivo CSV.',
+  attendance:
+    'Entra a las aulas con URL Moodle resuelta, localiza el modulo Asistencia y descarga su export XLSX.',
+  activity:
+    'Abre el reporte de actividad/logs del curso y descarga el CSV para auditoria o analisis posterior.',
+  participants:
+    'Abre la pagina de participantes del curso, toma el listado visible y guarda nombres, correos y roles para analitica.',
   gui: 'Abre el sidecar en modo manual cuando necesites trabajar directamente sobre la herramienta original.',
 };
 
@@ -156,6 +250,9 @@ const START_BUTTON_LABELS: Record<SidecarRunCommand, string> = {
   classify: 'Iniciar revision automatica',
   revalidate: 'Iniciar revalidacion',
   backup: 'Iniciar respaldo',
+  attendance: 'Descargar asistencias',
+  activity: 'Descargar actividad',
+  participants: 'Descargar participantes',
   gui: 'Abrir interfaz manual',
 };
 
@@ -169,7 +266,24 @@ const RECOMMENDED_FLOW_HINTS = [
   'Pendientes reales de tipo de aula: usa "Clasificar aulas desde Moodle" con fuente BD y lote PENDING.',
   'Aulas vacias o casos sin matricula/no registrado: usa "Revalidar resultados anteriores", no "Clasificar".',
   'Si quieres volver a revisar aulas vacias con estudiantes aunque ya no esten pendientes: usa "Clasificar" con lote ALL y, si quieres, filtra por tipo VACIO.',
+  'Si ya tienes URL Moodle resuelta y quieres evidencia del curso: usa "Descargar asistencias", "Descargar actividad del curso" o "Descargar participantes y roles".',
 ];
+
+const ARTIFACT_KIND_LABELS: Record<SidecarArtifactSummary['kind'], string> = {
+  attendance: 'asistencia',
+  activity: 'actividad',
+  participants: 'participantes',
+};
+
+function buildEmptyExtractionMessage(command: 'attendance' | 'activity' | 'participants') {
+  if (command === 'attendance') {
+    return 'No hay cursos con URL Moodle resuelta para exportar asistencias con esos filtros.';
+  }
+  if (command === 'participants') {
+    return 'No hay cursos con URL Moodle resuelta para extraer participantes con esos filtros.';
+  }
+  return 'No hay cursos con URL Moodle resuelta para exportar actividad con esos filtros.';
+}
 
 function toggleSelection(current: string[], value: string) {
   return current.includes(value) ? current.filter((item) => item !== value) : [...current, value];
@@ -179,10 +293,28 @@ function unique(values: string[]) {
   return [...new Set(values)];
 }
 
+function parseManualNrcList(value: string) {
+  return unique(
+    value
+      .split(/[\s,;]+/)
+      .map((item) => item.trim())
+      .filter(Boolean),
+  );
+}
+
 function escapeCsv(value: string | null | undefined) {
   const text = String(value ?? '');
   if (!/[",;\n\r]/.test(text)) return text;
   return `"${text.replace(/"/g, '""')}"`;
+}
+
+function parseDownloadName(disposition: string | null) {
+  if (!disposition) return null;
+  const utf8Match = disposition.match(/filename\*=UTF-8''([^;]+)/i);
+  if (utf8Match?.[1]) return decodeURIComponent(utf8Match[1]);
+  const plainMatch = disposition.match(/filename="([^"]+)"/i) ?? disposition.match(/filename=([^;]+)/i);
+  if (!plainMatch?.[1]) return null;
+  return plainMatch[1].trim();
 }
 
 function parseStartMessage(result: unknown) {
@@ -193,6 +325,10 @@ function parseStartMessage(result: unknown) {
     return `Ejecucion sidecar iniciada con lote BD (${batch.total} NRC).`;
   }
   return 'Ejecucion sidecar iniciada.';
+}
+
+function buildArtifactDownloadHref(apiBase: string, relativePath: string) {
+  return `${apiBase}/integrations/moodle-sidecar/run/download?path=${encodeURIComponent(relativePath)}`;
 }
 
 function buildEmptyBatchMessage(source: SidecarBatchSource, action: 'classify' | 'backup') {
@@ -216,7 +352,7 @@ function buildEmptyRevalidateMessage(mode: RevalidateMode) {
   return 'No hay cursos para revalidar con los filtros seleccionados.';
 }
 
-export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProps) {
+export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProps) {
   const [config, setConfig] = useState<SidecarConfigResponse | null>(null);
   const [status, setStatus] = useState<SidecarStatus | null>(null);
   const [batchOptions, setBatchOptions] = useState<SidecarBatchOptions | null>(null);
@@ -227,7 +363,7 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
 
   const [command, setCommand] = useState<SidecarRunCommand>('classify');
   const [workers, setWorkers] = useState('4');
-  const [browser, setBrowser] = useState<'edge' | 'chrome'>('edge');
+  const [browser, setBrowser] = useState<'edge' | 'chrome'>('chrome');
   const [headless, setHeadless] = useState(false);
   const [noResume, setNoResume] = useState(false);
   const [preloginAllModalities, setPreloginAllModalities] = useState(true);
@@ -241,6 +377,7 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
   const [inputDir, setInputDir] = useState('');
   const [output, setOutput] = useState('');
   const [nrcCsv, setNrcCsv] = useState('');
+  const [manualExtractNrcs, setManualExtractNrcs] = useState('');
   const [loginWaitSeconds, setLoginWaitSeconds] = useState('300');
   const [backupTimeout, setBackupTimeout] = useState('240');
   const [keepOpen, setKeepOpen] = useState(false);
@@ -249,7 +386,7 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
   const [importPath, setImportPath] = useState('');
   const [importDryRun, setImportDryRun] = useState(false);
   const [importSource, setImportSource] = useState('ui-sidecar');
-  const [importResult, setImportResult] = useState<unknown>(null);
+  const [importResult, setImportResult] = useState<SidecarImportResult | null>(null);
   const [followupKind, setFollowupKind] = useState<MoodleFollowupKind>('ambos');
   const [followupData, setFollowupData] = useState<MoodleFollowupResponse | null>(null);
   const [selectedFollowupIds, setSelectedFollowupIds] = useState<string[]>([]);
@@ -278,6 +415,20 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
         .map((item) => item.id),
     [followupItems, selectedFollowupIds],
   );
+  const selectedAuditorFollowupItems = useMemo(
+    () => followupItems.filter((item) => selectedFollowupIds.includes(item.id) && item.followupKind === 'sin_matricula'),
+    [followupItems, selectedFollowupIds],
+  );
+  const visibleAuditorFollowupItems = useMemo(
+    () => followupItems.filter((item) => item.followupKind === 'sin_matricula'),
+    [followupItems],
+  );
+  const auditorTemplateItems = useMemo(
+    () => (selectedAuditorFollowupItems.length ? selectedAuditorFollowupItems : visibleAuditorFollowupItems),
+    [selectedAuditorFollowupItems, visibleAuditorFollowupItems],
+  );
+  const lastRun = status?.lastRun ?? null;
+  const manualExtractNrcList = useMemo(() => parseManualNrcList(manualExtractNrcs), [manualExtractNrcs]);
 
   async function loadAll() {
     try {
@@ -297,6 +448,12 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
       }
       if ((!workers || workers === '4') && cfg.config?.runtime?.workers) {
         setWorkers(String(Math.max(1, Number(cfg.config.runtime.workers))));
+      }
+      if (cfg.config?.runtime?.browser) {
+        const runtimeBrowser = String(cfg.config?.runtime?.browser).trim().toLowerCase();
+        if (runtimeBrowser === 'edge' || runtimeBrowser === 'chrome') {
+          setBrowser(runtimeBrowser);
+        }
       }
       if (!selectedPeriodCodes.length && options.periods.length) {
         setSelectedPeriodCodes([options.periods[0].code]);
@@ -350,6 +507,18 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
                 moments: selectedMoments.length ? selectedMoments : undefined,
               }),
             })
+          : command === 'attendance' || command === 'activity' || command === 'participants'
+          ? await fetchJson<SidecarBatchPreview>(`${apiBase}/integrations/moodle-sidecar/run/extract/preview`, {
+              method: 'POST',
+              headers: { 'Content-Type': 'application/json' },
+              body: JSON.stringify({
+                source: batchSource,
+                periodCodes: selectedPeriodCodes,
+                moments: selectedMoments.length ? selectedMoments : undefined,
+                templates: selectedTemplates.length ? selectedTemplates : undefined,
+                nrcs: manualExtractNrcList.length ? manualExtractNrcList : undefined,
+              }),
+            })
           : await fetchJson<SidecarBatchPreview>(`${apiBase}/integrations/moodle-sidecar/run/batch/preview`, {
               method: 'POST',
               headers: { 'Content-Type': 'application/json' },
@@ -365,7 +534,9 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
         setMessage(
           command === 'revalidate'
             ? buildEmptyRevalidateMessage(mode)
-            : buildEmptyBatchMessage(batchSource, command === 'backup' ? 'backup' : 'classify'),
+            : command === 'attendance' || command === 'activity' || command === 'participants'
+              ? buildEmptyExtractionMessage(command)
+              : buildEmptyBatchMessage(batchSource, command === 'backup' ? 'backup' : 'classify'),
         );
       } else {
         setMessage(`Preview listo: ${result.total} NRC en el lote.`);
@@ -466,6 +637,42 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
           body: JSON.stringify(body),
         });
         setMessage(parseStartMessage(result));
+      } else if (command === 'attendance' || command === 'activity' || command === 'participants') {
+        if (!hasBatchSelection) {
+          setMessage('Selecciona al menos un periodo para preparar la exportacion desde la BD.');
+          return;
+        }
+        if (batchPreview && batchPreview.total === 0) {
+          setMessage(buildEmptyExtractionMessage(command));
+          return;
+        }
+
+        const body: Record<string, unknown> = {
+          source: batchSource,
+          periodCodes: selectedPeriodCodes,
+        };
+        if (selectedMoments.length) body.moments = selectedMoments;
+        if (selectedTemplates.length) body.templates = selectedTemplates;
+        if (manualExtractNrcList.length) body.nrcs = manualExtractNrcList;
+        if (browser) body.browser = browser;
+        if (headless) body.headless = true;
+        if (python.trim()) body.python = python.trim();
+        if (loginWaitSeconds.trim()) body.loginWaitSeconds = Number(loginWaitSeconds);
+        if (keepOpen) body.keepOpen = true;
+
+        const route =
+          command === 'attendance'
+            ? `${apiBase}/integrations/moodle-sidecar/run/start-attendance-from-db`
+            : command === 'activity'
+              ? `${apiBase}/integrations/moodle-sidecar/run/start-activity-from-db`
+              : `${apiBase}/integrations/moodle-sidecar/run/start-participants-from-db`;
+
+        const result = await fetchJson(route, {
+          method: 'POST',
+          headers: { 'Content-Type': 'application/json' },
+          body: JSON.stringify(body),
+        });
+        setMessage(parseStartMessage(result));
       } else {
         const body: Record<string, unknown> = {
           command,
@@ -541,7 +748,7 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
         headers: { 'Content-Type': 'application/json' },
         body: JSON.stringify(body),
       });
-      setImportResult(result);
+      setImportResult(result as SidecarImportResult);
       setMessage('Importacion sidecar completada.');
     } catch (error) {
       setMessage(`No se pudo importar: ${error instanceof Error ? error.message : String(error)}`);
@@ -618,6 +825,57 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
     link.remove();
     URL.revokeObjectURL(link.href);
     setMessage('CSV descargado.');
+  }
+
+  async function downloadAuditorTemplate() {
+    const rows = selectedAuditorFollowupItems.length ? selectedAuditorFollowupItems : visibleAuditorFollowupItems;
+    if (!rows.length) {
+      setMessage('No hay NRC sin matricula visibles para generar el formato oficial.');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setMessage('');
+      const response = await fetch('/api/moodle/auditor-template', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ rows }),
+      });
+
+      if (!response.ok) {
+        let detail = 'No se pudo generar el formato oficial.';
+        try {
+          const payload = (await response.json()) as { error?: string };
+          if (payload?.error) detail = payload.error;
+        } catch {
+          const text = await response.text();
+          if (text.trim()) detail = text.trim();
+        }
+        throw new Error(detail);
+      }
+
+      const blob = await response.blob();
+      const filename =
+        parseDownloadName(response.headers.get('content-disposition')) ??
+        response.headers.get('x-auditor-output-name') ??
+        `FORMATO_AUDITOR_MOODLE_${new Date().toISOString().slice(0, 10)}.xlsx`;
+      const rowCount = Number(response.headers.get('x-auditor-row-count') ?? rows.length);
+
+      const url = URL.createObjectURL(blob);
+      const link = document.createElement('a');
+      link.href = url;
+      link.download = filename;
+      document.body.appendChild(link);
+      link.click();
+      link.remove();
+      URL.revokeObjectURL(url);
+      setMessage(`Formato oficial generado con ${rowCount} NRC sin matricula.`);
+    } catch (error) {
+      setMessage(`No se pudo descargar el formato oficial: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setActionLoading(false);
+    }
   }
 
   async function sendNotFoundToBanner() {
@@ -741,6 +999,19 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
         {status?.current ? <span className="badge">Tarea actual: {COMMAND_LABELS[status.current.command]}</span> : null}
         {status?.lastRun ? <span className="badge">Ultima tarea: {COMMAND_LABELS[status.lastRun.command]}</span> : null}
       </div>
+      {lastRun ? (
+        <div className="actions" style={{ marginTop: 8 }}>
+          <strong>Ultima corrida:</strong> {COMMAND_LABELS[lastRun.command]} | {lastRun.status}
+          {lastRun.startedAt ? ` | inicio ${lastRun.startedAt}` : ''}
+          {lastRun.endedAt ? ` | fin ${lastRun.endedAt}` : ''}
+          {typeof lastRun.exitCode === 'number' ? ` | exit ${lastRun.exitCode}` : ''}
+        </div>
+      ) : null}
+      {lastRun?.logPath ? (
+        <div className="actions" style={{ marginTop: 6 }}>
+          <span className="code">Log mas reciente: {lastRun.logPath}</span>
+        </div>
+      ) : null}
 
       <div className="subtitle">Paso 1. Elegir la tarea</div>
       <div
@@ -751,7 +1022,7 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
           marginBottom: 12,
         }}
       >
-        {(['classify', 'revalidate', 'backup', 'gui'] as SidecarRunCommand[]).map((option) => (
+        {(['classify', 'revalidate', 'backup', 'attendance', 'activity', 'participants', 'gui'] as SidecarRunCommand[]).map((option) => (
           <button
             key={option}
             type="button"
@@ -779,13 +1050,18 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
             <option value="classify">{COMMAND_LABELS.classify}</option>
             <option value="revalidate">{COMMAND_LABELS.revalidate}</option>
             <option value="backup">{COMMAND_LABELS.backup}</option>
+            <option value="attendance">{COMMAND_LABELS.attendance}</option>
+            <option value="activity">{COMMAND_LABELS.activity}</option>
+            <option value="participants">{COMMAND_LABELS.participants}</option>
             <option value="gui">{COMMAND_LABELS.gui}</option>
           </select>
         </label>
-        <label>
-          Cantidad de workers
-          <input value={workers} onChange={(event) => setWorkers(event.target.value)} placeholder="4" />
-        </label>
+        {command === 'attendance' || command === 'activity' || command === 'participants' ? null : (
+          <label>
+            Cantidad de workers
+            <input value={workers} onChange={(event) => setWorkers(event.target.value)} placeholder="4" />
+          </label>
+        )}
         <label>
           Navegador
           <select value={browser} onChange={(event) => setBrowser(event.target.value as 'edge' | 'chrome')}>
@@ -809,6 +1085,8 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
         2. {RECOMMENDED_FLOW_HINTS[1]}
         <br />
         3. {RECOMMENDED_FLOW_HINTS[2]}
+        <br />
+        4. {RECOMMENDED_FLOW_HINTS[3]}
       </div>
 
       {command === 'classify' ? (
@@ -1391,6 +1669,233 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
         </>
       ) : null}
 
+      {command === 'attendance' || command === 'activity' || command === 'participants' ? (
+        <>
+          <div className="actions" style={{ marginTop: 8 }}>
+            {command === 'attendance' ? (
+              <>
+                Esta tarea usa la <span className="code">URL Moodle final</span> guardada en el sistema, abre el aula,
+                localiza el modulo <span className="code">Asistencia</span> y descarga el export oficial.
+              </>
+            ) : command === 'participants' ? (
+              <>
+                Esta tarea usa la <span className="code">URL Moodle final</span> y el <span className="code">courseId</span>{' '}
+                para abrir el listado de participantes, capturar nombres, correos, roles visibles y ultimo acceso.
+              </>
+            ) : (
+              <>
+                Esta tarea usa la <span className="code">URL Moodle final</span> y el <span className="code">courseId</span>{' '}
+                del curso para abrir el reporte de actividad y descargar el <span className="code">CSV</span> del log.
+              </>
+            )}
+            <br />
+            Corre en modo secuencial. Aqui no aplican <span className="code">workers</span>.
+          </div>
+
+          <div className="subtitle" style={{ marginTop: 10 }}>
+            Paso 2. Seleccionar cursos con URL Moodle resuelta
+          </div>
+          <div className="controls">
+            <label>
+              Fuente del lote
+              <select value={batchSource} onChange={(event) => setBatchSource(event.target.value as SidecarBatchSource)}>
+                {(batchOptions?.sources ?? [])
+                  .filter((source) => source.code !== 'PENDING')
+                  .map((source) => (
+                    <option key={`extract-${source.code}`} value={source.code}>
+                      {source.label}
+                    </option>
+                  ))}
+              </select>
+            </label>
+            <label className="checkbox">
+              <input type="checkbox" checked={headless} onChange={(event) => setHeadless(event.target.checked)} />
+              <span>Ejecutar sin abrir ventanas</span>
+            </label>
+            <label>
+              Tiempo de espera para login (segundos)
+              <input value={loginWaitSeconds} onChange={(event) => setLoginWaitSeconds(event.target.value)} placeholder="300" />
+            </label>
+            <label className="checkbox">
+              <input type="checkbox" checked={keepOpen} onChange={(event) => setKeepOpen(event.target.checked)} />
+              <span>Dejar navegador abierto al final</span>
+            </label>
+          </div>
+          <div className="actions" style={{ marginTop: 8 }}>
+            Usa <span className="code">ALL</span> para el periodo completo o <span className="code">SAMPLING</span> si
+            solo quieres descargar evidencias del muestreo.
+          </div>
+          <label style={{ display: 'grid', gap: 6, marginTop: 10 }}>
+            NRC especificos (opcional)
+            <textarea
+              value={manualExtractNrcs}
+              onChange={(event) => setManualExtractNrcs(event.target.value)}
+              rows={3}
+              placeholder="72305, 72308, 15-72314"
+            />
+            <span className="actions">
+              Si diligencias NRC aqui, el lote se recorta a esos cursos dentro de los periodos seleccionados.
+            </span>
+          </label>
+
+          <div className="subtitle" style={{ marginTop: 10 }}>
+            Periodos a incluir
+          </div>
+          <div className="controls">
+            <button
+              type="button"
+              onClick={() => setSelectedPeriodCodes((batchOptions?.periods ?? []).map((period) => period.code))}
+              disabled={actionLoading}
+            >
+              Marcar todos los periodos
+            </button>
+            <button type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+              Limpiar seleccion
+            </button>
+          </div>
+          <div className="badges" style={{ marginTop: 8 }}>
+            {(batchOptions?.periods ?? []).map((period) => (
+              <label className="badge badge-selector" key={`extract-${period.code}`}>
+                <input
+                  type="checkbox"
+                  checked={selectedPeriodCodes.includes(period.code)}
+                  onChange={() => setSelectedPeriodCodes((current) => toggleSelection(current, period.code))}
+                />
+                <span>
+                  {period.code} | {period.label} ({period.courseCount})
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <div className="subtitle" style={{ marginTop: 10 }}>
+            Momentos a incluir
+          </div>
+          <div className="controls">
+            <button type="button" onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
+              Marcar todos los momentos
+            </button>
+            <button type="button" onClick={() => setSelectedMoments([])} disabled={actionLoading}>
+              Usar todos los momentos
+            </button>
+          </div>
+          <div className="badges" style={{ marginTop: 8 }}>
+            {(batchOptions?.moments ?? []).map((moment) => (
+              <label className="badge badge-selector" key={`extract-moment-${moment}`}>
+                <input
+                  type="checkbox"
+                  checked={selectedMoments.includes(moment)}
+                  onChange={() => setSelectedMoments((current) => toggleSelection(current, moment))}
+                />
+                <span>{moment}</span>
+              </label>
+            ))}
+          </div>
+
+          <div className="subtitle" style={{ marginTop: 10 }}>
+            Tipos de aula
+          </div>
+          <div className="controls">
+            <button
+              type="button"
+              onClick={() => setSelectedTemplates((batchOptions?.templates ?? []).map((template) => template.code))}
+              disabled={actionLoading}
+            >
+              Marcar todos los tipos
+            </button>
+            <button type="button" onClick={() => setSelectedTemplates([])} disabled={actionLoading}>
+              Usar todos los tipos
+            </button>
+          </div>
+          <div className="badges" style={{ marginTop: 8 }}>
+            {(batchOptions?.templates ?? []).map((template) => (
+              <label className="badge badge-selector" key={`extract-template-${template.code}`}>
+                <input
+                  type="checkbox"
+                  checked={selectedTemplates.includes(template.code)}
+                  onChange={() => setSelectedTemplates((current) => toggleSelection(current, template.code))}
+                />
+                <span>
+                  {template.label} ({template.count})
+                </span>
+              </label>
+            ))}
+          </div>
+
+          <div className="controls" style={{ marginTop: 10 }}>
+            <button type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
+              {actionLoading
+                ? 'Procesando...'
+                : command === 'attendance'
+                  ? 'Previsualizar cursos para asistencia'
+                  : command === 'participants'
+                    ? 'Previsualizar cursos para participantes'
+                    : 'Previsualizar cursos para actividad'}
+            </button>
+          </div>
+
+          {batchPreview ? (
+            <>
+              <div className="subtitle" style={{ marginTop: 10 }}>
+                Resumen del lote de exportacion
+              </div>
+              <div className="badges" style={{ marginTop: 10 }}>
+                <span className="badge">Total lote: {batchPreview.total}</span>
+                <span className="badge">Fuente: {batchPreview.filters.source ?? 'ALL'}</span>
+                <span className="badge">
+                  Tipos: {batchPreview.filters.templates?.length ? batchPreview.filters.templates.join(', ') : 'todos'}
+                </span>
+                <span className="badge">
+                  NRC: {batchPreview.filters.nrcs?.length ? `${batchPreview.filters.nrcs.length} especificos` : 'todos'}
+                </span>
+              </div>
+              <div className="badges" style={{ marginTop: 8 }}>
+                {Object.entries(batchPreview.byStatus).map(([key, value]) => (
+                  <span className="badge" key={`extract-status-${key}`}>
+                    {key}: {value}
+                  </span>
+                ))}
+              </div>
+              {batchPreview.byModality ? (
+                <div className="badges" style={{ marginTop: 8 }}>
+                  {Object.entries(batchPreview.byModality).map(([key, value]) => (
+                    <span className="badge" key={`extract-modality-${key}`}>
+                      {key}: {value}
+                    </span>
+                  ))}
+                </div>
+              ) : null}
+              <table style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th>NRC</th>
+                    <th>Periodo</th>
+                    <th>Momento</th>
+                    <th>Tipo</th>
+                    <th>Modalidad</th>
+                    <th>Asignatura</th>
+                    <th>URL Moodle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {batchPreview.sample.map((item) => (
+                    <tr key={`extract-${item.courseId}-${item.nrc}`}>
+                      <td>{item.nrc}</td>
+                      <td>{item.periodCode}</td>
+                      <td>{item.moment}</td>
+                      <td>{item.template}</td>
+                      <td>{item.resolvedModality ?? '-'}</td>
+                      <td>{item.title}</td>
+                      <td>{item.moodleCourseUrl ?? '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          ) : null}
+        </>
+      ) : null}
+
       <div className="controls" style={{ marginTop: 10 }}>
         <button onClick={startRun} disabled={!canStart}>
           {actionLoading ? 'Procesando...' : startButtonLabel}
@@ -1400,6 +1905,13 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
         </button>
       </div>
 
+      {command === 'attendance' || command === 'activity' || command === 'participants' ? (
+        <div className="actions" style={{ marginTop: 10 }}>
+          Esta tarea solo descarga archivos. Si quieres explotar esos datos en analitica, luego debes importarlos
+          desde la pantalla de analitica Moodle.
+        </div>
+      ) : (
+        <>
       <div className="subtitle">Paso 3. Guardar el resultado en la base de datos</div>
       <div className="controls">
         <label style={{ minWidth: 420 }}>
@@ -1432,6 +1944,12 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
         Aqui puedes ver en tabla los NRC donde no estabas registrado o los que Moodle no encontro. Desde esta misma
         vista puedes descargar el listado, mandar los <span className="code">NO_ENCONTRADO</span> a Banner y, cuando
         Banner tampoco los encuentre, desactivarlos con confirmacion.
+      </div>
+      <div className="actions" style={{ marginTop: 8 }}>
+        Para los casos <span className="code">sin_matricula</span>, el boton de formato oficial llena el Excel con
+        <span className="code"> Jaime Duvan</span>, <span className="code">Lozano Ardila</span>,
+        <span className="code"> jaime.lozano.a@uniminuto.edu</span> y rol
+        <span className="code"> Auditor con todos los permisos</span>.
       </div>
       <div className="controls" style={{ marginTop: 8 }}>
         <label>
@@ -1469,6 +1987,13 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
         </button>
         <button type="button" onClick={exportFollowupCsv} disabled={actionLoading || !followupItems.length}>
           Descargar CSV de la lista
+        </button>
+        <button
+          type="button"
+          onClick={downloadAuditorTemplate}
+          disabled={actionLoading || !visibleAuditorFollowupItems.length}
+        >
+          Descargar formato oficial de auditor
         </button>
         <button type="button" onClick={sendNotFoundToBanner} disabled={actionLoading || !followupItems.some((item) => item.canSendToBanner)}>
           Enviar no encontrados a Banner
@@ -1514,6 +2039,13 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
             >
               Marcar eliminables
             </button>
+            <button
+              type="button"
+              onClick={() => setSelectedFollowupIds(unique(visibleAuditorFollowupItems.map((item) => item.id)))}
+              disabled={actionLoading || !visibleAuditorFollowupItems.length}
+            >
+              Marcar sin matricula para formato
+            </button>
             <button type="button" onClick={() => setSelectedFollowupIds([])} disabled={actionLoading || !selectedFollowupIds.length}>
               Limpiar seleccion
             </button>
@@ -1522,6 +2054,43 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
             Seleccionados: {selectedFollowupIds.length}. Para desactivar, el NRC debe aparecer tambien con estado Banner{' '}
             <span className="code">NO_ENCONTRADO</span>.
           </div>
+          <div className="subtitle" style={{ marginTop: 10 }}>Vista previa del formato oficial</div>
+          <div className="actions" style={{ marginTop: 8 }}>
+            El Excel va a salir con {auditorTemplateItems.length} NRC.
+            {selectedAuditorFollowupItems.length
+              ? ' Esta vista previa usa solo los NRC sin matricula que marcaste.'
+              : ' Como no hay seleccion puntual para formato, esta vista previa usa todos los NRC sin matricula visibles.'}
+            <br />
+            Nombre: <span className="code">Jaime Duvan</span> | Apellidos: <span className="code">Lozano Ardila</span> |
+            Correo: <span className="code">jaime.lozano.a@uniminuto.edu</span> | Rol:{' '}
+            <span className="code">Auditor con todos los permisos</span>
+          </div>
+          {auditorTemplateItems.length ? (
+            <table style={{ marginTop: 8 }}>
+              <thead>
+                <tr>
+                  <th>NRC</th>
+                  <th>Periodo</th>
+                  <th>Asignatura / curso</th>
+                  <th>Valor que ira en Excel</th>
+                </tr>
+              </thead>
+              <tbody>
+                {auditorTemplateItems.map((item) => (
+                  <tr key={`auditor-preview-${item.id}`}>
+                    <td>{item.nrc}</td>
+                    <td>{item.periodCode}</td>
+                    <td>{item.subjectName ?? item.moodleCourseUrl ?? '-'}</td>
+                    <td>{`${item.nrc} - ${item.subjectName ?? item.moodleCourseUrl ?? 'Curso sin nombre corto'}`}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="actions" style={{ marginTop: 8 }}>
+              No hay NRC sin matricula visibles para llenar el formato oficial.
+            </div>
+          )}
           <table style={{ marginTop: 8 }}>
             <thead>
               <tr>
@@ -1567,12 +2136,100 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
           </table>
         </>
       ) : null}
+        </>
+      )}
+
+      {status?.artifactSummary ? (
+        <>
+          <div className="subtitle" style={{ marginTop: 10 }}>
+            Archivos generados
+          </div>
+          <div className="actions" style={{ marginTop: 8 }}>
+            Resultado de la ultima corrida de {ARTIFACT_KIND_LABELS[status.artifactSummary.kind]}.
+            Carpeta base: <span className="code">{status.artifactSummary.outputDir}</span>
+          </div>
+          <div className="badges" style={{ marginTop: 8 }}>
+            <span className="badge">Cursos: {status.artifactSummary.totalCourses}</span>
+            <span className="badge">Completados: {status.artifactSummary.completedCourses}</span>
+            <span className="badge">Fallidos: {status.artifactSummary.failedCourses}</span>
+            <span className="badge">Sin archivo: {status.artifactSummary.skippedCourses}</span>
+          </div>
+          {status.artifactSummary.files.length ? (
+            <table style={{ marginTop: 8 }}>
+              <thead>
+                <tr>
+                  <th>NRC</th>
+                  <th>Periodo</th>
+                  <th>Curso</th>
+                  <th>Archivo</th>
+                  <th>Descarga</th>
+                </tr>
+              </thead>
+              <tbody>
+                {status.artifactSummary.files.slice(0, 200).map((file) => (
+                  <tr key={`${file.relativePath}-${file.fileName}`}>
+                    <td>{file.nrc}</td>
+                    <td>{file.periodCode}</td>
+                    <td>{file.title}</td>
+                    <td>{file.fileName}</td>
+                    <td>
+                      <a href={buildArtifactDownloadHref(apiBase, file.relativePath)} target="_blank" rel="noreferrer">
+                        Principal
+                      </a>
+                      {file.csvRelativePath ? (
+                        <>
+                          {' | '}
+                          <a href={buildArtifactDownloadHref(apiBase, file.csvRelativePath)} target="_blank" rel="noreferrer">
+                            CSV
+                          </a>
+                        </>
+                      ) : null}
+                    </td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : (
+            <div className="actions" style={{ marginTop: 8 }}>
+              La corrida termino, pero no dejo archivos descargables en el resumen.
+            </div>
+          )}
+          {status.artifactSummary.items.length ? (
+            <table style={{ marginTop: 8 }}>
+              <thead>
+                <tr>
+                  <th>NRC</th>
+                  <th>Periodo</th>
+                  <th>Curso</th>
+                  <th>Estado</th>
+                  <th>Detalle</th>
+                </tr>
+              </thead>
+              <tbody>
+                {status.artifactSummary.items.slice(0, 200).map((item) => (
+                  <tr key={`artifact-item-${item.nrc}-${item.periodCode}-${item.title}`}>
+                    <td>{item.nrc}</td>
+                    <td>{item.periodCode}</td>
+                    <td>{item.title}</td>
+                    <td>{item.status}</td>
+                    <td>{item.message ?? item.downloads?.map((download) => download.fileName).join(', ') ?? '-'}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          ) : null}
+        </>
+      ) : null}
 
       {message ? <div className="message">{message}</div> : null}
 
       {status?.logTail ? (
         <>
           <div className="subtitle">Seguimiento del proceso</div>
+          <div className="actions" style={{ marginTop: 8 }}>
+            Este bloque muestra el log vivo mientras Moodle corre. Cuando termina, aqui queda el ultimo log disponible
+            para validar login, modalidad detectada, participantes y archivos generados.
+          </div>
           <pre className="log-box">{status.logTail}</pre>
         </>
       ) : null}
@@ -1580,7 +2237,62 @@ export function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProp
       {importResult ? (
         <>
           <div className="subtitle">Resumen de la importacion</div>
-          <pre className="log-box">{JSON.stringify(importResult, null, 2)}</pre>
+          <div className="badges" style={{ marginTop: 8 }}>
+            <span className="badge">Procesados: {importResult.processedRows ?? 0}</span>
+            <span className="badge">Actualizados: {importResult.updatedRows ?? 0}</span>
+            <span className="badge">Cambios detectados: {importResult.changes?.length ?? 0}</span>
+            <span className="badge">Sin match: {importResult.noMatch ?? 0}</span>
+          </div>
+          {importResult.notes?.length ? (
+            <div className="actions" style={{ marginTop: 8 }}>
+              {importResult.notes.join(' ')}
+            </div>
+          ) : null}
+          {importResult.changes?.length ? (
+            <>
+              <div className="subtitle" style={{ marginTop: 10 }}>Cursos con cambios de tipo o estado</div>
+              <table style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th>NRC</th>
+                    <th>Periodo</th>
+                    <th>Asignatura</th>
+                    <th>Tipo anterior</th>
+                    <th>Tipo nuevo</th>
+                    <th>Estado anterior</th>
+                    <th>Estado nuevo</th>
+                    <th>Cambios</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {importResult.changes.map((item) => (
+                    <tr key={`${item.courseId}-${item.nrc}`}>
+                      <td>{item.nrc}</td>
+                      <td>{item.periodCode}</td>
+                      <td>{item.subjectName ?? '-'}</td>
+                      <td>{item.previousTemplate}</td>
+                      <td>{item.nextTemplate}</td>
+                      <td>{item.previousStatus}</td>
+                      <td>{item.nextStatus}</td>
+                      <td>
+                        {[
+                          item.changedTemplate ? 'tipo' : null,
+                          item.changedStatus ? 'estado' : null,
+                          item.changedUrl ? 'url' : null,
+                        ]
+                          .filter(Boolean)
+                          .join(', ') || '-'}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          ) : (
+            <div className="actions" style={{ marginTop: 8 }}>
+              La importacion no detecto cambios de tipo, estado o URL en los cursos procesados.
+            </div>
+          )}
         </>
       ) : null}
     </article>

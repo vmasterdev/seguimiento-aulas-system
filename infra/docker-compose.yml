@@ -6,7 +6,7 @@ services:
       POSTGRES_PASSWORD: seguimiento
       POSTGRES_DB: seguimiento
     ports:
-      - "5433:5432"
+      - "${POSTGRES_HOST_PORT:-5433}:5432"
     volumes:
       - pgdata:/var/lib/postgresql/data
 

@@ -65,12 +65,37 @@ type GlobalReportOptions = {
   recipientsCount: number;
 };
 
+type WorkshopInvitationOptions = {
+  teacherName: string;
+  phase: string;
+  periodCode: string;
+  sessionTitle: string;
+  sessionDateLabel: string;
+  sessionTimeLabel: string;
+  meetingUrl: string;
+  introNote?: string | null;
+  rows: Array<{
+    nrc: string;
+    subject: string;
+    moment: string;
+    score: number | null;
+    band: ScoreBand;
+  }>;
+};
+
+function getPhaseScoreScale(_phase: string): number {
+  // Regla de negocio: cada fase aporta hasta 50 puntos.
+  // El consolidado total de 100 surge de ALISTAMIENTO (50) + EJECUCION (50),
+  // y AUTO_PASS en ejecucion ya persiste esos 50 puntos completos.
+  return 50;
+}
+
 function getPhaseMeta(phase: string): { phaseUpper: string; phaseLabel: string; scoreScale: number } {
   const phaseUpper = phase.toUpperCase();
   return {
     phaseUpper,
     phaseLabel: phase === 'ALISTAMIENTO' ? 'Alistamiento' : 'Ejecucion',
-    scoreScale: phaseUpper === 'ALISTAMIENTO' ? 50 : 100,
+    scoreScale: getPhaseScoreScale(phaseUpper),
   };
 }
 
@@ -84,6 +109,148 @@ function toSafeHref(value: string | null | undefined): string | null {
   return escapeHtml(raw);
 }
 
+function summarizePeriodYears(periodCodes: string[]): string {
+  const years = [...new Set(periodCodes.map((code) => String(code ?? '').trim().slice(0, 4)).filter((value) => /^\d{4}$/.test(value)))];
+  if (!years.length) return 'multiperiodo';
+  return years.length === 1 ? years[0] : years.join(', ');
+}
+
+export function buildWorkshopInvitationHtml(options: WorkshopInvitationOptions): string {
+  const safeHref = toSafeHref(options.meetingUrl);
+  const introNote = escapeHtml(
+    options.introNote?.trim() ||
+      'De acuerdo con los resultados obtenidos en la revision del Campus Virtual, identificamos oportunidades de fortalecimiento en el manejo de tu aula virtual para este periodo.',
+  );
+  const teacherName = escapeHtml(options.teacherName);
+  const sessionTitle = escapeHtml(options.sessionTitle);
+  const sessionDateLabel = escapeHtml(options.sessionDateLabel);
+  const sessionTimeLabel = escapeHtml(options.sessionTimeLabel);
+  const phaseLabel = escapeHtml(options.phase === 'ALISTAMIENTO' ? 'Alistamiento' : 'Ejecucion');
+  const periodCode = escapeHtml(options.periodCode);
+
+  const rowsHtml = options.rows
+    .map((row) => {
+      const bandClass =
+        row.band === 'ACEPTABLE'
+          ? 'seg-ok'
+          : row.band === 'INSATISFACTORIO'
+            ? 'seg-bad'
+            : row.band === 'BUENO'
+              ? 'seg-good'
+              : 'seg-exc';
+
+      return `
+        <tr>
+          <td>${escapeHtml(row.nrc)}</td>
+          <td>${escapeHtml(row.subject)}</td>
+          <td>${escapeHtml(formatMomentLabel(row.moment))} (${escapeHtml(row.moment)})</td>
+          <td><span class="score-seg ${bandClass}" style="display:inline-block;padding:3px 8px;border-radius:999px;line-height:1.2;">${escapeHtml(row.band)}</span></td>
+          <td>${escapeHtml(formatScoreForPhase(row.score, options.phase))}</td>
+        </tr>
+      `;
+    })
+    .join('');
+
+  return `<!DOCTYPE html>
+  <html lang="es">
+    <head>
+      <meta charset="utf-8" />
+      <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+      ${BASE_REPORT_STYLE}
+    </head>
+    <body>
+      <div class="shell">
+        <div class="top-strip" style="background:#ffc300;background-color:#ffc300;"></div>
+        <div
+          class="hero"
+          style="background:#002b5c;background-color:#002b5c;background-image:linear-gradient(120deg, #002b5c 0%, #0057a4 100%);color:#ffffff;padding:20px 26px;border-bottom:1px solid #00244a;"
+        >
+          <h1 class="hero-title" style="margin:0;font-size:24px;line-height:1.25;font-weight:800;color:#ffffff;">
+            Invitacion a sesion de <span class="hero-highlight" style="color:#ffd000;">inmersion digital</span>
+          </h1>
+          <div class="hero-subtitle" style="margin-top:6px;color:#dde9ff;font-size:12px;line-height:1.5;">
+            Acompanamiento para fortalecer el uso de Campus Virtual a partir de la revision del periodo ${periodCode}.
+          </div>
+          <div
+            class="hero-period-pill"
+            style="display:inline-block;margin-top:10px;background:#ffd000;background-color:#ffd000;color:#002b5c;font-size:12px;font-weight:900;letter-spacing:0.3px;padding:5px 12px;border-radius:999px;border:1px solid #ffbe0b;text-transform:uppercase;"
+          >
+            ${phaseLabel} | ${periodCode}
+          </div>
+        </div>
+
+        <div class="body-wrap">
+          <p>Estimado(a) docente <strong>${teacherName}</strong>,</p>
+          <p class="intro-note">${introNote}</p>
+
+          <div class="panel panel-warm">
+            <div class="section-title">Sesion programada</div>
+            <p style="margin:0 0 8px 0;"><strong>${sessionTitle}</strong></p>
+            <p style="margin:0;"><strong>Fecha:</strong> ${sessionDateLabel}</p>
+            <p style="margin:0;"><strong>Horario:</strong> ${sessionTimeLabel}</p>
+            <p style="margin:8px 0 0 0;">
+              <strong>Microsoft Teams:</strong>
+              ${
+                safeHref
+                  ? `<a href="${safeHref}" target="_blank" rel="noopener noreferrer">${safeHref}</a>`
+                  : escapeHtml(options.meetingUrl)
+              }
+            </p>
+          </div>
+
+          <div class="quick-access">
+            <div class="quick-access-title">Acceso rapido a la sesion</div>
+            <div class="quick-access-text">Ingresa con este enlace el ${sessionDateLabel} antes de las ${sessionTimeLabel}.</div>
+            <div class="quick-access-actions">
+              ${
+                safeHref
+                  ? `<a class="cta-btn" href="${safeHref}" target="_blank" rel="noopener noreferrer">Ingresar a Teams</a>`
+                  : ''
+              }
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="section-title">Resultados considerados para esta invitacion</div>
+            <div class="table-container">
+              <table>
+                <thead>
+                  <tr>
+                    <th>NRC</th>
+                    <th>Asignatura</th>
+                    <th>Momento</th>
+                    <th>Resultado</th>
+                    <th>Calificacion</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  ${rowsHtml}
+                </tbody>
+              </table>
+            </div>
+          </div>
+
+          <div class="panel">
+            <div class="section-title">Que abordaremos en la sesion</div>
+            <ul style="margin:8px 0 0 18px;padding:0;">
+              <li>Buenas practicas de organizacion del aula en Campus Virtual.</li>
+              <li>Recomendaciones para fortalecer los criterios revisados en Momento 1 y RCY.</li>
+              <li>Espacio para resolver dudas puntuales del manejo del aula virtual.</li>
+            </ul>
+          </div>
+
+          <p style="margin-top:16px;">
+            Tu participacion es muy importante para continuar fortaleciendo la experiencia digital de tus aulas.
+          </p>
+          <p style="margin:0;">
+            Muchas gracias.
+          </p>
+        </div>
+      </div>
+    </body>
+  </html>`;
+}
+
 export function toScoreBand(score: number | null): ScoreBand {
   if (score == null) return 'INSATISFACTORIO';
   if (score >= 90) return 'EXCELENTE';
@@ -94,13 +261,14 @@ export function toScoreBand(score: number | null): ScoreBand {
 
 export function toScoreBandForPhase(score: number | null, phase: string): ScoreBand {
   if (score == null) return 'INSATISFACTORIO';
-  const normalized = phase === 'ALISTAMIENTO' ? score * 2 : score;
+  const scale = getPhaseScoreScale(phase);
+  const normalized = Math.max(0, Math.min(100, (score / scale) * 100));
   return toScoreBand(normalized);
 }
 
 export function formatScoreForPhase(score: number | null, phase: string): string {
   if (score == null) return 'N/A';
-  const scale = phase === 'ALISTAMIENTO' ? 50 : 100;
+  const scale = getPhaseScoreScale(phase);
   return `${score.toFixed(1)}/${scale}`;
 }
 
@@ -827,6 +995,7 @@ export function buildGlobalHtml(options: GlobalReportOptions): string {
     .map((moment) => `${formatMomentLabel(moment)} (${moment})`)
     .join(' | ');
   const selectedPeriodsLabel = options.periodCodes.join(', ');
+  const selectedYearsLabel = summarizePeriodYears(options.periodCodes);
   const rowsHtml = options.rows
     .map((row, idx) => {
       const background = idx % 2 === 0 ? '#ffffff' : '#f8fbff';
@@ -897,7 +1066,7 @@ export function buildGlobalHtml(options: GlobalReportOptions): string {
     '<div class="shell"><div class="top-strip" style="background:#ffc300;background-image:linear-gradient(90deg,#ffc300 0%,#ffd95c 100%);"></div>',
     '<div class="hero" style="background:#002b5c;background-image:linear-gradient(120deg,#002b5c 0%,#0057a4 100%);color:#ffffff;">',
     '<h2 class="hero-title">Reporte ejecutivo - <span class="hero-highlight">Campus Virtual RCS</span></h2>',
-    `<div class="hero-subtitle">Consolidado 2026 | Fase de ${escapeHtml(phaseLabel)} | Momentos ${escapeHtml(
+    `<div class="hero-subtitle">Consolidado ${escapeHtml(selectedYearsLabel)} | Fase de ${escapeHtml(phaseLabel)} | Momentos ${escapeHtml(
       options.moments.map((moment) => formatMomentLabel(moment)).join(' + '),
     )}</div>`,
     `<div class="hero-period-pill">Periodos incluidos: ${escapeHtml(selectedPeriodsLabel)}</div>`,
@@ -906,7 +1075,9 @@ export function buildGlobalHtml(options: GlobalReportOptions): string {
     `<div class="period-banner">FASE: ${escapeHtml(options.phase)} | MOMENTOS: ${escapeHtml(
       selectedMomentsLabel,
     )} | PERIODOS: ${escapeHtml(selectedPeriodsLabel)}</div>`,
-    '<div class="quick-access"><p class="quick-access-title">Lectura recomendada</p><p class="quick-access-text">Este consolidado integra varios periodos 2026 en un solo reporte para priorizar decisiones de seguimiento.</p><div class="quick-access-actions">',
+    `<div class="quick-access"><p class="quick-access-title">Lectura recomendada</p><p class="quick-access-text">Este consolidado integra los periodos ${escapeHtml(
+      selectedPeriodsLabel,
+    )} en un solo reporte para priorizar decisiones de seguimiento.</p><div class="quick-access-actions">`,
     `<a class="cta-btn alt" href="${CAMPUS_VIRTUAL_COMMUNICADO_URL}" target="_blank" rel="noopener">Ver comunicado Campus Virtual</a>`,
     '</div></div>',
     '<p><strong>Cordial saludo,</strong></p>',
@@ -977,7 +1148,9 @@ export function buildGlobalHtml(options: GlobalReportOptions): string {
     `<a class="cta-btn" href="${TEACHER_BOOKING_URL}" target="_blank" rel="noopener">Agendar llamada / videollamada</a>`,
     '</div></div>',
     '<div style="margin-top:16px;text-align:center;color:#334155;font-size:13px;">Campus Virtual - Rectoria Centro Sur</div>',
-    `<div class="report-footer">Generado el ${new Date().toISOString().slice(0, 10)} - Reporte ejecutivo consolidado 2026.</div>`,
+    `<div class="report-footer">Generado el ${new Date().toISOString().slice(0, 10)} - Reporte ejecutivo consolidado ${escapeHtml(
+      selectedYearsLabel,
+    )}.</div>`,
     '</div></div>',
     '</body></html>',
   ].join('');

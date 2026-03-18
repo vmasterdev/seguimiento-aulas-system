@@ -241,6 +241,81 @@ def gui(args, cfg: Dict, root: Path) -> int:
     return run_cmd(cmd, sidecar_root)
 
 
+def attendance(args, cfg: Dict, root: Path) -> int:
+    runtime = cfg.get("runtime", {})
+    paths = cfg.get("paths", {})
+    sidecar_root = resolve(root, paths["sidecarRoot"])
+    output_dir = resolve(root, args.output_dir or "storage/outputs/validation/moodle-attendance")
+
+    cmd = [
+        args.python or runtime.get("pythonCommand", "python3"),
+        str(sidecar_root / "moodle_attendance_exports.py"),
+        "--input-json",
+        str(resolve(root, args.input_json)),
+        "--output-dir",
+        str(output_dir),
+        "--browser",
+        args.browser or runtime.get("browser", "edge"),
+    ]
+    if args.headless or runtime.get("headless", False):
+        cmd.append("--headless")
+    if args.login_wait_seconds:
+        cmd.extend(["--login-wait-seconds", str(args.login_wait_seconds)])
+    if args.keep_open:
+        cmd.append("--keep-open")
+    return run_cmd(cmd, sidecar_root)
+
+
+def activity(args, cfg: Dict, root: Path) -> int:
+    runtime = cfg.get("runtime", {})
+    paths = cfg.get("paths", {})
+    sidecar_root = resolve(root, paths["sidecarRoot"])
+    output_dir = resolve(root, args.output_dir or "storage/outputs/validation/moodle-activity")
+
+    cmd = [
+        args.python or runtime.get("pythonCommand", "python3"),
+        str(sidecar_root / "moodle_activity_exports.py"),
+        "--input-json",
+        str(resolve(root, args.input_json)),
+        "--output-dir",
+        str(output_dir),
+        "--browser",
+        args.browser or runtime.get("browser", "edge"),
+    ]
+    if args.headless or runtime.get("headless", False):
+        cmd.append("--headless")
+    if args.login_wait_seconds:
+        cmd.extend(["--login-wait-seconds", str(args.login_wait_seconds)])
+    if args.keep_open:
+        cmd.append("--keep-open")
+    return run_cmd(cmd, sidecar_root)
+
+
+def participants(args, cfg: Dict, root: Path) -> int:
+    runtime = cfg.get("runtime", {})
+    paths = cfg.get("paths", {})
+    sidecar_root = resolve(root, paths["sidecarRoot"])
+    output_dir = resolve(root, args.output_dir or "storage/outputs/validation/moodle-participants")
+
+    cmd = [
+        args.python or runtime.get("pythonCommand", "python3"),
+        str(sidecar_root / "moodle_participants_exports.py"),
+        "--input-json",
+        str(resolve(root, args.input_json)),
+        "--output-dir",
+        str(output_dir),
+        "--browser",
+        args.browser or runtime.get("browser", "edge"),
+    ]
+    if args.headless or runtime.get("headless", False):
+        cmd.append("--headless")
+    if args.login_wait_seconds:
+        cmd.extend(["--login-wait-seconds", str(args.login_wait_seconds)])
+    if args.keep_open:
+        cmd.append("--keep-open")
+    return run_cmd(cmd, sidecar_root)
+
+
 def main() -> int:
     root = project_root()
     cfg = load_config(root)
@@ -279,6 +354,33 @@ def main() -> int:
     p_gui = sub.add_parser("gui", help="Abre GUI sidecar")
     p_gui.add_argument("--python")
 
+    p_attendance = sub.add_parser("attendance", help="Descarga exportes del modulo Asistencia")
+    p_attendance.add_argument("--input-json", required=True)
+    p_attendance.add_argument("--output-dir")
+    p_attendance.add_argument("--browser")
+    p_attendance.add_argument("--python")
+    p_attendance.add_argument("--headless", action="store_true")
+    p_attendance.add_argument("--login-wait-seconds", type=int)
+    p_attendance.add_argument("--keep-open", action="store_true")
+
+    p_activity = sub.add_parser("activity", help="Descarga exportes del reporte de actividad/logs")
+    p_activity.add_argument("--input-json", required=True)
+    p_activity.add_argument("--output-dir")
+    p_activity.add_argument("--browser")
+    p_activity.add_argument("--python")
+    p_activity.add_argument("--headless", action="store_true")
+    p_activity.add_argument("--login-wait-seconds", type=int)
+    p_activity.add_argument("--keep-open", action="store_true")
+
+    p_participants = sub.add_parser("participants", help="Extrae participantes y roles visibles del curso")
+    p_participants.add_argument("--input-json", required=True)
+    p_participants.add_argument("--output-dir")
+    p_participants.add_argument("--browser")
+    p_participants.add_argument("--python")
+    p_participants.add_argument("--headless", action="store_true")
+    p_participants.add_argument("--login-wait-seconds", type=int)
+    p_participants.add_argument("--keep-open", action="store_true")
+
     args = parser.parse_args()
 
     if args.command == "classify":
@@ -287,6 +389,12 @@ def main() -> int:
         return revalidate(args, cfg, root)
     if args.command == "backup":
         return backups(args, cfg, root)
+    if args.command == "attendance":
+        return attendance(args, cfg, root)
+    if args.command == "activity":
+        return activity(args, cfg, root)
+    if args.command == "participants":
+        return participants(args, cfg, root)
     if args.command == "gui":
         return gui(args, cfg, root)
 

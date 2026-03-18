@@ -35,6 +35,11 @@ export class OutboxController {
     return this.outboxService.previewByCourse(body);
   }
 
+  @Post('/workshop-invitation/prepare')
+  async prepareWorkshopInvitation(@Body() body: unknown) {
+    return this.outboxService.prepareWorkshopInvitation(body);
+  }
+
   @Get('/options')
   async options(@Query('yearPrefix') yearPrefix?: string) {
     return this.outboxService.options(yearPrefix);

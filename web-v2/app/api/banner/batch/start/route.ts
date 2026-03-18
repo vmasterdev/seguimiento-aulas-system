@@ -11,10 +11,15 @@ export async function POST(request: NextRequest) {
       ? body.periodCodes.map((value) => String(value).trim()).filter(Boolean)
       : [];
     const source = String(body.source ?? 'MISSING_TEACHER').trim().toUpperCase() as BannerBatchSource;
+    const limit =
+      body.limit === undefined || body.limit === null || body.limit === ''
+        ? undefined
+        : Math.max(1, Number(body.limit));
     const workers =
       body.workers === undefined || body.workers === null || body.workers === ''
         ? undefined
         : Math.max(1, Number(body.workers));
+    const autoImportToSystem = body.autoImportToSystem === true;
 
     const result = await startBannerRunFromSystem({
       periodCodes,
@@ -22,6 +27,8 @@ export async function POST(request: NextRequest) {
       queryName: typeof body.queryName === 'string' ? body.queryName : undefined,
       queryId: typeof body.queryId === 'string' ? body.queryId : undefined,
       resume: body.resume === true,
+      autoImportToSystem,
+      ...(Number.isFinite(limit) ? { limit } : {}),
       ...(Number.isFinite(workers) ? { workers } : {}),
     });
 

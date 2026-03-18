@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { SinglePanelPageShell } from '../../_components/page-shell';
-import { SidecarIntegrationPanel } from '../../_features/sidecar/sidecar-integration-panel';
+import SidecarIntegrationPanel from '../../_features/sidecar/sidecar-integration-panel';
 import { CLIENT_API_BASE } from '../../_lib/api';
 
 export default function AutomatizacionMoodlePage() {

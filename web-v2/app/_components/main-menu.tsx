@@ -12,7 +12,8 @@ export type MainMenuSection =
   | 'nrc-trazabilidad'
   | 'correos'
   | 'automatizacion-banner'
-  | 'automatizacion-moodle';
+  | 'automatizacion-moodle'
+  | 'analitica-moodle';
 
 const ICON_HOME = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -83,6 +84,17 @@ const ICON_SETTINGS = (
   </svg>
 );
 
+const ICON_CHART = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M3 3v18h18" />
+    <path d="M7 15l4-4 3 3 5-7" />
+    <circle cx="7" cy="15" r="1.2" fill="currentColor" stroke="none" />
+    <circle cx="11" cy="11" r="1.2" fill="currentColor" stroke="none" />
+    <circle cx="14" cy="14" r="1.2" fill="currentColor" stroke="none" />
+    <circle cx="19" cy="7" r="1.2" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 type NavItem = {
   href: string;
   label: string;
@@ -99,6 +111,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/nrc-globales', label: 'NRC Globales', section: 'nrc-globales', icon: ICON_GLOBE, group: 'data' },
   { href: '/nrc-trazabilidad', label: 'Trazabilidad', section: 'nrc-trazabilidad', icon: ICON_BRANCH, group: 'data' },
   { href: '/correos', label: 'Correos', section: 'correos', icon: ICON_MAIL, group: 'data' },
+  { href: '/analitica-moodle', label: 'Analitica Moodle', section: 'analitica-moodle', icon: ICON_CHART, group: 'data' },
   { href: '/automatizacion-banner', label: 'Banner', section: 'automatizacion-banner', icon: ICON_ZAP, group: 'automation' },
   { href: '/automatizacion-moodle', label: 'Moodle Sidecar', section: 'automatizacion-moodle', icon: ICON_SETTINGS, group: 'automation' },
 ];
@@ -174,7 +187,7 @@ function SidebarContent({
   );
 }
 
-export function Sidebar() {
+export default function Sidebar() {
   const pathname = usePathname();
   const active = getActiveSection(pathname);
   const [mobileOpen, setMobileOpen] = useState(false);

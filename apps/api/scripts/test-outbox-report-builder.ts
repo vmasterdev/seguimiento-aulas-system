@@ -72,6 +72,94 @@ function runCoordinatorReportSmokeTest() {
   assert.match(html, /Detalle por NRC - TRABAJO SOCIAL - CENTRO/);
 }
 
+function runExecutionPhaseSmokeTest() {
+  const rows: CourseCoordinationRow[] = [
+    {
+      periodCode: '202610',
+      periodLabel: 'Periodo 202610',
+      teacherName: 'Docente Uno',
+      nrc: '1001',
+      subject: 'Asignatura Uno',
+      moment: '1',
+      status: 'REVISADO',
+      template: 'INNOVAME',
+      score: 50,
+      coordinationKey: 'coord-a',
+      coordinationName: 'COORD A',
+    },
+    {
+      periodCode: '202610',
+      periodLabel: 'Periodo 202610',
+      teacherName: 'Docente Dos',
+      nrc: '1002',
+      subject: 'Asignatura Dos',
+      moment: '1',
+      status: 'REVISADO',
+      template: 'INNOVAME',
+      score: 40,
+      coordinationKey: 'coord-a',
+      coordinationName: 'COORD A',
+    },
+    {
+      periodCode: '202615',
+      periodLabel: 'Periodo 202615',
+      teacherName: 'Docente Tres',
+      nrc: '1003',
+      subject: 'Asignatura Tres',
+      moment: 'MD1',
+      status: 'REVISADO',
+      template: 'CRIBA',
+      score: 35,
+      coordinationKey: 'coord-b',
+      coordinationName: 'COORD B',
+    },
+    {
+      periodCode: '202615',
+      periodLabel: 'Periodo 202615',
+      teacherName: 'Docente Cuatro',
+      nrc: '1004',
+      subject: 'Asignatura Cuatro',
+      moment: 'MD1',
+      status: 'REVISADO',
+      template: 'CRIBA',
+      score: 25,
+      coordinationKey: 'coord-b',
+      coordinationName: 'COORD B',
+    },
+  ];
+
+  const summary = summarizeGlobalRows(rows, 'EJECUCION', ['202610', '202615'], ['MD1', '1']);
+  assert.equal(summary.totalCourses, 4);
+  assert.equal(summary.excellent, 1);
+  assert.equal(summary.good, 1);
+  assert.equal(summary.acceptable, 1);
+  assert.equal(summary.unsatisfactory, 1);
+
+  const html = buildTeacherHtml({
+    teacherName: 'Docente Ejecucion',
+    phase: 'EJECUCION',
+    moment: '1',
+    periodCode: '202610',
+    rows: [
+      {
+        nrc: '10-1001',
+        reviewedNrc: '10-1001',
+        moment: '1',
+        resultType: 'REVISADO',
+        subject: 'Asignatura Uno',
+        program: 'COORD A',
+        template: 'INNOVAME',
+        score: 50,
+        observations: 'Cumple completamente con ejecucion.',
+      },
+    ],
+  });
+
+  assert.match(html, /50\.0\/50/);
+  assert.match(html, /Excelente/);
+  assert.match(html, /\(0-50\)/);
+}
+
 function runGlobalReportSmokeTest() {
   const rows: CourseCoordinationRow[] = [
     {
@@ -164,6 +252,7 @@ function runGlobalReportSmokeTest() {
 
 runTeacherReportSmokeTest();
 runCoordinatorReportSmokeTest();
+runExecutionPhaseSmokeTest();
 runGlobalReportSmokeTest();
 
 console.log('outbox report builder smoke tests: ok');

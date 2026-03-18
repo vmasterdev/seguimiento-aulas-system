@@ -347,6 +347,11 @@ export async function getBannerBatchOptions(): Promise<BannerBatchOptions> {
   return {
     sources: [
       {
+        code: 'ALL',
+        label: 'Todos los NRC cargados por RPACA',
+        description: 'Recorre todos los cursos importados desde RPACA para los periodos seleccionados.',
+      },
+      {
         code: 'MISSING_TEACHER',
         label: 'Solo NRC sin docente enlazado',
         description: 'Usa Banner para completar los cursos que todavia no tienen docente en la base.',
@@ -356,16 +361,11 @@ export async function getBannerBatchOptions(): Promise<BannerBatchOptions> {
         label: 'NRC que Banner aun no resuelve',
         description: 'Incluye cursos sin revision Banner o con resultado distinto a ENCONTRADO.',
       },
-      {
-        code: 'ALL',
-        label: 'Todos los NRC cargados por RPACA',
-        description: 'Recorre todos los cursos importados desde RPACA para los periodos seleccionados.',
-      },
     ],
     years,
     periods,
     defaults: {
-      source: 'MISSING_TEACHER',
+      source: 'ALL',
       selectedPeriodCodes: defaultPeriods,
       latestYear,
     },

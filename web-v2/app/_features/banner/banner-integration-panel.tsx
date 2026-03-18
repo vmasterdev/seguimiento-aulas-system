@@ -4,12 +4,13 @@ import { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
 
 type BannerMode = 'lookup' | 'batch' | 'retry-errors' | 'export';
+type BannerAction = 'start' | 'cancel' | 'import' | 'auth-start' | 'auth-confirm';
 type BatchInputMode = 'DATABASE' | 'MANUAL_INPUT';
 type BannerBatchSource = 'ALL' | 'MISSING_TEACHER' | 'PENDING_BANNER';
 
 type BannerRunnerRun = {
   id: string;
-  command: BannerMode;
+  command: BannerMode | 'auth';
   args: string[];
   startedAt: string;
   endedAt?: string;
@@ -17,6 +18,7 @@ type BannerRunnerRun = {
   exitCode?: number | null;
   pid?: number;
   logPath: string;
+  awaitingInput?: boolean;
 };
 
 type BannerStatusResponse = {
@@ -28,6 +30,31 @@ type BannerStatusResponse = {
     current: BannerRunnerRun | null;
     lastRun: BannerRunnerRun | null;
     logTail: string;
+    liveActivity: {
+      queryId: string | null;
+      totalRequested: number | null;
+      workers: number | null;
+      processed: number;
+      pending: number | null;
+      recentEvents: Array<{
+        at: string;
+        stage: 'PREPARING' | 'LOOKUP' | 'DONE' | 'WARN';
+        message: string;
+        worker: number | null;
+        queryId: string | null;
+        nrc: string | null;
+        period: string | null;
+        status: string | null;
+      }>;
+      workerStates: Array<{
+        worker: number;
+        at: string;
+        stage: 'PREPARING' | 'LOOKUP' | 'DONE' | 'WARN';
+        nrc: string | null;
+        period: string | null;
+        status: string | null;
+      }>;
+    } | null;
   };
   exportSummary: {
     latestFile: string | null;
@@ -52,6 +79,14 @@ type BannerActionResponse = {
   ok: boolean;
   action: string;
   result?: unknown;
+};
+
+type BannerConfigResponse = {
+  ok: boolean;
+  configFile?: string | null;
+  configuredProjectRoot?: string | null;
+  projectRoot: string;
+  projectRootExists: boolean;
 };
 
 type BannerBatchOptions = {
@@ -126,6 +161,15 @@ const START_BUTTON_LABELS: Record<BannerMode, string> = {
   export: 'Exportar resultados',
 };
 
+const LIVE_STAGE_LABELS: Record<'PREPARING' | 'LOOKUP' | 'DONE' | 'WARN', string> = {
+  PREPARING: 'Preparando',
+  LOOKUP: 'Consultando',
+  DONE: 'Finalizado',
+  WARN: 'Reintentando',
+};
+
+const BANNER_STABLE_WORKERS = 1;
+
 function basename(filePath: string | null | undefined) {
   if (!filePath) return 'Sin archivo';
   const normalized = filePath.replace(/\\/g, '/');
@@ -151,7 +195,26 @@ function parseStartMessage(data: unknown) {
   return 'Proceso Banner iniciado.';
 }
 
-export function BannerIntegrationPanel() {
+function parseAutoImportMessage(data: unknown) {
+  if (!data || typeof data !== 'object') {
+    return 'Lote Banner iniciado. Al terminar se importara automaticamente a la base.';
+  }
+  const payload = data as Record<string, unknown>;
+  const result = payload.result as Record<string, unknown> | undefined;
+  const batch = result?.batch as Record<string, unknown> | undefined;
+  if (batch && typeof batch.total === 'number') {
+    return `Lote Banner iniciado con ${batch.total} NRC. Al terminar se importara automaticamente a la base.`;
+  }
+  return 'Lote Banner iniciado. Al terminar se importara automaticamente a la base.';
+}
+
+function extractQueryIdFromLog(logTail: string | undefined) {
+  if (!logTail) return null;
+  const match = logTail.match(/queryId:\s*'([^']+)'|"queryId"\s*:\s*"([^"]+)"/);
+  return match?.[1] ?? match?.[2] ?? null;
+}
+
+export default function BannerIntegrationPanel() {
   const [status, setStatus] = useState<BannerStatusResponse | null>(null);
   const [batchOptions, setBatchOptions] = useState<BannerBatchOptions | null>(null);
   const [batchPreview, setBatchPreview] = useState<BannerBatchPreview | null>(null);
@@ -162,23 +225,29 @@ export function BannerIntegrationPanel() {
 
   const [mode, setMode] = useState<BannerMode>('batch');
   const [batchInputMode, setBatchInputMode] = useState<BatchInputMode>('DATABASE');
-  const [batchSource, setBatchSource] = useState<BannerBatchSource>('MISSING_TEACHER');
+  const [batchSource, setBatchSource] = useState<BannerBatchSource>('ALL');
   const [selectedPeriodCodes, setSelectedPeriodCodes] = useState<string[]>([]);
 
   const [nrc, setNrc] = useState('72305');
   const [period, setPeriod] = useState('202615');
   const [queryName, setQueryName] = useState('banner-rpaca');
+  const [batchLimit, setBatchLimit] = useState('');
   const [inputPath, setInputPath] = useState('');
-  const [workers, setWorkers] = useState('3');
   const [resume, setResume] = useState(false);
   const [queryId, setQueryId] = useState('');
   const [exportFormat, setExportFormat] = useState('csv,json');
   const [importPath, setImportPath] = useState('');
+  const [projectRootInput, setProjectRootInput] = useState('');
 
   const canStart = useMemo(() => !status?.runner.running && !actionLoading, [status?.runner.running, actionLoading]);
   const latestPreviewQueryId = status?.exportSummary.preview[0]?.queryId ?? '';
   const currentModeHelp = MODE_HELP[mode];
   const latestYear = batchOptions?.defaults.latestYear ?? null;
+  const latestRunQueryId = extractQueryIdFromLog(status?.runner.logTail);
+  const liveActivity = status?.runner.liveActivity ?? null;
+  const bannerRootPreview = projectRootInput.trim() || (status?.projectRoot ?? '');
+  const projectRootLooksMounted = bannerRootPreview.startsWith('/mnt/');
+  const projectRootLooksLinux = bannerRootPreview.startsWith('/home/');
 
   async function loadAll() {
     try {
@@ -190,6 +259,7 @@ export function BannerIntegrationPanel() {
       ]);
       setStatus(statusData);
       setBatchOptions(batchOptionsData);
+      setProjectRootInput(statusData.projectRoot);
 
       if (!selectedPeriodCodes.length && batchOptionsData.defaults.selectedPeriodCodes.length) {
         setSelectedPeriodCodes(batchOptionsData.defaults.selectedPeriodCodes);
@@ -201,6 +271,35 @@ export function BannerIntegrationPanel() {
       setMessage(`No fue posible cargar Banner: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function saveProjectRoot() {
+    if (!projectRootInput.trim()) {
+      setMessage('Escribe la ruta del proyecto Banner antes de guardarla.');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setMessage('');
+      const response = await fetchJson<BannerConfigResponse>('/api/banner/config', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ projectRoot: projectRootInput.trim() }),
+      });
+      const statusData = await fetchJson<BannerStatusResponse>('/api/banner/status');
+      setStatus(statusData);
+      setProjectRootInput(statusData.projectRoot);
+      setMessage(
+        response.projectRootExists
+          ? 'Ruta del proyecto Banner guardada. La interfaz ya usara ese runner.'
+          : 'La ruta se guardo, pero no existe en disco. Revisa el path antes de correr Banner.',
+      );
+    } catch (error) {
+      setMessage(`No fue posible guardar la ruta de Banner: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setActionLoading(false);
     }
   }
 
@@ -221,21 +320,51 @@ export function BannerIntegrationPanel() {
   }, [status?.runner.running]);
 
   useEffect(() => {
-    if (!queryId.trim() && latestPreviewQueryId) {
+    if ((mode === 'retry-errors' || mode === 'export') && !queryId.trim() && latestPreviewQueryId) {
       setQueryId(latestPreviewQueryId);
     }
-  }, [latestPreviewQueryId, queryId]);
+  }, [latestPreviewQueryId, mode, queryId]);
 
   useEffect(() => {
     setBatchPreview(null);
   }, [selectedPeriodCodes, batchSource, batchInputMode]);
 
-  async function runAction(action: 'start' | 'cancel' | 'import', payload?: Record<string, unknown>) {
+  async function runAction(action: BannerAction, payload?: Record<string, unknown>) {
     return fetchJson<BannerActionResponse>('/api/banner/actions', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
       body: JSON.stringify({ action, payload: payload ?? {} }),
     });
+  }
+
+  async function startBannerAuth() {
+    try {
+      setActionLoading(true);
+      setMessage('');
+      await runAction('auth-start');
+      const statusData = await fetchJson<BannerStatusResponse>('/api/banner/status');
+      setStatus(statusData);
+      setMessage('Se abrio el login de Banner. Completa SSO/2FA en Edge y luego pulsa "Guardar sesion Banner".');
+    } catch (error) {
+      setMessage(`No fue posible iniciar autenticacion Banner: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function confirmBannerAuth() {
+    try {
+      setActionLoading(true);
+      setMessage('');
+      await runAction('auth-confirm');
+      const statusData = await fetchJson<BannerStatusResponse>('/api/banner/status');
+      setStatus(statusData);
+      setMessage('Guardando sesion Banner. Espera a que el proceso termine y luego vuelve a ejecutar la consulta.');
+    } catch (error) {
+      setMessage(`No fue posible guardar la sesion Banner: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setActionLoading(false);
+    }
   }
 
   async function previewDatabaseBatch() {
@@ -253,6 +382,7 @@ export function BannerIntegrationPanel() {
         body: JSON.stringify({
           source: batchSource,
           periodCodes: selectedPeriodCodes,
+          limit: batchLimit.trim() ? Number(batchLimit) || undefined : undefined,
         }),
       });
       setBatchPreview(response);
@@ -264,6 +394,30 @@ export function BannerIntegrationPanel() {
     }
   }
 
+  async function startDatabaseBatch(autoImportToSystem = false) {
+    if (!selectedPeriodCodes.length) {
+      setMessage('Selecciona al menos un periodo para ejecutar el lote Banner.');
+      return;
+    }
+
+    const response = await fetchJson<BannerActionResponse>('/api/banner/batch/start', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({
+        source: batchSource,
+        periodCodes: selectedPeriodCodes,
+        queryName: queryName.trim() || undefined,
+        queryId: queryId.trim() || undefined,
+        limit: batchLimit.trim() ? Number(batchLimit) || undefined : undefined,
+        workers: BANNER_STABLE_WORKERS,
+        resume,
+        autoImportToSystem,
+      }),
+    });
+
+    setMessage(autoImportToSystem ? parseAutoImportMessage(response) : parseStartMessage(response));
+  }
+
   async function startBanner() {
     try {
       setActionLoading(true);
@@ -271,25 +425,7 @@ export function BannerIntegrationPanel() {
       setImportResult(null);
 
       if (mode === 'batch' && batchInputMode === 'DATABASE') {
-        if (!selectedPeriodCodes.length) {
-          setMessage('Selecciona al menos un periodo para ejecutar el lote Banner.');
-          return;
-        }
-
-        const response = await fetchJson<BannerActionResponse>('/api/banner/batch/start', {
-          method: 'POST',
-          headers: { 'Content-Type': 'application/json' },
-          body: JSON.stringify({
-            source: batchSource,
-            periodCodes: selectedPeriodCodes,
-            queryName: queryName.trim() || undefined,
-            queryId: queryId.trim() || undefined,
-            workers: Number(workers) || 1,
-            resume,
-          }),
-        });
-
-        setMessage(parseStartMessage(response));
+        await startDatabaseBatch(false);
       } else if (mode === 'lookup') {
         await runAction('start', {
           command: 'lookup',
@@ -304,8 +440,8 @@ export function BannerIntegrationPanel() {
           input: inputPath,
           period,
           queryName,
-          queryId: queryId || undefined,
-          workers: Number(workers) || 1,
+          queryId: queryId.trim() || undefined,
+          workers: BANNER_STABLE_WORKERS,
           resume,
         });
         setMessage('Lote Banner manual en ejecucion.');
@@ -313,7 +449,7 @@ export function BannerIntegrationPanel() {
         await runAction('start', {
           command: 'retry-errors',
           queryId,
-          workers: Number(workers) || 1,
+          workers: BANNER_STABLE_WORKERS,
         });
         setMessage('Reintento de errores en ejecucion.');
       } else {
@@ -329,6 +465,30 @@ export function BannerIntegrationPanel() {
       setStatus(statusData);
     } catch (error) {
       setMessage(`No fue posible iniciar Banner: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function startBannerAndImport() {
+    if (!(mode === 'batch' && batchInputMode === 'DATABASE')) {
+      setMessage('Este atajo solo funciona con lotes armados desde los periodos cargados por RPACA.');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setMessage('');
+      setImportResult(null);
+      await startDatabaseBatch(true);
+      const statusData = await fetchJson<BannerStatusResponse>('/api/banner/status');
+      setStatus(statusData);
+    } catch (error) {
+      setMessage(
+        `No fue posible iniciar la busqueda con importacion automatica: ${
+          error instanceof Error ? error.message : String(error)
+        }`,
+      );
     } finally {
       setActionLoading(false);
     }
@@ -383,6 +543,12 @@ export function BannerIntegrationPanel() {
     setSelectedPeriodCodes((current) => unique([...current, ...yearPeriods]));
   }
 
+  const authNeedsAttention =
+    status?.runner.current?.command === 'auth' ||
+    /Fallback a fetch del navegador por respuesta SSO\/HTML|No se detecto la pantalla SSASECT|No se detecto la pantalla de inicio de sesion|Sign in to your account|commonauth|Service Invocation Failed|La sesion Banner expiro|SSASECT no esta disponible/i.test(
+      status?.runner.logTail ?? '',
+    );
+
   return (
     <article className="panel">
       <h2>Automatizacion Banner</h2>
@@ -407,10 +573,77 @@ export function BannerIntegrationPanel() {
         <span className="badge">Ultimo export: {status?.exportSummary.rowCount ?? 0} filas</span>
       </div>
 
+      {status?.runner.lastRun ? (
+        <div className="actions" style={{ marginTop: 8 }}>
+          <strong>Ultima corrida:</strong> {status.runner.lastRun.command} | {status.runner.lastRun.status}
+          {latestRunQueryId ? ` | queryId ${latestRunQueryId}` : ''}
+          {status.runner.lastRun.startedAt ? ` | inicio ${status.runner.lastRun.startedAt}` : ''}
+          {status.runner.lastRun.endedAt ? ` | fin ${status.runner.lastRun.endedAt}` : ''}
+        </div>
+      ) : null}
+
       <div className="actions" style={{ marginTop: 8 }}>
         <span className="code">Proyecto externo: {status?.projectRoot ?? 'N/A'}</span>
         <br />
         <span className="code">Ultimo archivo exportado: {basename(status?.exportSummary.latestFile)}</span>
+      </div>
+
+      <div className="subtitle" style={{ marginTop: 12 }}>
+        Configuracion del runner Banner
+      </div>
+      <div className="controls">
+        <label style={{ minWidth: 460 }}>
+          Ruta del proyecto Banner
+          <input
+            value={projectRootInput}
+            onChange={(event) => setProjectRootInput(event.target.value)}
+            placeholder="/home/uvan/banner-docente-runner"
+          />
+        </label>
+        <button onClick={saveProjectRoot} disabled={loading || actionLoading || !!status?.runner.running}>
+          Guardar ruta Banner
+        </button>
+      </div>
+      <div className="actions" style={{ marginTop: 8 }}>
+        Esta interfaz puede trabajar con cualquier copia del proyecto Banner, pero en WSL conviene usar una ruta Linux
+        para evitar bloqueos por <span className="code">/mnt/c</span>.
+        <br />
+        {projectRootLooksLinux ? (
+          <span>
+            Ruta actual en Linux: <span className="code">{bannerRootPreview}</span>
+          </span>
+        ) : projectRootLooksMounted ? (
+          <span>
+            Ruta actual en <span className="code">/mnt</span>: <span className="code">{bannerRootPreview}</span>. Se
+            recomienda moverla a una copia Linux del runner.
+          </span>
+        ) : (
+          <span>Ruta actual: <span className="code">{bannerRootPreview || 'Sin configurar'}</span></span>
+        )}
+      </div>
+
+      {authNeedsAttention ? (
+        <div className="message" style={{ marginTop: 10 }}>
+          Si Banner abre Ellucian pero no carga SSASECT, primero usa el login manual. Completa SSO/2FA en Edge y luego
+          pulsa guardar sesion.
+        </div>
+      ) : null}
+
+      <div className="controls" style={{ marginTop: 10 }}>
+        <button onClick={startBannerAuth} disabled={loading || actionLoading || !!status?.runner.running}>
+          Abrir login Banner
+        </button>
+        <button
+          onClick={confirmBannerAuth}
+          disabled={
+            loading ||
+            actionLoading ||
+            status?.runner.current?.command !== 'auth' ||
+            !status.runner.current?.awaitingInput
+          }
+        >
+          Guardar sesion Banner
+        </button>
       </div>
 
       <div className="subtitle">Paso 1. Elegir la tarea</div>
@@ -426,8 +659,8 @@ export function BannerIntegrationPanel() {
         </label>
         {(mode === 'batch' || mode === 'retry-errors') ? (
           <label>
-            Workers
-            <input value={workers} onChange={(event) => setWorkers(event.target.value)} placeholder="3" />
+            Workers efectivos
+            <input value={String(BANNER_STABLE_WORKERS)} readOnly />
           </label>
         ) : null}
         {(mode === 'lookup' || mode === 'batch') ? (
@@ -440,6 +673,12 @@ export function BannerIntegrationPanel() {
       <div className="actions" style={{ marginTop: 8 }}>
         <strong>{MODE_LABELS[mode]}:</strong> {currentModeHelp}
       </div>
+      {(mode === 'batch' || mode === 'retry-errors') ? (
+        <div className="actions" style={{ marginTop: 8 }}>
+          Modo estable activo: Banner corre con <span className="code">1 worker</span> para evitar errores del
+          backend paralelo y mantener la actualizacion del sistema consistente.
+        </div>
+      ) : null}
 
       {mode === 'lookup' ? (
         <div className="controls" style={{ marginTop: 10 }}>
@@ -507,6 +746,14 @@ export function BannerIntegrationPanel() {
                       </option>
                     ))}
                   </select>
+                </label>
+                <label>
+                  Limite opcional de NRC
+                  <input
+                    value={batchLimit}
+                    onChange={(event) => setBatchLimit(event.target.value)}
+                    placeholder="Ejemplo: 20"
+                  />
                 </label>
               </div>
               <div className="actions" style={{ marginTop: 8 }}>
@@ -592,6 +839,7 @@ export function BannerIntegrationPanel() {
                     <span className="badge">Total lote: {batchPreview.total}</span>
                     <span className="badge">Periodos: {batchPreview.filters.periodCodes.length}</span>
                     <span className="badge">Tipo: {batchSource}</span>
+                    {batchPreview.filters.limit ? <span className="badge">Limite: {batchPreview.filters.limit}</span> : null}
                   </div>
                   <div className="badges" style={{ marginTop: 8 }}>
                     {Object.entries(batchPreview.byYear).map(([key, value]) => (
@@ -695,15 +943,115 @@ export function BannerIntegrationPanel() {
       ) : null}
 
       <div className="controls" style={{ marginTop: 10 }}>
+        {mode === 'batch' && batchInputMode === 'DATABASE' ? (
+          <button
+            className="btn-next-action"
+            onClick={startBannerAndImport}
+            disabled={!canStart || !selectedPeriodCodes.length}
+          >
+            {actionLoading ? 'Procesando...' : 'Buscar docentes y actualizar base'}
+          </button>
+        ) : null}
         <button onClick={startBanner} disabled={!canStart}>
-          {actionLoading ? 'Procesando...' : START_BUTTON_LABELS[mode]}
+          {actionLoading
+            ? 'Procesando...'
+            : mode === 'batch' && batchInputMode === 'DATABASE'
+              ? 'Solo buscar en Banner'
+              : START_BUTTON_LABELS[mode]}
         </button>
         <button onClick={cancelBanner} disabled={!status?.runner.running || actionLoading}>
           Cancelar proceso Banner
         </button>
       </div>
+      {mode === 'batch' && batchInputMode === 'DATABASE' ? (
+        <div className="actions" style={{ marginTop: 8 }}>
+          El boton verde <span className="code">Buscar docentes y actualizar base</span> hace el flujo completo en un
+          clic. El otro boton solo consulta Banner y deja el resultado sin importar.
+        </div>
+      ) : null}
 
-      <div className="subtitle">Paso 3. Revisar el ultimo export generado</div>
+      {liveActivity ? (
+        <>
+          <div className="subtitle">Seguimiento en vivo del lote</div>
+          <div className="badges" style={{ marginTop: 8 }}>
+            {liveActivity.queryId ? <span className="badge">Query ID: {liveActivity.queryId}</span> : null}
+            {liveActivity.totalRequested !== null ? (
+              <span className="badge">Total: {liveActivity.totalRequested}</span>
+            ) : null}
+            <span className="badge">Procesados: {liveActivity.processed}</span>
+            {liveActivity.pending !== null ? <span className="badge">Pendientes: {liveActivity.pending}</span> : null}
+            {liveActivity.workers !== null ? <span className="badge">Workers: {liveActivity.workers}</span> : null}
+          </div>
+
+          {liveActivity.workerStates.length ? (
+            <>
+              <div className="actions" style={{ marginTop: 8 }}>
+                Ultimo movimiento reportado por cada worker.
+              </div>
+              <table style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th>Worker</th>
+                    <th>Etapa</th>
+                    <th>NRC</th>
+                    <th>Periodo</th>
+                    <th>Estado</th>
+                    <th>Hora</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {liveActivity.workerStates.map((item) => (
+                    <tr key={`${item.worker}-${item.at}`}>
+                      <td>{item.worker}</td>
+                      <td>{LIVE_STAGE_LABELS[item.stage]}</td>
+                      <td>{item.nrc ?? '-'}</td>
+                      <td>{item.period ?? '-'}</td>
+                      <td>{item.status ?? '-'}</td>
+                      <td>{item.at}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
+          ) : null}
+
+          <div className="actions" style={{ marginTop: 8 }}>
+            Ultimos NRC detectados en el seguimiento del proceso. Esta tabla se alimenta del log en curso y cambia
+            mientras el lote avanza.
+          </div>
+          <table style={{ marginTop: 8 }}>
+            <thead>
+              <tr>
+                <th>Hora</th>
+                <th>Worker</th>
+                <th>Etapa</th>
+                <th>NRC</th>
+                <th>Periodo</th>
+                <th>Estado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {liveActivity.recentEvents.map((item) => (
+                <tr key={`${item.at}-${item.worker ?? 'na'}-${item.nrc ?? 'na'}-${item.stage}`}>
+                  <td>{item.at}</td>
+                  <td>{item.worker ?? '-'}</td>
+                  <td>{LIVE_STAGE_LABELS[item.stage]}</td>
+                  <td>{item.nrc ?? '-'}</td>
+                  <td>{item.period ?? '-'}</td>
+                  <td>{item.status ?? '-'}</td>
+                </tr>
+              ))}
+              {!liveActivity.recentEvents.length ? (
+                <tr>
+                  <td colSpan={6}>Aun no hay NRC visibles en el log del proceso.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </>
+      ) : null}
+
+      <div className="subtitle">Paso 3. Revisar el ultimo export disponible</div>
       <div className="badges">
         {Object.entries(status?.exportSummary.statusCounts ?? {}).map(([key, value]) => (
           <span className="badge" key={key}>
@@ -712,7 +1060,9 @@ export function BannerIntegrationPanel() {
         ))}
       </div>
       <div className="actions" style={{ marginTop: 8 }}>
-        Usa este bloque para validar si Banner encontro docentes, si quedaron errores y cual fue el archivo mas reciente.
+        Este bloque muestra el export mas reciente. Cuando una corrida termina bien, la interfaz intenta exportarla de forma automatica para que aqui veas ese mismo resultado.
+        <br />
+        No es seguimiento en vivo: mientras Banner corre, revisa el bloque <span className="code">Seguimiento del proceso Banner</span>. La tabla de abajo cambia cuando la corrida termina y el export queda listo.
       </div>
       <table style={{ marginTop: 10 }}>
         <thead>

@@ -1,20 +1,23 @@
-import { BadRequestException, ConflictException, Injectable } from '@nestjs/common';
+import { BadRequestException, ConflictException, Inject, Injectable } from '@nestjs/common';
 import fs from 'node:fs';
 import path from 'node:path';
 import { ChildProcessWithoutNullStreams, execFileSync, spawn } from 'node:child_process';
 import { loadSidecarConfig, resolveAdapterInputPath, resolveProjectRoot } from './adapter.logic';
 import {
   MoodleSidecarBatchService,
+  type PrepareExtractionBatchInput,
   type PrepareSidecarBatchInput,
   type PrepareRevalidateBatchInput,
 } from './moodle-sidecar-batch.service';
 
-type SidecarCommand = 'classify' | 'revalidate' | 'backup' | 'gui';
+type SidecarCommand = 'classify' | 'revalidate' | 'backup' | 'attendance' | 'activity' | 'participants' | 'gui';
 
 export type StartSidecarRunOptions = {
   command: SidecarCommand;
   inputDir?: string;
+  inputJson?: string;
   output?: string;
+  outputDir?: string;
   workers?: number;
   browser?: 'edge' | 'chrome';
   python?: string;
@@ -42,11 +45,12 @@ type RunInfo = {
   exitCode?: number | null;
   pid?: number;
   logPath: string;
+  outputPath?: string;
 };
 
 @Injectable()
 export class MoodleSidecarRunnerService {
-  constructor(private readonly batchService: MoodleSidecarBatchService) {}
+  constructor(@Inject(MoodleSidecarBatchService) private readonly batchService: MoodleSidecarBatchService) {}
 
   private current: (RunInfo & { process: ChildProcessWithoutNullStreams; cancelRequested: boolean }) | null = null;
   private lastRun: RunInfo | null = null;
@@ -57,7 +61,24 @@ export class MoodleSidecarRunnerService {
       current: this.current ? this.publicRun(this.current) : null,
       lastRun: this.lastRun,
       logTail: this.readLogTail(this.current?.logPath ?? this.lastRun?.logPath),
+      artifactSummary: this.readArtifactSummary(this.current?.outputPath ?? this.lastRun?.outputPath),
     };
+  }
+
+  getBatchOptions() {
+    return this.batchService.getOptions();
+  }
+
+  previewBatch(input: PrepareSidecarBatchInput) {
+    return this.batchService.preview(input);
+  }
+
+  previewRevalidateBatch(input: PrepareRevalidateBatchInput) {
+    return this.batchService.previewRevalidate(input);
+  }
+
+  previewExtractionBatch(input: PrepareExtractionBatchInput) {
+    return this.batchService.previewExtraction(input);
   }
 
   start(options: StartSidecarRunOptions) {
@@ -73,8 +94,8 @@ export class MoodleSidecarRunnerService {
       ? this.resolveWindowsCommandLauncher()
       : (options.python?.trim() || (config as any)?.runtime?.pythonCommand || 'python3');
     const args = useWindowsHost
-      ? ['/c', 'py', '-3', this.toWindowsPath(script), options.command]
-      : [script, options.command];
+      ? ['/c', 'py', '-3', '-u', this.toWindowsPath(script), options.command]
+      : ['-u', script, options.command];
     const nestedPythonCommand = this.resolveNestedPythonCommand(options.python, useWindowsHost, config);
     if (options.command === 'classify') {
       if (options.inputDir?.trim()) args.push('--input-dir', this.resolveHostPath(root, options.inputDir, useWindowsHost));
@@ -106,6 +127,15 @@ export class MoodleSidecarRunnerService {
       if (options.keepOpen) args.push('--keep-open');
     }
 
+    if (options.command === 'attendance' || options.command === 'activity' || options.command === 'participants') {
+      if (options.inputJson?.trim()) args.push('--input-json', this.resolveHostPath(root, options.inputJson, useWindowsHost));
+      if (options.outputDir?.trim()) args.push('--output-dir', this.resolveHostPath(root, options.outputDir, useWindowsHost));
+      if (options.browser) args.push('--browser', options.browser);
+      if (options.headless) args.push('--headless');
+      if (options.loginWaitSeconds) args.push('--login-wait-seconds', String(options.loginWaitSeconds));
+      if (options.keepOpen) args.push('--keep-open');
+    }
+
     if (nestedPythonCommand) {
       args.push('--python', nestedPythonCommand);
     }
@@ -123,7 +153,10 @@ export class MoodleSidecarRunnerService {
     try {
       child = spawn(python, args, {
         cwd: root,
-        env: process.env,
+        env: {
+          ...process.env,
+          PYTHONUNBUFFERED: '1',
+        },
         stdio: 'pipe',
       });
     } catch (error) {
@@ -135,6 +168,12 @@ export class MoodleSidecarRunnerService {
 
     const runId = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
     const startedAt = new Date().toISOString();
+    const outputPath =
+      (options.command === 'attendance' || options.command === 'activity' || options.command === 'participants') && options.outputDir?.trim()
+        ? this.resolvePath(root, options.outputDir)
+        : (options.command === 'classify' || options.command === 'revalidate') && options.output?.trim()
+          ? this.resolvePath(root, options.output)
+          : undefined;
     this.current = {
       id: runId,
       command: options.command,
@@ -143,6 +182,7 @@ export class MoodleSidecarRunnerService {
       status: 'RUNNING',
       pid: child.pid,
       logPath,
+      outputPath,
       process: child,
       cancelRequested: false,
     };
@@ -172,6 +212,7 @@ export class MoodleSidecarRunnerService {
         exitCode: code,
         pid: child.pid,
         logPath,
+        outputPath,
       };
       this.lastRun = done;
       this.current = null;
@@ -253,6 +294,99 @@ export class MoodleSidecarRunnerService {
     };
   }
 
+  async startAttendanceFromDatabase(
+    input: PrepareExtractionBatchInput &
+      Pick<StartSidecarRunOptions, 'browser' | 'python' | 'headless' | 'loginWaitSeconds' | 'keepOpen'>,
+  ) {
+    if (this.current) {
+      throw new ConflictException('Ya existe una ejecucion sidecar en curso. Debes esperar o cancelarla.');
+    }
+
+    const prepared = await this.batchService.prepareExtractionBatch(input, 'attendance');
+    if (prepared.total <= 0) {
+      throw new BadRequestException('No hay cursos con URL Moodle resuelta para exportar asistencia con esos filtros.');
+    }
+
+    const started = this.start({
+      command: 'attendance',
+      inputJson: prepared.inputPath,
+      outputDir: prepared.outputDir,
+      browser: input.browser,
+      python: input.python,
+      headless: input.headless,
+      loginWaitSeconds: input.loginWaitSeconds,
+      keepOpen: input.keepOpen,
+    });
+
+    return {
+      ...started,
+      batch: prepared,
+      outputPath: prepared.outputDir,
+    };
+  }
+
+  async startActivityFromDatabase(
+    input: PrepareExtractionBatchInput &
+      Pick<StartSidecarRunOptions, 'browser' | 'python' | 'headless' | 'loginWaitSeconds' | 'keepOpen'>,
+  ) {
+    if (this.current) {
+      throw new ConflictException('Ya existe una ejecucion sidecar en curso. Debes esperar o cancelarla.');
+    }
+
+    const prepared = await this.batchService.prepareExtractionBatch(input, 'activity');
+    if (prepared.total <= 0) {
+      throw new BadRequestException('No hay cursos con URL Moodle resuelta para exportar actividad con esos filtros.');
+    }
+
+    const started = this.start({
+      command: 'activity',
+      inputJson: prepared.inputPath,
+      outputDir: prepared.outputDir,
+      browser: input.browser,
+      python: input.python,
+      headless: input.headless,
+      loginWaitSeconds: input.loginWaitSeconds,
+      keepOpen: input.keepOpen,
+    });
+
+    return {
+      ...started,
+      batch: prepared,
+      outputPath: prepared.outputDir,
+    };
+  }
+
+  async startParticipantsFromDatabase(
+    input: PrepareExtractionBatchInput &
+      Pick<StartSidecarRunOptions, 'browser' | 'python' | 'headless' | 'loginWaitSeconds' | 'keepOpen'>,
+  ) {
+    if (this.current) {
+      throw new ConflictException('Ya existe una ejecucion sidecar en curso. Debes esperar o cancelarla.');
+    }
+
+    const prepared = await this.batchService.prepareExtractionBatch(input, 'participants');
+    if (prepared.total <= 0) {
+      throw new BadRequestException('No hay cursos con URL Moodle resuelta para extraer participantes con esos filtros.');
+    }
+
+    const started = this.start({
+      command: 'participants',
+      inputJson: prepared.inputPath,
+      outputDir: prepared.outputDir,
+      browser: input.browser,
+      python: input.python,
+      headless: input.headless,
+      loginWaitSeconds: input.loginWaitSeconds,
+      keepOpen: input.keepOpen,
+    });
+
+    return {
+      ...started,
+      batch: prepared,
+      outputPath: prepared.outputDir,
+    };
+  }
+
   async startRevalidateFromDatabase(
     input: PrepareRevalidateBatchInput &
       Pick<StartSidecarRunOptions, 'workers' | 'browser' | 'python' | 'headless' | 'output'>,
@@ -318,7 +452,14 @@ export class MoodleSidecarRunnerService {
   }
 
   private resolveWindowsCommandLauncher(): string {
-    return String(process.env.MOODLE_SIDECAR_WINDOWS_CMD_PATH ?? '').trim() || '/mnt/c/WINDOWS/system32/cmd.exe';
+    const configured = String(process.env.MOODLE_SIDECAR_WINDOWS_CMD_PATH ?? '').trim();
+    if (!configured) {
+      return process.platform === 'win32' ? 'cmd.exe' : '/mnt/c/WINDOWS/system32/cmd.exe';
+    }
+    if (process.platform === 'win32' && configured.startsWith('/mnt/')) {
+      return this.toWindowsPath(configured);
+    }
+    return configured;
   }
 
   private resolveNestedPythonCommand(
@@ -338,6 +479,17 @@ export class MoodleSidecarRunnerService {
   }
 
   private toWindowsPath(rawPath: string): string {
+    if (/^[A-Za-z]:[\\/]/.test(rawPath) || rawPath.startsWith('\\\\')) {
+      return rawPath;
+    }
+    if (process.platform === 'win32') {
+      if (rawPath.startsWith('/mnt/')) {
+        const drive = rawPath.slice(5, 6).toUpperCase();
+        const rest = rawPath.slice(6).replace(/\//g, '\\');
+        return `${drive}:${rest}`;
+      }
+      return rawPath.replace(/\//g, '\\');
+    }
     try {
       return execFileSync('wslpath', ['-w', rawPath], { encoding: 'utf8' }).trim();
     } catch (error) {
@@ -358,7 +510,12 @@ export class MoodleSidecarRunnerService {
       exitCode: run.exitCode,
       pid: run.pid,
       logPath: run.logPath,
+      outputPath: run.outputPath,
     };
+  }
+
+  getArtifactSummary(outputPath?: string) {
+    return this.readArtifactSummary(outputPath);
   }
 
   private buildEmptyBatchMessage(source: PrepareSidecarBatchInput['source'], command: 'classify' | 'backup') {
@@ -390,6 +547,18 @@ export class MoodleSidecarRunnerService {
       return content.slice(content.length - maxChars);
     } catch {
       return '';
+    }
+  }
+
+  private readArtifactSummary(outputPath?: string) {
+    if (!outputPath) return null;
+    try {
+      const stat = fs.statSync(outputPath);
+      const summaryPath = stat.isDirectory() ? path.join(outputPath, 'summary.json') : '';
+      if (!summaryPath || !fs.existsSync(summaryPath)) return null;
+      return JSON.parse(fs.readFileSync(summaryPath, 'utf8'));
+    } catch {
+      return null;
     }
   }
 }

@@ -1,6 +1,6 @@
 # Ops Studio V2
 
-Nueva interfaz paralela para `seguimiento-aulas-system`.
+Frontend principal de `seguimiento-aulas-system`.
 
 ## Objetivo
 
@@ -12,7 +12,7 @@ Unificar en una sola pantalla:
 - integracion Moodle sidecar
 - centro de archivos y salidas operativas
 
-Sin tocar el frontend actual en `apps/web`.
+Asumiendo `web-v2` como la unica interfaz web activa del sistema.
 
 ## Arranque
 
@@ -27,7 +27,9 @@ pnpm -C web-v2 build
 pnpm -C web-v2 start
 ```
 
-Puerto por defecto: `3010`
+Puerto por defecto: `3000`
+
+Este es el frontend que arranca por defecto con `pnpm stack:up`.
 
 ## Variables utiles
 

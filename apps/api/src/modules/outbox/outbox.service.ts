@@ -23,6 +23,7 @@ import {
   resolveDeliveryMode,
 } from './outbox.delivery';
 import {
+  buildWorkshopInvitationHtml,
   buildCoordinatorHtml,
   buildGlobalHtml,
   buildTeacherHtml,
@@ -36,6 +37,7 @@ import {
   OutboxPreviewByCourseSchema,
   OutboxResendByCourseSchema,
   OutboxResendUpdatedSchema,
+  OutboxWorkshopInvitationPrepareSchema,
 } from './outbox.schemas';
 import type {
   CourseCoordinationRow,
@@ -70,8 +72,12 @@ export class OutboxService {
   }
 
   private normalizeGlobalSelectedPeriods(rawPeriodCodes: string[] | undefined, fallbackPeriodCode: string): string[] {
+    const fallbackYearPrefix = String(fallbackPeriodCode ?? '')
+      .replace(/[^\d]/g, '')
+      .slice(0, 4);
+    const yearPrefix = fallbackYearPrefix || String(new Date().getFullYear());
     const selected = normalizePeriodCodeList(fallbackPeriodCode, rawPeriodCodes)
-      .filter((code) => code.startsWith('2026'))
+      .filter((code) => code.startsWith(yearPrefix))
       .filter((code) => !/(80|85)$/.test(code));
     return selected.length ? selected : [fallbackPeriodCode];
   }
@@ -87,7 +93,7 @@ export class OutboxService {
     }
 
     const htmlBody = message.htmlBody ?? '';
-    const matches = htmlBody.match(/\b2026\d{2}\b/g) ?? [];
+    const matches = htmlBody.match(/\b20\d{4}\b/g) ?? [];
     const fromHtml = [...new Set(matches)];
     return this.normalizeGlobalSelectedPeriods(fromHtml, message.periodCode);
   }
@@ -258,6 +264,26 @@ export class OutboxService {
     return buildGlobalHtml(options);
   }
 
+  private buildWorkshopInvitationHtml(options: {
+    teacherName: string;
+    phase: string;
+    periodCode: string;
+    sessionTitle: string;
+    sessionDateLabel: string;
+    sessionTimeLabel: string;
+    meetingUrl: string;
+    introNote?: string | null;
+    rows: Array<{
+      nrc: string;
+      subject: string;
+      moment: string;
+      score: number | null;
+      band: 'EXCELENTE' | 'BUENO' | 'ACEPTABLE' | 'INSATISFACTORIO';
+    }>;
+  }) {
+    return buildWorkshopInvitationHtml(options);
+  }
+
   private toScoreBand(score: number | null): 'EXCELENTE' | 'BUENO' | 'ACEPTABLE' | 'INSATISFACTORIO' {
     return toScoreBand(score);
   }
@@ -271,6 +297,196 @@ export class OutboxService {
 
   private formatScoreForPhase(score: number | null, phase: string): string {
     return formatScoreForPhase(score, phase);
+  }
+
+  async prepareWorkshopInvitation(rawPayload: unknown) {
+    const payload = parseWithSchema(
+      OutboxWorkshopInvitationPrepareSchema,
+      rawPayload,
+      'outbox workshop invitation request',
+    );
+
+    const period = await this.prisma.period.findUnique({
+      where: { code: payload.periodCode },
+    });
+    if (!period) {
+      throw new NotFoundException(`No existe el periodo ${payload.periodCode}.`);
+    }
+
+    const selectedMoments = normalizeMomentList(undefined, payload.moments);
+    const selectedBands = new Set(payload.scoreBands);
+    const invitationMomentKey = `INVITACION_DIGITAL_${selectedMoments.join('_')}`;
+    const subject = `[Campus Virtual] ${payload.sessionTitle} | ${payload.sessionDateLabel} | ${payload.sessionTimeLabel}`;
+
+    const courses = await this.prisma.course.findMany({
+      where: {
+        periodId: period.id,
+        teacherId: { not: null },
+        moment: { in: selectedMoments },
+        evaluations: {
+          some: {
+            phase: payload.phase,
+          },
+        },
+      },
+      include: {
+        teacher: true,
+        moodleCheck: true,
+        evaluations: {
+          where: {
+            phase: payload.phase,
+          },
+        },
+      },
+      orderBy: [{ teacherId: 'asc' }, { moment: 'asc' }, { nrc: 'asc' }],
+    });
+
+    const grouped = new Map<
+      string,
+      {
+        teacher: NonNullable<(typeof courses)[number]['teacher']>;
+        rows: Array<{
+          nrc: string;
+          subject: string;
+          moment: string;
+          score: number | null;
+          band: 'EXCELENTE' | 'BUENO' | 'ACEPTABLE' | 'INSATISFACTORIO';
+        }>;
+      }
+    >();
+
+    for (const course of courses) {
+      if (!course.teacher) continue;
+      if (
+        isCourseExcludedFromReview({
+          rawJson: course.rawJson,
+          template: course.moodleCheck?.detectedTemplate ?? course.templateDeclared ?? 'UNKNOWN',
+          moodleCheck: course.moodleCheck,
+        })
+      ) {
+        continue;
+      }
+
+      const phase = payload.phase ?? 'ALISTAMIENTO';
+      const evaluation = course.evaluations[0] ?? null;
+      const band = this.toScoreBandForPhase(evaluation?.score ?? null, phase);
+      if (band !== 'ACEPTABLE' && band !== 'INSATISFACTORIO') continue;
+      if (!selectedBands.has(band)) continue;
+
+      const current = grouped.get(course.teacher.id) ?? {
+        teacher: course.teacher,
+        rows: [],
+      };
+
+      current.rows.push({
+        nrc: course.nrc,
+        subject: course.subjectName ?? 'Sin asignatura',
+        moment: course.moment ?? 'SIN_MOMENTO',
+        score: evaluation?.score ?? null,
+        band,
+      });
+
+      grouped.set(course.teacher.id, current);
+    }
+
+    const createdMessageIds: string[] = [];
+    const previewItems: Array<{
+      id: string;
+      teacherId: string;
+      recipientName: string;
+      recipientEmail: string;
+      courseCount: number;
+      moments: string[];
+      scoreBands: string[];
+    }> = [];
+    const skippedTeachersWithoutEmail: string[] = [];
+
+    for (const { teacher, rows } of grouped.values()) {
+      if (!rows.length) continue;
+      if (!teacher.email) {
+        skippedTeachersWithoutEmail.push(teacher.fullName);
+        continue;
+      }
+
+      const htmlBody = this.buildWorkshopInvitationHtml({
+        teacherName: teacher.fullName,
+        phase: payload.phase ?? 'ALISTAMIENTO',
+        periodCode: period.code,
+        sessionTitle: payload.sessionTitle,
+        sessionDateLabel: payload.sessionDateLabel,
+        sessionTimeLabel: payload.sessionTimeLabel,
+        meetingUrl: payload.meetingUrl,
+        introNote: payload.introNote,
+        rows,
+      });
+
+      await this.prisma.outboxMessage.deleteMany({
+        where: {
+          audience: 'DOCENTE',
+          teacherId: teacher.id,
+          periodId: period.id,
+          phase: payload.phase,
+          moment: invitationMomentKey,
+        },
+      });
+
+      const createdMessage = await this.prisma.outboxMessage.create({
+        data: {
+          audience: 'DOCENTE',
+          teacherId: teacher.id,
+          coordinatorId: null,
+          programCode: teacher.costCenter ?? null,
+          periodId: period.id,
+          phase: payload.phase ?? 'ALISTAMIENTO',
+          moment: invitationMomentKey,
+          subject,
+          recipientName: teacher.fullName,
+          recipientEmail: teacher.email,
+          htmlBody,
+          status: 'DRAFT',
+        },
+      });
+
+      createdMessageIds.push(createdMessage.id);
+      previewItems.push({
+        id: createdMessage.id,
+        teacherId: teacher.id,
+        recipientName: teacher.fullName,
+        recipientEmail: teacher.email,
+        courseCount: rows.length,
+        moments: [...new Set(rows.map((item) => item.moment))],
+        scoreBands: [...new Set(rows.map((item) => item.band))],
+      });
+    }
+
+    if (!createdMessageIds.length) {
+      return {
+        ok: true,
+        created: 0,
+        reason: grouped.size
+          ? 'No fue posible crear borradores porque los docentes filtrados no tienen correo registrado.'
+          : 'No hay docentes con resultado ACEPTABLE o INSATISFACTORIO para ese periodo y criterios.',
+        previewItems: [],
+        skippedTeachersWithoutEmail,
+      };
+    }
+
+    return {
+      ok: true,
+      created: createdMessageIds.length,
+      createdMessageIds,
+      previewItems: previewItems.sort((left, right) => left.recipientName.localeCompare(right.recipientName, 'es')),
+      skippedTeachersWithoutEmail,
+      periodCode: period.code,
+      phase: payload.phase,
+      moments: selectedMoments,
+      scoreBands: payload.scoreBands,
+      sessionTitle: payload.sessionTitle,
+      sessionDateLabel: payload.sessionDateLabel,
+      sessionTimeLabel: payload.sessionTimeLabel,
+      subject,
+      invitationMomentKey,
+    };
   }
 
   private async buildCoordinatorMessageContent(message: {
@@ -966,6 +1182,7 @@ export class OutboxService {
     payload: GeneratePayload,
   ) {
     const coordinators = await this.prisma.coordinator.findMany({
+      where: payload.coordinatorId ? { id: payload.coordinatorId } : undefined,
       orderBy: [{ programId: 'asc' }, { fullName: 'asc' }],
     });
 
@@ -974,7 +1191,9 @@ export class OutboxService {
         ok: true,
         audience: 'COORDINADOR',
         created: 0,
-        reason: 'No hay coordinadores cargados. Importa el Excel con /import/teachers-xlsx.',
+        reason: payload.coordinatorId
+          ? 'La coordinacion seleccionada no existe o no esta cargada.'
+          : 'No hay coordinadores cargados. Importa el Excel con /import/teachers-xlsx.',
       };
     }
 
@@ -999,6 +1218,18 @@ export class OutboxService {
 
     let created = 0;
     const unmatchedCoordinators: string[] = [];
+    const createdMessageIds: string[] = [];
+    const previewItems: Array<{
+      id: string;
+      coordinatorId: string;
+      programId: string;
+      recipientName: string;
+      recipientEmail: string | null;
+      periodCodes: string[];
+      moments: string[];
+      courseCount: number;
+      uniqueTeachers: number;
+    }> = [];
     const momentLabel = effectiveMoments.join('+');
 
     for (const coordinator of coordinators) {
@@ -1056,7 +1287,7 @@ export class OutboxService {
         },
       });
 
-      await this.prisma.outboxMessage.create({
+      const createdMessage = await this.prisma.outboxMessage.create({
         data: {
           audience: 'COORDINADOR',
           teacherId: null,
@@ -1073,6 +1304,18 @@ export class OutboxService {
         },
       });
 
+      createdMessageIds.push(createdMessage.id);
+      previewItems.push({
+        id: createdMessage.id,
+        coordinatorId: coordinator.id,
+        programId: coordinator.programId,
+        recipientName: coordinator.fullName,
+        recipientEmail: coordinator.email,
+        periodCodes: selectedPeriodCodes,
+        moments: effectiveMoments,
+        courseCount: rows.length,
+        uniqueTeachers,
+      });
       created += 1;
     }
 
@@ -1085,6 +1328,9 @@ export class OutboxService {
       moment: momentLabel,
       moments: effectiveMoments,
       periodCodes: selectedPeriodCodes,
+      coordinatorId: payload.coordinatorId ?? null,
+      createdMessageIds,
+      previewItems,
       unmatchedCoordinators,
     };
   }
@@ -1909,6 +2155,7 @@ foreach ($item in $payload) {
                 }
               : (selectedMomentFilters[0] ?? payload.moment),
           audience: payload.audience,
+          coordinatorId: payload.coordinatorId,
         };
 
     const messages = await this.prisma.outboxMessage.findMany({
@@ -2564,25 +2811,37 @@ foreach ($item in $payload) {
     };
   }
 
-  async options(yearPrefix = '2026') {
-    const periods = await this.prisma.period.findMany({
-      where: yearPrefix.trim()
-        ? {
-            code: {
-              startsWith: yearPrefix.trim(),
-            },
-          }
-        : undefined,
-      orderBy: { code: 'asc' },
-      select: {
-        code: true,
-        label: true,
-        modality: true,
-      },
-    });
+  async options(yearPrefix = String(new Date().getFullYear())) {
+    const [periods, coordinators] = await this.prisma.$transaction([
+      this.prisma.period.findMany({
+        where: yearPrefix.trim()
+          ? {
+              code: {
+                startsWith: yearPrefix.trim(),
+              },
+            }
+          : undefined,
+        orderBy: { code: 'asc' },
+        select: {
+          code: true,
+          label: true,
+          modality: true,
+        },
+      }),
+      this.prisma.coordinator.findMany({
+        orderBy: [{ programId: 'asc' }, { fullName: 'asc' }],
+        select: {
+          id: true,
+          fullName: true,
+          email: true,
+          programId: true,
+        },
+      }),
+    ]);
 
     return {
       periods,
+      coordinators,
       supportedMoments: SUPPORTED_MOMENTS.map((value) => ({
         value,
         label: formatMomentLabel(value),

@@ -123,6 +123,7 @@ export type UrlValidationRecord = {
 };
 
 export type BannerExportRecord = {
+  queryId?: string | null;
   nrc: string;
   period: string | null;
   teacherName: string | null;
@@ -185,7 +186,7 @@ export type BannerRunnerStatus = {
 
 export type BannerRunnerRun = {
   id: string;
-  command: 'lookup' | 'batch' | 'retry-errors' | 'export';
+  command: 'lookup' | 'batch' | 'retry-errors' | 'export' | 'auth';
   args: string[];
   startedAt: string;
   endedAt?: string;
@@ -193,6 +194,7 @@ export type BannerRunnerRun = {
   exitCode?: number | null;
   pid?: number;
   logPath: string;
+  awaitingInput?: boolean;
 };
 
 export type OpsData = {

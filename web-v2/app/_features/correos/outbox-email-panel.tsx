@@ -18,8 +18,43 @@ type PeriodOption = {
   modality: string;
 };
 
+type CoordinatorOption = {
+  id: string;
+  fullName: string;
+  email: string | null;
+  programId: string;
+};
+
+type GeneratedPreviewItem = {
+  id: string;
+  coordinatorId?: string;
+  programId?: string;
+  recipientName: string;
+  recipientEmail: string | null;
+  periodCodes?: string[];
+  moments?: string[];
+  courseCount?: number;
+  uniqueTeachers?: number;
+};
+
+type PreviewResponse = {
+  id: string;
+  subject: string;
+  htmlBody: string;
+  recipientName: string | null;
+  recipientEmail: string | null;
+  status: string;
+  phase: string;
+  moment: string;
+  audience: string;
+  periodCode: string;
+  periodLabel: string;
+  updatedAt: string;
+};
+
 type OptionsResponse = {
   periods: PeriodOption[];
+  coordinators: CoordinatorOption[];
   supportedMoments: Array<{ value: Moment; label: string }>;
   supportedPhases: string[];
 };
@@ -35,8 +70,10 @@ type OperationResponse = {
   reason?: string;
   moments?: string[];
   periodCodes?: string[];
+  coordinatorId?: string | null;
   createdMessageIds?: string[];
   batches?: Array<{ createdMessageIds?: string[] }>;
+  previewItems?: GeneratedPreviewItem[];
 };
 
 const FALLBACK_PERIODS: PeriodOption[] = [
@@ -58,7 +95,11 @@ const FALLBACK_MOMENTS: Array<{ value: Moment; label: string }> = [
   { value: 'RM2', label: 'RM2' },
 ];
 
-const DEFAULT_YEAR_PREFIX = '2026';
+const DEFAULT_YEAR_PREFIX = String(new Date().getFullYear());
+
+function defaultSinglePeriodCode(periods: PeriodOption[], yearPrefix = DEFAULT_YEAR_PREFIX): string {
+  return periods.find((item) => item.code.startsWith(yearPrefix))?.code ?? periods[0]?.code ?? '';
+}
 
 function defaultGlobalPeriodCodes(periods: PeriodOption[], yearPrefix = DEFAULT_YEAR_PREFIX): string[] {
   return periods
@@ -93,12 +134,14 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
   const [phase, setPhase] = useState<Phase>('ALISTAMIENTO');
   const [status, setStatus] = useState<Status>('DRAFT');
   const [yearPrefix, setYearPrefix] = useState(DEFAULT_YEAR_PREFIX);
-  const [singlePeriodCode, setSinglePeriodCode] = useState('202615');
-  const [selectedPeriodCodes, setSelectedPeriodCodes] = useState<string[]>(
-    defaultGlobalPeriodCodes(FALLBACK_PERIODS, DEFAULT_YEAR_PREFIX),
-  );
+  const [singlePeriodCode, setSinglePeriodCode] = useState(defaultSinglePeriodCode(FALLBACK_PERIODS, DEFAULT_YEAR_PREFIX));
+  const [selectedPeriodCodes, setSelectedPeriodCodes] = useState<string[]>(() => {
+    const defaults = defaultGlobalPeriodCodes(FALLBACK_PERIODS, DEFAULT_YEAR_PREFIX);
+    return defaults.length ? defaults : FALLBACK_PERIODS.map((item) => item.code);
+  });
   const [singleMoment, setSingleMoment] = useState<Moment>('1');
   const [selectedMoments, setSelectedMoments] = useState<Moment[]>(['MD1', '1']);
+  const [selectedCoordinatorId, setSelectedCoordinatorId] = useState('ALL');
   const [limit, setLimit] = useState('300');
   const [forceTo, setForceTo] = useState('');
   const [globalRecipientName, setGlobalRecipientName] = useState('');
@@ -109,6 +152,11 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
   const [message, setMessage] = useState('');
   const [result, setResult] = useState<OperationResponse | null>(null);
   const [lastGeneratedIds, setLastGeneratedIds] = useState<string[]>([]);
+  const [generatedPreviewItems, setGeneratedPreviewItems] = useState<GeneratedPreviewItem[]>([]);
+  const [activeGeneratedPreviewId, setActiveGeneratedPreviewId] = useState('');
+  const [previewLoading, setPreviewLoading] = useState(false);
+  const [previewError, setPreviewError] = useState('');
+  const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
 
   useEffect(() => {
     let active = true;
@@ -122,7 +170,10 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
         setOptions(response);
         const defaultPeriods = defaultGlobalPeriodCodes(response.periods, normalizedYearPrefix);
         setSelectedPeriodCodes(defaultPeriods.length ? defaultPeriods : response.periods.map((item) => item.code));
-        setSinglePeriodCode(defaultPeriods[0] || response.periods[0]?.code || '202615');
+        setSinglePeriodCode(defaultPeriods[0] || defaultSinglePeriodCode(response.periods, normalizedYearPrefix));
+        setSelectedCoordinatorId((current) =>
+          current === 'ALL' || response.coordinators.some((item) => item.id === current) ? current : 'ALL',
+        );
       } catch (error) {
         if (!active) return;
         setOptionsError(error instanceof Error ? error.message : String(error));
@@ -135,6 +186,7 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
   }, [apiBase, yearPrefix]);
 
   const periodOptions = options?.periods?.length ? options.periods : FALLBACK_PERIODS;
+  const coordinatorOptions = options?.coordinators ?? [];
   const momentOptions = options?.supportedMoments ?? FALLBACK_MOMENTS;
   const multiMomentMode = audience === 'COORDINADOR' || audience === 'GLOBAL';
   const multiPeriodMode = audience === 'COORDINADOR' || audience === 'GLOBAL';
@@ -144,6 +196,10 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
   const effectivePeriodCodes = multiPeriodMode
     ? (selectedPeriodCodes.length ? selectedPeriodCodes : [singlePeriodCode])
     : [singlePeriodCode];
+  const selectedCoordinator =
+    audience === 'COORDINADOR' && selectedCoordinatorId !== 'ALL'
+      ? coordinatorOptions.find((item) => item.id === selectedCoordinatorId) ?? null
+      : null;
 
   function applyAnnualPreset() {
     const presetPeriods = defaultGlobalPeriodCodes(periodOptions, yearPrefix.trim() || DEFAULT_YEAR_PREFIX);
@@ -171,6 +227,21 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
     });
   }
 
+  async function loadPreview(messageId: string) {
+    try {
+      setPreviewLoading(true);
+      setPreviewError('');
+      setPreviewData(null);
+      setActiveGeneratedPreviewId(messageId);
+      const response = await fetchJson<PreviewResponse>(`${apiBase}/outbox/${messageId}/preview`);
+      setPreviewData(response);
+    } catch (error) {
+      setPreviewError(error instanceof Error ? error.message : String(error));
+    } finally {
+      setPreviewLoading(false);
+    }
+  }
+
   function buildMomentPayload() {
     return effectiveMoments.length > 1
       ? { moments: effectiveMoments }
@@ -190,6 +261,10 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       audience,
       ...buildMomentPayload(),
     };
+
+    if (audience === 'COORDINADOR' && selectedCoordinatorId !== 'ALL') {
+      payload.coordinatorId = selectedCoordinatorId;
+    }
 
     if (audience === 'GLOBAL') {
       const recipientEmails = parseRecipientEmails(globalRecipientsRaw);
@@ -213,6 +288,7 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       ...buildMomentPayload(),
     };
     if (selectedIds.length) payload.ids = selectedIds;
+    if (audience === 'COORDINADOR' && selectedCoordinatorId !== 'ALL') payload.coordinatorId = selectedCoordinatorId;
     if (forceTo.trim()) payload.forceTo = forceTo.trim();
     return payload;
   }
@@ -224,7 +300,21 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       body: JSON.stringify(buildGeneratePayload()),
     });
     const generatedIds = collectGeneratedIds(data);
+    const previewItems = data.previewItems ?? [];
     setLastGeneratedIds(generatedIds);
+    setGeneratedPreviewItems(previewItems);
+    if (previewItems.length) {
+      const preferredPreviewId =
+        previewItems.find((item) => item.coordinatorId === selectedCoordinatorId)?.id ??
+        previewItems[0]?.id;
+      if (preferredPreviewId) {
+        void loadPreview(preferredPreviewId);
+      }
+    } else {
+      setActiveGeneratedPreviewId('');
+      setPreviewData(null);
+      setPreviewError('');
+    }
     setResult(data);
     const momentsNote =
       Array.isArray(data.moments) && data.moments.length
@@ -297,6 +387,30 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
     }
   }
 
+  async function sendSelectedDraft() {
+    const messageId = activeGeneratedPreviewId || generatedPreviewItems[0]?.id;
+    if (!messageId) {
+      setMessage('Primero genera un borrador y abre su preview.');
+      return;
+    }
+
+    const confirmed = window.confirm(
+      `Se enviara el borrador seleccionado${selectedCoordinator ? ` a ${selectedCoordinator.fullName}` : ''}. Continuar?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      setBusy(true);
+      setMessage('');
+      setResult(null);
+      await runSend(false, [messageId]);
+    } catch (error) {
+      setMessage(`No fue posible enviar el borrador seleccionado: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setBusy(false);
+    }
+  }
+
   return (
     <article className="panel">
       <h2>Campanas de correo</h2>
@@ -344,10 +458,33 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
           <input
             value={yearPrefix}
             onChange={(event) => setYearPrefix(event.target.value.replace(/[^\d]/g, '').slice(0, 4))}
-            placeholder="2026"
+            placeholder={DEFAULT_YEAR_PREFIX}
           />
         </label>
       </div>
+
+      {audience === 'COORDINADOR' ? (
+        <>
+          <div className="controls" style={{ marginTop: 10 }}>
+            <label style={{ minWidth: 420 }}>
+              Coordinacion especifica
+              <select value={selectedCoordinatorId} onChange={(event) => setSelectedCoordinatorId(event.target.value)}>
+                <option value="ALL">Todas las coordinaciones que apliquen</option>
+                {coordinatorOptions.map((item) => (
+                  <option key={item.id} value={item.id}>
+                    {item.programId} | {item.fullName}
+                  </option>
+                ))}
+              </select>
+            </label>
+          </div>
+          <div className="actions" style={{ marginTop: 8 }}>
+            {selectedCoordinator
+              ? `Se generara solo el consolidado de ${selectedCoordinator.programId} para ${selectedCoordinator.fullName}.`
+              : 'Si no eliges una coordinacion puntual, el sistema generara el lote completo de coordinadores.'}
+          </div>
+        </>
+      ) : null}
 
       {!multiPeriodMode ? (
         <div className="controls" style={{ marginTop: 10 }}>
@@ -511,6 +648,75 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
 
       {message ? <div className="message">{message}</div> : null}
       {result ? <div className="log-box">{JSON.stringify(result, null, 2)}</div> : null}
+
+      {audience === 'COORDINADOR' && generatedPreviewItems.length ? (
+        <div style={{ marginTop: 14 }}>
+          <div className="actions" style={{ marginBottom: 8 }}>
+            Borradores generados para coordinaciones seleccionadas. Abre uno, revisa el preview y luego envialo.
+          </div>
+          <div className="badges">
+            {generatedPreviewItems.map((item) => {
+              const active = activeGeneratedPreviewId === item.id;
+              return (
+                <button
+                  key={item.id}
+                  type="button"
+                  className="badge"
+                  onClick={() => void loadPreview(item.id)}
+                  style={{
+                    cursor: 'pointer',
+                    border: active ? '1px solid #0057a4' : '1px solid #d4d7dd',
+                    background: active ? '#e8f0fb' : '#fff',
+                    color: active ? '#0a3e74' : '#334155',
+                    fontWeight: active ? 700 : 600,
+                  }}
+                >
+                  {item.programId ?? 'COORD'} | {item.recipientName}
+                </button>
+              );
+            })}
+          </div>
+
+          {previewLoading ? <div className="message">Cargando preview...</div> : null}
+          {previewError ? <div className="message">No fue posible cargar el preview: {previewError}</div> : null}
+
+          {previewData ? (
+            <div className="panel" style={{ marginTop: 12 }}>
+              <div className="panel-heading">
+                <h2>Preview del correo seleccionado</h2>
+                <div className="button-row" style={{ marginTop: 0 }}>
+                  <button type="button" onClick={() => void loadPreview(previewData.id)} disabled={busy}>
+                    Refrescar preview
+                  </button>
+                  <button type="button" className="btn-next-action" onClick={() => void sendSelectedDraft()} disabled={busy}>
+                    {busy ? 'Enviando...' : 'Enviar borrador seleccionado'}
+                  </button>
+                </div>
+              </div>
+              <div className="outbox-mail-kv-grid" style={{ marginBottom: 10 }}>
+                <div><strong>Destinatario:</strong> {previewData.recipientName ?? 'Sin nombre'}</div>
+                <div><strong>Correo:</strong> {previewData.recipientEmail ?? 'sin-correo@invalid.local'}</div>
+                <div><strong>Periodo:</strong> {previewData.periodCode}</div>
+                <div><strong>Fase:</strong> {previewData.phase}</div>
+                <div><strong>Momento:</strong> {previewData.moment}</div>
+                <div><strong>Estado:</strong> {previewData.status}</div>
+              </div>
+              <iframe
+                title={`coordinator-preview-${previewData.id}`}
+                srcDoc={previewData.htmlBody}
+                style={{
+                  width: '100%',
+                  minHeight: '70vh',
+                  border: '1px solid #d4d7dd',
+                  borderRadius: 12,
+                  background: '#fff',
+                }}
+                sandbox="allow-popups allow-same-origin"
+              />
+            </div>
+          ) : null}
+        </div>
+      ) : null}
     </article>
   );
 }

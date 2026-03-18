@@ -216,7 +216,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
 
   const [sidecarCommand, setSidecarCommand] = useState<SidecarCommand>('classify');
   const [sidecarWorkers, setSidecarWorkers] = useState('3');
-  const [sidecarBrowser, setSidecarBrowser] = useState('edge');
+  const [sidecarBrowser, setSidecarBrowser] = useState('chrome');
   const [sidecarInputDir, setSidecarInputDir] = useState('storage/inputs/rpaca_csv');
   const [sidecarOutput, setSidecarOutput] = useState('storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE.xlsx');
   const [sidecarMode, setSidecarMode] = useState('ambos');

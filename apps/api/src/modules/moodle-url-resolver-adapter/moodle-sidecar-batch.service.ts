@@ -1,4 +1,4 @@
-import { Injectable } from '@nestjs/common';
+import { Inject, Injectable } from '@nestjs/common';
 import { normalizeMoment, normalizeTemplate } from '@seguimiento/shared';
 import { PrismaService } from '../prisma.service';
 import { isCourseExcludedFromReview } from '../common/review-eligibility.util';
@@ -14,6 +14,17 @@ export type PrepareSidecarBatchInput = {
   moments?: string[];
   source: SidecarBatchSource;
   templates?: string[];
+  limit?: number;
+};
+
+export type SidecarExtractionKind = 'attendance' | 'activity' | 'participants';
+
+export type PrepareExtractionBatchInput = {
+  periodCodes: string[];
+  moments?: string[];
+  templates?: string[];
+  source?: SidecarBatchSource;
+  nrcs?: string[];
   limit?: number;
 };
 
@@ -66,6 +77,50 @@ type BatchPreviewItem = {
   sourceFile: string;
 };
 
+type ExtractionCandidate = {
+  id: string;
+  nrc: string;
+  moment: string | null;
+  subjectName: string | null;
+  programCode: string | null;
+  programName: string | null;
+  period: {
+    code: string;
+    label: string;
+    modality: string;
+  };
+  rawJson: unknown;
+  moodleCheck: {
+    status: string;
+    detectedTemplate: string | null;
+    errorCode: string | null;
+    moodleCourseUrl: string | null;
+    moodleCourseId: string | null;
+    resolvedModality: string | null;
+    resolvedBaseUrl: string | null;
+  } | null;
+  selectedInGroups: Array<{
+    id: string;
+    moment: string;
+  }>;
+};
+
+type ExtractionPreviewItem = {
+  courseId: string;
+  nrc: string;
+  periodCode: string;
+  periodLabel: string;
+  moment: string;
+  title: string;
+  program: string;
+  template: string;
+  status: string;
+  moodleCourseUrl: string | null;
+  moodleCourseId: string | null;
+  resolvedModality: string | null;
+  resolvedBaseUrl: string | null;
+};
+
 function asRecord(value: unknown): Record<string, unknown> {
   if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
   return value as Record<string, unknown>;
@@ -83,7 +138,7 @@ function sanitizeFileToken(value: string) {
 
 @Injectable()
 export class MoodleSidecarBatchService {
-  constructor(private readonly prisma: PrismaService) {}
+  constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
   async getOptions() {
     const [periods, momentsRaw, templatesRaw] = await Promise.all([
@@ -177,6 +232,27 @@ export class MoodleSidecarBatchService {
       byMoment: this.countBy(prepared.items, (item) => item.moment || 'SIN_MOMENTO'),
       byStatus: this.countBy(prepared.items, (item) => item.status || 'PENDIENTE'),
       byTemplate: this.countBy(prepared.items, (item) => item.template || 'SIN_TIPO'),
+      sample: prepared.items.slice(0, 20),
+    };
+  }
+
+  async previewExtraction(input: PrepareExtractionBatchInput) {
+    const prepared = await this.collectExtractionCandidates(input);
+    return {
+      filters: {
+        source: input.source ?? 'ALL',
+        periodCodes: prepared.periodCodes,
+        moments: prepared.moments,
+        templates: prepared.templates,
+        nrcs: prepared.nrcs,
+        limit: input.limit ?? null,
+      },
+      total: prepared.items.length,
+      byPeriod: this.countByExtraction(prepared.items, (item) => item.periodCode),
+      byMoment: this.countByExtraction(prepared.items, (item) => item.moment || 'SIN_MOMENTO'),
+      byStatus: this.countByExtraction(prepared.items, (item) => item.status || 'PENDIENTE'),
+      byTemplate: this.countByExtraction(prepared.items, (item) => item.template || 'SIN_TIPO'),
+      byModality: this.countByExtraction(prepared.items, (item) => item.resolvedModality || 'SIN_MODALIDAD'),
       sample: prepared.items.slice(0, 20),
     };
   }
@@ -342,6 +418,49 @@ export class MoodleSidecarBatchService {
     return manifest;
   }
 
+  async prepareExtractionBatch(input: PrepareExtractionBatchInput, kind: SidecarExtractionKind) {
+    const prepared = await this.collectExtractionCandidates(input);
+    const root = resolveProjectRoot();
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const batchId = `${stamp}_${kind}`;
+    const batchDir = path.join(root, 'storage', 'outputs', 'validation', 'sidecar-extract-batches', batchId);
+    await fs.mkdir(batchDir, { recursive: true });
+
+    const inputPath = path.join(batchDir, `${kind}_input.json`);
+    const outputDir = path.join(batchDir, `${kind}_exports`);
+    await fs.mkdir(outputDir, { recursive: true });
+    await fs.writeFile(inputPath, JSON.stringify(prepared.items, null, 2), 'utf8');
+
+    const manifest = {
+      batchId,
+      kind,
+      preparedAt: new Date().toISOString(),
+      filters: {
+        source: input.source ?? 'ALL',
+        periodCodes: prepared.periodCodes,
+        moments: prepared.moments,
+        templates: prepared.templates,
+        limit: input.limit ?? null,
+      },
+      total: prepared.items.length,
+      inputPath,
+      outputDir,
+      byPeriod: this.countByExtraction(prepared.items, (item) => item.periodCode),
+      byMoment: this.countByExtraction(prepared.items, (item) => item.moment || 'SIN_MOMENTO'),
+      byStatus: this.countByExtraction(prepared.items, (item) => item.status || 'PENDIENTE'),
+      byTemplate: this.countByExtraction(prepared.items, (item) => item.template || 'SIN_TIPO'),
+      byModality: this.countByExtraction(prepared.items, (item) => item.resolvedModality || 'SIN_MODALIDAD'),
+      sample: prepared.items.slice(0, 20),
+    };
+
+    await fs.writeFile(path.join(batchDir, 'manifest.json'), JSON.stringify(manifest, null, 2), 'utf8');
+
+    return {
+      ...manifest,
+      manifestPath: path.join(batchDir, 'manifest.json'),
+    };
+  }
+
   private async collectCandidates(input: PrepareSidecarBatchInput) {
     const periodCodes = [...new Set((input.periodCodes ?? []).map((value) => String(value).trim()).filter(Boolean))];
     const moments = [...new Set((input.moments ?? []).map((value) => normalizeMoment(String(value).trim())))];
@@ -473,6 +592,81 @@ export class MoodleSidecarBatchService {
     };
   }
 
+  private async collectExtractionCandidates(input: PrepareExtractionBatchInput) {
+    const periodCodes = [...new Set((input.periodCodes ?? []).map((value) => String(value).trim()).filter(Boolean))];
+    const moments = [...new Set((input.moments ?? []).map((value) => normalizeMoment(String(value).trim())))];
+    const templates = [...new Set((input.templates ?? []).map((value) => String(value).trim().toUpperCase()).filter(Boolean))];
+    const nrcs = [...new Set((input.nrcs ?? []).map((value) => String(value).trim()).filter(Boolean))];
+    const source = input.source ?? 'ALL';
+
+    const rows = await this.prisma.course.findMany({
+      where: {
+        period: { code: { in: periodCodes } },
+        ...(moments.length ? { moment: { in: moments } } : {}),
+      },
+      select: {
+        id: true,
+        nrc: true,
+        moment: true,
+        subjectName: true,
+        programCode: true,
+        programName: true,
+        rawJson: true,
+        period: {
+          select: {
+            code: true,
+            label: true,
+            modality: true,
+          },
+        },
+        moodleCheck: {
+          select: {
+            status: true,
+            detectedTemplate: true,
+            errorCode: true,
+            moodleCourseUrl: true,
+            moodleCourseId: true,
+            resolvedModality: true,
+            resolvedBaseUrl: true,
+          },
+        },
+        selectedInGroups: {
+          select: {
+            id: true,
+            moment: true,
+          },
+        },
+      },
+      orderBy: [{ periodId: 'asc' }, { nrc: 'asc' }],
+    });
+
+    const filtered = rows
+      .filter((course) => (source === 'SAMPLING' ? course.selectedInGroups.length > 0 : true))
+      .filter((course) => (nrcs.length ? this.matchesRequestedNrc(course.nrc, nrcs) : true))
+      .filter((course) => this.hasResolvedMoodleReference(course))
+      .map((course) => this.toExtractionItem(course))
+      .filter((course) => (templates.length ? templates.includes(course.template) : true))
+      .slice(0, input.limit && input.limit > 0 ? input.limit : undefined);
+
+    return {
+      items: filtered,
+      periodCodes,
+      moments,
+      templates,
+      nrcs,
+      source,
+    };
+  }
+
+  private matchesRequestedNrc(currentNrc: string, requestedNrcs: string[]) {
+    const current = String(currentNrc ?? '').trim().toUpperCase();
+    if (!current) return false;
+    return requestedNrcs.some((token) => {
+      const needle = String(token ?? '').trim().toUpperCase();
+      return Boolean(needle) && (current === needle || current.endsWith(needle));
+    });
+  }
+
   private matchesSource(course: BatchCandidate, source: SidecarBatchSource) {
     if (source === 'ALL') return true;
     if (source === 'SAMPLING') return course.selectedInGroups.length > 0;
@@ -546,6 +740,47 @@ export class MoodleSidecarBatchService {
     };
   }
 
+  private toExtractionItem(course: ExtractionCandidate): ExtractionPreviewItem {
+    const raw = asRecord(course.rawJson);
+    const row = asRecord(raw.row);
+    const title =
+      course.subjectName?.trim() ||
+      this.readRawText(row, ['titulo', 'asignatura', 'materia', 'subject_name', 'subject']) ||
+      'SIN_TITULO';
+    const program =
+      course.programName?.trim() ||
+      course.programCode?.trim() ||
+      this.readRawText(row, ['programa', 'program_name', 'programcode', 'program_code']) ||
+      'SIN_PROGRAMA';
+    const template =
+      String(course.moodleCheck?.detectedTemplate ?? this.readRawText(course.rawJson, ['template']) ?? 'SIN_TIPO')
+        .trim()
+        .toUpperCase() || 'SIN_TIPO';
+
+    return {
+      courseId: course.id,
+      nrc: course.nrc,
+      periodCode: course.period.code,
+      periodLabel: course.period.label,
+      moment: normalizeMoment(String(course.moment ?? '1')),
+      title,
+      program,
+      template,
+      status: String(course.moodleCheck?.status ?? 'PENDIENTE').trim().toUpperCase() || 'PENDIENTE',
+      moodleCourseUrl: course.moodleCheck?.moodleCourseUrl ?? null,
+      moodleCourseId: course.moodleCheck?.moodleCourseId ?? null,
+      resolvedModality: course.moodleCheck?.resolvedModality ?? null,
+      resolvedBaseUrl: course.moodleCheck?.resolvedBaseUrl ?? null,
+    };
+  }
+
+  private hasResolvedMoodleReference(course: ExtractionCandidate) {
+    const url = String(course.moodleCheck?.moodleCourseUrl ?? '').trim();
+    const courseId = String(course.moodleCheck?.moodleCourseId ?? '').trim();
+    const baseUrl = String(course.moodleCheck?.resolvedBaseUrl ?? '').trim();
+    return /\/course\/view\.php\?id=\d+/i.test(url) || (Boolean(courseId) && Boolean(baseUrl));
+  }
+
   private buildSourceFileName(periodCode: string, periodLabel: string, method: string) {
     const upperLabel = String(periodLabel ?? '').toUpperCase();
     let hint = '';
@@ -612,6 +847,15 @@ export class MoodleSidecarBatchService {
   }
 
   private countBy(items: BatchPreviewItem[], selector: (item: BatchPreviewItem) => string) {
+    const counts: Record<string, number> = {};
+    for (const item of items) {
+      const key = selector(item) || 'SIN_VALOR';
+      counts[key] = (counts[key] ?? 0) + 1;
+    }
+    return counts;
+  }
+
+  private countByExtraction(items: ExtractionPreviewItem[], selector: (item: ExtractionPreviewItem) => string) {
     const counts: Record<string, number> = {};
     for (const item of items) {
       const key = selector(item) || 'SIN_VALOR';

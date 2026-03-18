@@ -19,6 +19,8 @@ type AdapterInputRow = {
   courseIdRaw: string;
   modalityRaw: string;
   urlFinalRaw: string;
+  participantsRaw: string;
+  participantsDetectedRaw: string;
   errorRaw: string;
 };
 
@@ -54,6 +56,21 @@ export type AdapterRunResult = {
   };
   statusBreakdown: Record<string, number>;
   notes: string[];
+  changes: Array<{
+    courseId: string;
+    nrc: string;
+    periodCode: string;
+    subjectName: string | null;
+    previousStatus: string;
+    nextStatus: string;
+    previousTemplate: string;
+    nextTemplate: string;
+    previousUrl: string | null;
+    nextUrl: string | null;
+    changedStatus: boolean;
+    changedTemplate: boolean;
+    changedUrl: boolean;
+  }>;
 };
 
 function isProjectRootCandidate(candidate: string): boolean {
@@ -69,6 +86,7 @@ function isProjectRootCandidate(candidate: string): boolean {
 type PrismaLike = {
   course: {
     findMany: (args: any) => Promise<any[]>;
+    update: (args: any) => Promise<any>;
   };
   moodleCheck: {
     upsert: (args: any) => Promise<any>;
@@ -205,6 +223,50 @@ function normalizeTemplateSafe(raw: string): 'VACIO' | 'CRIBA' | 'INNOVAME' | 'D
   return normalizeTemplate(raw) as 'VACIO' | 'CRIBA' | 'INNOVAME' | 'D4' | 'UNKNOWN';
 }
 
+function parseParticipants(raw: string): number | null {
+  const value = String(raw ?? '').trim();
+  if (!value) return null;
+  const parsed = Number(value.replace(',', '.'));
+  return Number.isFinite(parsed) ? parsed : null;
+}
+
+function parseBoolLike(raw: string): boolean | null {
+  const value = String(raw ?? '').trim().toLowerCase();
+  if (!value) return null;
+  if (['si', 'sí', 'true', '1', 'yes'].includes(value)) return true;
+  if (['no', 'false', '0'].includes(value)) return false;
+  return null;
+}
+
+function mergeCourseRawJson(
+  rawJson: unknown,
+  input: {
+    participants: number | null;
+    participantsDetected: boolean | null;
+    moodleCourseUrl: string | null;
+    moodleCourseId: string | null;
+    resolvedModality: string | null;
+    sourceLabel?: string;
+  },
+) {
+  const root =
+    rawJson && typeof rawJson === 'object' && !Array.isArray(rawJson)
+      ? ({ ...(rawJson as Record<string, unknown>) } as Record<string, unknown>)
+      : ({} as Record<string, unknown>);
+
+  root.moodleSidecar = {
+    participants: input.participants,
+    participantsDetected: input.participantsDetected,
+    moodleCourseUrl: input.moodleCourseUrl,
+    moodleCourseId: input.moodleCourseId,
+    resolvedModality: input.resolvedModality,
+    sourceLabel: input.sourceLabel ?? null,
+    updatedAt: new Date().toISOString(),
+  };
+
+  return root;
+}
+
 function parseCsvRows(inputPath: string): AdapterInputRow[] {
   const content = fs.readFileSync(inputPath, 'utf8').replace(/^\uFEFF/, '');
   const firstLine = content.split(/\r?\n/, 1)[0] ?? '';
@@ -233,6 +295,8 @@ function parseCsvRows(inputPath: string): AdapterInputRow[] {
       courseIdRaw: pick(row, ['COURSE_ID', 'COURSEID']),
       modalityRaw: pick(row, ['MODALIDAD_DONDE_SE_ENCONTRO', 'MODALIDAD', 'RESOLVED_MODALITY']),
       urlFinalRaw: pick(row, ['URL_FINAL', 'MOODLE_COURSE_URL', 'URL', 'COURSE_URL']),
+      participantsRaw: pick(row, ['TOTAL_PARTICIPANTES', 'PARTICIPANTES', 'USUARIOS']),
+      participantsDetectedRaw: pick(row, ['PARTICIPANTES_DETECTADOS', 'USUARIOS_DETECTADOS']),
       errorRaw: pick(row, ['ERROR', 'ERROR_CODE']),
     };
   });
@@ -258,6 +322,8 @@ function parseJsonRows(inputPath: string): AdapterInputRow[] {
       courseIdRaw: pick(row, ['COURSE_ID', 'COURSEID']),
       modalityRaw: pick(row, ['MODALIDAD_DONDE_SE_ENCONTRO', 'MODALIDAD', 'RESOLVED_MODALITY']),
       urlFinalRaw: pick(row, ['URL_FINAL', 'MOODLE_COURSE_URL', 'URL', 'COURSE_URL']),
+      participantsRaw: pick(row, ['TOTAL_PARTICIPANTES', 'PARTICIPANTES', 'USUARIOS']),
+      participantsDetectedRaw: pick(row, ['PARTICIPANTES_DETECTADOS', 'USUARIOS_DETECTADOS']),
       errorRaw: pick(row, ['ERROR', 'ERROR_CODE']),
     };
   });
@@ -289,6 +355,8 @@ function parseXlsxRows(inputPath: string): AdapterInputRow[] {
       courseIdRaw: pick(row, ['COURSE_ID', 'COURSEID']),
       modalityRaw: pick(row, ['MODALIDAD_DONDE_SE_ENCONTRO', 'MODALIDAD', 'RESOLVED_MODALITY']),
       urlFinalRaw: pick(row, ['URL_FINAL', 'MOODLE_COURSE_URL', 'URL', 'COURSE_URL']),
+      participantsRaw: pick(row, ['TOTAL_PARTICIPANTES', 'PARTICIPANTES', 'USUARIOS']),
+      participantsDetectedRaw: pick(row, ['PARTICIPANTES_DETECTADOS', 'USUARIOS_DETECTADOS']),
       errorRaw: pick(row, ['ERROR', 'ERROR_CODE']),
     };
   });
@@ -356,7 +424,10 @@ export async function runMoodleUrlResolverAdapter(
 
   const nrcInputKeys = new Set<string>();
 
-  const beforeByCourse = new Map<string, { status: string; template: string; url: string }>();
+  const beforeByCourse = new Map<
+    string,
+    { nrc: string; periodCode: string; subjectName: string | null; status: string; template: string; url: string }
+  >();
   const afterByCourse = new Map<string, { status: string; template: string; url: string }>();
 
   for (const row of rows) {
@@ -396,6 +467,7 @@ export async function runMoodleUrlResolverAdapter(
       select: {
         id: true,
         nrc: true,
+        subjectName: true,
         period: { select: { code: true } },
         moodleCheck: {
           select: {
@@ -405,6 +477,7 @@ export async function runMoodleUrlResolverAdapter(
             attempts: true,
           },
         },
+        rawJson: true,
       },
       take: 3,
     });
@@ -423,6 +496,9 @@ export async function runMoodleUrlResolverAdapter(
     processedRows += 1;
 
     const before = {
+      nrc: target.nrc,
+      periodCode: target.period.code,
+      subjectName: target.subjectName ?? null,
       status: target.moodleCheck?.status ?? 'PENDIENTE',
       template: target.moodleCheck?.detectedTemplate ?? 'UNKNOWN',
       url: target.moodleCheck?.moodleCourseUrl ?? '',
@@ -432,6 +508,8 @@ export async function runMoodleUrlResolverAdapter(
     const template = normalizeTemplateSafe(row.templateRaw);
     const modality = inferModality(row.modalityRaw);
     const finalUrl = buildFinalUrl(row.urlFinalRaw, row.courseIdRaw, modality, options.config);
+    const participants = parseParticipants(row.participantsRaw);
+    const participantsDetected = parseBoolLike(row.participantsDetectedRaw);
     const statusMapped = mapStatus(row.statusRaw, Boolean(finalUrl || inferCourseId(row.courseIdRaw, row.urlFinalRaw)));
     const nextStatus = statusMapped?.status ?? before.status;
     statusBreakdown[nextStatus] = (statusBreakdown[nextStatus] ?? 0) + 1;
@@ -508,6 +586,21 @@ export async function runMoodleUrlResolverAdapter(
         create: createData,
         update: updateData,
       });
+      if (participants !== null || participantsDetected !== null || finalUrl || courseId || modality) {
+        await prisma.course.update({
+          where: { id: target.id },
+          data: {
+            rawJson: mergeCourseRawJson(target.rawJson, {
+              participants,
+              participantsDetected,
+              moodleCourseUrl: finalUrl || before.url || null,
+              moodleCourseId: courseId,
+              resolvedModality: modality,
+              sourceLabel: options.sourceLabel,
+            }) as any,
+          },
+        });
+      }
       updatedRows += 1;
     } else {
       updatedRows += 1;
@@ -538,6 +631,59 @@ export async function runMoodleUrlResolverAdapter(
     notes.push(`Sin match en BD para ${noMatch} filas.`);
   }
 
+  const changes = [...beforeByCourse.entries()]
+    .map(([courseId, before]) => {
+      const after = afterByCourse.get(courseId);
+      if (!after) return null;
+
+      const changedStatus = before.status !== after.status;
+      const changedTemplate = before.template !== after.template;
+      const changedUrl = before.url !== after.url;
+
+      if (!changedStatus && !changedTemplate && !changedUrl) {
+        return null;
+      }
+
+      return {
+        courseId,
+        nrc: before.nrc,
+        periodCode: before.periodCode,
+        subjectName: before.subjectName,
+        previousStatus: before.status,
+        nextStatus: after.status,
+        previousTemplate: before.template,
+        nextTemplate: after.template,
+        previousUrl: before.url || null,
+        nextUrl: after.url || null,
+        changedStatus,
+        changedTemplate,
+        changedUrl,
+      };
+    })
+    .filter(
+      (
+        item,
+      ): item is {
+        courseId: string;
+        nrc: string;
+        periodCode: string;
+        subjectName: string | null;
+        previousStatus: string;
+        nextStatus: string;
+        previousTemplate: string;
+        nextTemplate: string;
+        previousUrl: string | null;
+        nextUrl: string | null;
+        changedStatus: boolean;
+        changedTemplate: boolean;
+        changedUrl: boolean;
+      } => Boolean(item),
+    )
+    .sort((left, right) => {
+      if (left.periodCode !== right.periodCode) return left.periodCode.localeCompare(right.periodCode);
+      return left.nrc.localeCompare(right.nrc);
+    });
+
   return {
     ok: true,
     inputPath: options.inputPath,
@@ -553,5 +699,6 @@ export async function runMoodleUrlResolverAdapter(
     after: afterStats,
     statusBreakdown,
     notes,
+    changes,
   };
 }

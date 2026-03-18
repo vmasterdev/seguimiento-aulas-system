@@ -13,7 +13,7 @@ Sistema de seguimiento de aulas virtuales para Moodle (UNIMINUTO) sin API instit
 
 - `apps/api`: NestJS + Prisma (Postgres) + BullMQ
 - `apps/worker`: Node + BullMQ + Playwright
-- `apps/web`: Next.js
+- `web-v2`: Next.js frontend principal operativo
 - `packages/shared`: validaciones y reglas compartidas (zod)
 - `infra/docker-compose.yml`: Postgres + Redis
 
@@ -21,7 +21,7 @@ Sistema de seguimiento de aulas virtuales para Moodle (UNIMINUTO) sin API instit
 
 - `apps/api`: endpoints de negocio y persistencia
 - `apps/worker`: consumo de cola `moodle.classify`
-- `apps/web`: panel de seguimiento y estado del sistema
+- `web-v2`: consola operativa principal del sistema
 - `data/evidence`: evidencias de clasificacion Moodle (HTML/screenshot)
 - `data/outbox`: archivos `.eml` exportados
 - `docs`: PRD, arquitectura y criterios funcionales
@@ -93,13 +93,18 @@ pnpm stack:status
 pnpm stack:down
 ```
 
+Lanzadores manuales en Windows (doble clic desde el Explorador, en la raiz del repo):
+
+- `Levantar servicios.cmd`
+- `Detener servicios.cmd`
+- `Estado servicios.cmd`
+
 En WSL, `pnpm stack:up` detecta automaticamente si el repo esta sobre `/mnt/c` y arranca el API desde la copia Linux estable en `$HOME/seguimiento-api-run-20260307`, sincronizando antes el `dist` y la configuracion del backend.
 
 Servicios por defecto:
 
 - API: `http://localhost:3001`
 - Web: `http://localhost:3000`
-- Web V2: `http://localhost:3010`
 - Postgres: `localhost:5433`
 - Redis: `localhost:16380`
 

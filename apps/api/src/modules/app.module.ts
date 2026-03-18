@@ -10,6 +10,7 @@ import { EvaluationModule } from './evaluation/evaluation.module';
 import { OutboxModule } from './outbox/outbox.module';
 import { MoodleUrlResolverAdapterModule } from './moodle-url-resolver-adapter/moodle-url-resolver-adapter.module';
 import { TeachersModule } from './teachers/teachers.module';
+import { MoodleAnalyticsModule } from './moodle-analytics/moodle-analytics.module';
 
 @Module({
   imports: [
@@ -23,6 +24,7 @@ import { TeachersModule } from './teachers/teachers.module';
     OutboxModule,
     MoodleUrlResolverAdapterModule,
     TeachersModule,
+    MoodleAnalyticsModule,
   ],
   controllers: [HealthController],
 })

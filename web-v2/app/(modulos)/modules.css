@@ -1,375 +1,337 @@
 /* ═══════════════════════════════════════════════════════════════
-   Modules — Styles for feature panels inside (modulos) route group
-   Extends globals.css — loaded only on module pages
+   Modules — Feature panel styles
+   Principle: FLAT inside panels. No nested boxes.
+   Use spacing, type weight, and thin separators.
    ═══════════════════════════════════════════════════════════════ */
 
 /* ─── Section Layout ─── */
 .section {
   display: grid;
-  grid-template-columns: minmax(0, 1.4fr) minmax(320px, 1fr);
+  grid-template-columns: minmax(0, 1.4fr) minmax(300px, 1fr);
   gap: 16px;
   margin-bottom: 16px;
 }
-
 .section.section-single {
   grid-template-columns: 1fr;
 }
 
-/* ─── KPI Grid (used in module dashboards) ─── */
+/* ─── KPI strip ─── */
 .grid {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(180px, 1fr));
+  gap: 0;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
   margin-bottom: 16px;
 }
-
 .card {
-  background: var(--surface);
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  padding: 14px 16px;
-  box-shadow: var(--shadow-sm);
+  background: transparent;
+  border: none;
+  border-right: 1px solid var(--line);
+  border-radius: 0;
+  padding: 10px 16px 10px 0;
+  box-shadow: none;
 }
+.card:last-child { border-right: none; }
 
 .kpi-label {
   color: var(--muted);
-  font-size: 0.78rem;
-  font-weight: 500;
-}
-
-.kpi-value {
-  font-family: var(--font-display);
-  font-size: 1.6rem;
-  font-weight: 700;
-  margin-top: 4px;
-  letter-spacing: -0.03em;
-}
-
-.kpi-value-sm {
-  font-family: var(--font-display);
-  font-size: 1.1rem;
-  font-weight: 700;
-}
-
-/* ─── Module Table Overrides ─── */
-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-th,
-td {
-  text-align: left;
-  padding: 9px 8px;
-  border-bottom: 1px solid var(--slate-100);
-  font-size: 0.86rem;
-  vertical-align: top;
-}
-
-th {
-  font-size: 0.72rem;
+  font-size: 0.7rem;
   font-weight: 600;
   text-transform: uppercase;
-  letter-spacing: 0.05em;
+  letter-spacing: 0.03em;
+}
+.kpi-value {
+  font-family: var(--font-display);
+  font-size: 1.4rem;
+  font-weight: 700;
+  margin-top: 2px;
+  letter-spacing: -0.03em;
+}
+.kpi-value-sm {
+  font-family: var(--font-display);
+  font-size: 1rem;
+  font-weight: 700;
+}
+
+/* ─── Tables — bare, clean ─── */
+table { width: 100%; border-collapse: collapse; }
+th, td {
+  text-align: left;
+  padding: 8px 6px;
+  border-bottom: 1px solid var(--slate-100);
+  font-size: 0.84rem;
+  vertical-align: top;
+}
+th {
+  font-size: 0.7rem;
+  font-weight: 600;
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
   color: var(--muted);
-  background: var(--slate-50);
-  position: sticky;
-  top: 0;
-  z-index: 2;
+  padding-bottom: 10px;
+  border-bottom-color: var(--line);
 }
+tbody tr:hover { background: var(--slate-50); }
 
-tbody tr:hover {
-  background: var(--slate-50);
-}
-
-/* ─── Controls (form wrapper in feature panels) ─── */
+/* ─── Controls — flat form row, no wrapper styling ─── */
 .controls {
   display: flex;
   flex-wrap: wrap;
   gap: 10px;
   align-items: flex-end;
+  margin-top: 4px;
 }
-
 .controls label {
   display: flex;
   flex-direction: column;
-  gap: 4px;
-  font-size: 0.78rem;
+  gap: 3px;
+  font-size: 0.74rem;
   color: var(--muted);
+  font-weight: 500;
 }
-
 .controls input,
 .controls select {
-  min-width: 120px;
+  min-width: 110px;
   border: 1px solid var(--line);
   border-radius: 6px;
   padding: 7px 10px;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   color: var(--ink);
   background: var(--surface);
 }
-
 .controls input:focus,
 .controls select:focus {
   outline: none;
   border-color: var(--teal);
-  box-shadow: 0 0 0 2px rgba(13, 148, 136, 0.12);
+  box-shadow: 0 0 0 2px rgba(13,148,136,0.1);
 }
-
 .controls button {
   border: none;
   background: var(--teal);
   color: #fff;
   border-radius: 6px;
   padding: 7px 14px;
-  font-size: 0.84rem;
+  font-size: 0.82rem;
   font-weight: 600;
   cursor: pointer;
-  transition: all 140ms ease;
+  transition: background 120ms ease;
 }
-
-.controls button:hover:not(:disabled) {
-  background: var(--teal-dark);
-}
-
-.controls button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
+.controls button:hover:not(:disabled) { background: var(--teal-dark); }
+.controls button:disabled { opacity: 0.4; cursor: not-allowed; }
 
 .controls button.btn-next-action {
   background: var(--green) !important;
   color: #fff !important;
   font-weight: 700;
 }
-
 .controls button.btn-next-action:hover:not(:disabled) {
   background: #047857 !important;
 }
 
-/* ─── Table Inline Controls ─── */
-table input,
-table select {
-  min-width: 100px;
+/* ─── Inline table controls ─── */
+table input, table select {
+  min-width: 90px;
   border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 5px 8px;
-  font-size: 0.82rem;
+  border-radius: 5px;
+  padding: 5px 7px;
+  font-size: 0.8rem;
   color: var(--ink);
   background: var(--surface);
 }
-
 table button {
   border: none;
   background: var(--teal);
   color: #fff;
-  border-radius: 6px;
+  border-radius: 5px;
   padding: 5px 10px;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
   cursor: pointer;
-  transition: all 140ms ease;
 }
+table button:hover:not(:disabled) { background: var(--teal-dark); }
+table button:disabled { opacity: 0.4; cursor: not-allowed; }
 
-table button:hover:not(:disabled) {
-  background: var(--teal-dark);
-}
-
-table button:disabled {
-  opacity: 0.45;
-  cursor: not-allowed;
-}
-
-/* ─── Badges ─── */
+/* ─── Badges — flat, small text ─── */
 .badges {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
+  margin: 6px 0;
 }
-
 .badge-selector {
   display: inline-flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   cursor: pointer;
-  font-size: 0.8rem;
+  font-size: 0.78rem;
 }
 
-/* ─── Code Display ─── */
+/* ─── Code ─── */
 .code {
   font-family: var(--font-mono);
   background: var(--slate-100);
-  border-radius: 4px;
-  padding: 2px 6px;
-  font-size: 0.84rem;
+  border-radius: 3px;
+  padding: 1px 5px;
+  font-size: 0.82rem;
 }
 
-/* ─── Actions & Steps ─── */
+/* ─── Actions text ─── */
 .actions {
-  margin-top: 8px;
+  margin-top: 6px;
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   line-height: 1.5;
 }
-
 .steps-list {
-  margin: 8px 0 0;
-  padding-left: 20px;
+  margin: 6px 0 0;
+  padding-left: 18px;
+}
+.steps-list li {
+  margin-bottom: 5px;
+  line-height: 1.45;
   color: var(--ink);
 }
 
-.steps-list li {
-  margin-bottom: 6px;
-  line-height: 1.5;
-}
-
-/* ─── Module Grid ─── */
+/* ─── Module grid ─── */
 .module-grid {
   display: grid;
-  gap: 12px;
-  grid-template-columns: repeat(auto-fit, minmax(250px, 1fr));
+  gap: 0;
+  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
 }
-
 .module-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  padding: 14px;
-  box-shadow: var(--shadow-sm);
+  border: none;
+  border-bottom: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  padding: 14px 0;
+  box-shadow: none;
 }
-
+.module-card:last-child { border-bottom: none; }
 .module-card p {
   margin: 0;
   color: var(--slate-600);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
   line-height: 1.45;
 }
-
 .module-link {
   display: inline-flex;
-  align-items: center;
-  justify-content: center;
-  margin-top: 10px;
-  border: 1px solid var(--teal);
-  border-radius: 6px;
-  background: rgba(13, 148, 136, 0.08);
-  color: var(--teal-dark);
-  text-decoration: none;
-  font-size: 0.84rem;
+  margin-top: 8px;
+  color: var(--teal);
+  font-size: 0.82rem;
   font-weight: 600;
-  padding: 7px 12px;
-  transition: all 140ms ease;
+  border: none;
+  background: none;
+  padding: 0;
 }
+.module-link:hover { color: var(--teal-dark); }
 
-.module-link:hover {
-  background: rgba(13, 148, 136, 0.14);
-}
-
-/* ─── Helper List ─── */
+/* ─── Helper ─── */
 .helper-list {
   display: grid;
-  gap: 8px;
-  margin-top: 8px;
+  gap: 6px;
+  margin-top: 6px;
 }
-
-.helper-list p {
-  margin: 0;
-  line-height: 1.5;
-}
+.helper-list p { margin: 0; line-height: 1.45; }
 
 /* ─── Review Panel ─── */
 .review-header {
   margin-top: 10px;
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 8px 12px;
   align-items: end;
 }
 
+/* Checkbox — NO border/box. Just native checkbox + label. */
 .checkbox {
   display: flex;
-  align-items: center;
+  align-items: flex-start;
   gap: 8px;
-  border: 1px solid var(--line);
-  border-radius: 6px;
-  padding: 8px 10px;
-  background: var(--surface);
-  transition: border-color 140ms ease;
+  padding: 7px 0;
+  border: none;
+  border-bottom: 1px solid var(--slate-100);
+  border-radius: 0;
+  background: transparent;
 }
-
-.checkbox:has(input:checked) {
-  border-color: var(--teal);
-  background: rgba(13, 148, 136, 0.04);
-}
-
-.checkbox input {
+.checkbox:last-child { border-bottom: none; }
+.checkbox input[type="checkbox"] {
   width: auto;
   min-width: auto;
-  transform: scale(1.1);
+  margin-top: 2px;
+  transform: scale(1.15);
   accent-color: var(--teal);
 }
-
-.subtitle {
-  margin: 10px 0 8px;
-  font-size: 0.78rem;
-  color: var(--muted);
-  font-weight: 600;
-  text-transform: uppercase;
-  letter-spacing: 0.04em;
+.checkbox span {
+  font-size: 0.84rem;
+  line-height: 1.35;
+  color: var(--ink);
 }
+
+/* Section subtitle — thin separator + label */
+.subtitle {
+  margin: 18px 0 8px;
+  padding-top: 14px;
+  border-top: 1px solid var(--line);
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--muted);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+.subtitle:first-child { border-top: none; margin-top: 0; padding-top: 0; }
 
 .muted {
   color: var(--muted);
-  font-size: 0.86rem;
+  font-size: 0.84rem;
 }
 
 .message {
   margin-top: 10px;
-  border: 1px solid rgba(13, 148, 136, 0.2);
+  padding: 8px 12px;
+  border-radius: 6px;
+  border-left: 3px solid var(--teal);
   background: var(--teal-light);
   color: var(--teal-dark);
-  border-radius: var(--radius);
-  padding: 8px 12px;
-  font-size: 0.86rem;
+  font-size: 0.84rem;
 }
 
-/* ─── Saved NRC Block ─── */
+/* ─── Saved NRC — flat, just a top separator ─── */
 .saved-nrc-block {
-  margin-top: 10px;
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--slate-50);
-  padding: 10px;
+  margin-top: 12px;
+  padding-top: 12px;
+  border-top: 1px solid var(--line);
+  border-radius: 0;
+  background: transparent;
+  border-bottom: none;
+  border-left: none;
+  border-right: none;
 }
-
 .saved-nrc-kpis {
   display: flex;
   flex-wrap: wrap;
   gap: 6px;
 }
 
-/* ─── Score Board ─── */
+/* ─── Score Board — subtle bg, NO border ─── */
 .score-board {
   margin-top: 10px;
-  border: 1px dashed rgba(13, 148, 136, 0.3);
-  border-radius: var(--radius);
-  background: rgba(13, 148, 136, 0.04);
   padding: 10px 12px;
+  border: none;
+  border-radius: 6px;
+  background: var(--slate-50);
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  grid-template-columns: repeat(auto-fit, minmax(160px, 1fr));
   gap: 8px;
 }
 
-/* ─── Log Box (terminal) ─── */
+/* ─── Log terminal ─── */
 .log-box {
   margin-top: 8px;
-  max-height: 260px;
+  max-height: 240px;
   overflow: auto;
-  border: 1px solid var(--slate-800);
-  border-radius: var(--radius);
+  border-radius: 6px;
   background: var(--slate-900);
   color: var(--slate-300);
   font-family: var(--font-mono);
-  font-size: 0.74rem;
+  font-size: 0.72rem;
   line-height: 1.45;
   padding: 10px 12px;
   white-space: pre-wrap;
@@ -377,35 +339,33 @@ table button:disabled {
 }
 
 /* ═══════════════════════════════════════════
-   Outbox Styles
+   Outbox — flat mail list
    ═══════════════════════════════════════════ */
 
 .outbox-summary-grid {
   display: grid;
-  gap: 10px;
-  grid-template-columns: repeat(auto-fit, minmax(170px, 1fr));
+  gap: 0;
+  grid-template-columns: repeat(auto-fit, minmax(140px, 1fr));
+  margin-bottom: 12px;
 }
-
 .outbox-summary-card {
-  padding: 10px 12px;
+  padding: 8px 14px 8px 0;
+  border-right: 1px solid var(--line);
 }
+.outbox-summary-card:last-child { border-right: none; }
 
 .outbox-mail-list {
   display: grid;
-  gap: 10px;
+  gap: 0;
 }
-
 .outbox-mail-card {
-  border: 1px solid var(--line);
-  border-radius: var(--radius);
-  background: var(--surface);
-  padding: 12px;
-  transition: border-color 140ms ease;
+  border: none;
+  border-bottom: 1px solid var(--slate-100);
+  border-radius: 0;
+  background: transparent;
+  padding: 14px 0;
 }
-
-.outbox-mail-card:hover {
-  border-color: var(--slate-300);
-}
+.outbox-mail-card:last-child { border-bottom: none; }
 
 .outbox-mail-head {
   display: flex;
@@ -413,22 +373,19 @@ table button:disabled {
   gap: 10px;
   align-items: flex-start;
 }
-
 .outbox-mail-name {
   font-weight: 600;
   color: var(--ink);
-  font-size: 0.92rem;
+  font-size: 0.88rem;
 }
-
 .outbox-mail-email {
-  margin-top: 2px;
+  margin-top: 1px;
   color: var(--muted);
-  font-size: 0.82rem;
+  font-size: 0.8rem;
 }
-
 .outbox-badges {
   display: flex;
-  gap: 5px;
+  gap: 4px;
   flex-wrap: wrap;
   justify-content: flex-end;
 }
@@ -436,80 +393,67 @@ table button:disabled {
 .status-chip {
   display: inline-flex;
   align-items: center;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 0.72rem;
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.7rem;
   font-weight: 600;
-  border-width: 1px;
-  border-style: solid;
+  border: none;
 }
-
 .status-chip.status-draft {
-  border-color: var(--slate-300);
   background: var(--slate-100);
   color: var(--slate-600);
 }
-
 .status-chip.status-exported {
-  border-color: rgba(5, 150, 105, 0.25);
   background: var(--green-light);
   color: #065f46;
 }
-
 .status-chip.status-sent_auto,
 .status-chip.status-sent_manual {
-  border-color: rgba(37, 99, 235, 0.2);
-  background: #dbeafe;
-  color: #1e3a8a;
+  background: #e0f2fe;
+  color: #1e40af;
 }
 
 .attempt-chip {
   display: inline-flex;
-  align-items: center;
-  padding: 3px 9px;
-  border-radius: 999px;
-  font-size: 0.72rem;
-  border: 1px solid var(--slate-300);
-  background: var(--slate-50);
+  padding: 2px 7px;
+  border-radius: 4px;
+  font-size: 0.7rem;
+  font-weight: 500;
+  border: none;
+  background: var(--slate-100);
   color: var(--slate-600);
 }
-
 .attempt-chip.attempt-failed {
-  border-color: rgba(220, 38, 38, 0.25);
   background: var(--red-light);
   color: #991b1b;
 }
-
 .attempt-chip.attempt-sent {
-  border-color: rgba(5, 150, 105, 0.25);
   background: var(--green-light);
   color: #065f46;
 }
 
 .outbox-mail-subject {
-  margin-top: 8px;
-  font-size: 0.88rem;
+  margin-top: 6px;
+  font-size: 0.86rem;
   font-weight: 600;
   color: var(--ink);
 }
-
 .outbox-mail-kv-grid {
-  margin-top: 8px;
+  margin-top: 6px;
   display: grid;
   grid-template-columns: repeat(auto-fit, minmax(200px, 1fr));
-  gap: 4px 10px;
-  font-size: 0.82rem;
+  gap: 3px 10px;
+  font-size: 0.8rem;
   color: var(--slate-600);
 }
-
 .outbox-error-box {
-  margin-top: 8px;
-  border-radius: 6px;
-  border: 1px solid rgba(220, 38, 38, 0.2);
+  margin-top: 6px;
+  border-radius: 4px;
+  border-left: 3px solid var(--red);
   background: var(--red-light);
   color: #991b1b;
-  font-size: 0.8rem;
-  padding: 7px 10px;
+  font-size: 0.78rem;
+  padding: 6px 10px;
 }
 
 /* ═══════════════════════════════════════════
@@ -517,208 +461,77 @@ table button:disabled {
    ═══════════════════════════════════════════ */
 
 @media (max-width: 920px) {
-  .section {
-    grid-template-columns: 1fr;
-  }
-
-  .outbox-mail-head {
-    flex-direction: column;
-  }
-
-  .outbox-badges {
-    justify-content: flex-start;
-  }
-
-  .outbox-mail-kv-grid {
-    grid-template-columns: 1fr;
-  }
+  .section { grid-template-columns: 1fr; }
+  .outbox-mail-head { flex-direction: column; }
+  .outbox-badges { justify-content: flex-start; }
+  .outbox-mail-kv-grid { grid-template-columns: 1fr; }
 }
 
 /* ═══════════════════════════════════════════
-   Compact Mode — Review Panel in popup window
+   Compact Mode — Review in popup
    ═══════════════════════════════════════════ */
 
 .panel.panel-compact {
   padding: 10px;
   border-radius: var(--radius);
 }
-
-.panel.panel-compact h2 {
-  font-size: 0.95rem;
-  margin-bottom: 6px;
-}
-
-.panel.panel-compact .controls {
-  gap: 6px;
-}
-
-.panel.panel-compact .controls label {
-  font-size: 0.72rem;
-}
-
+.panel.panel-compact h2 { font-size: 0.92rem; margin-bottom: 6px; }
+.panel.panel-compact .controls { gap: 6px; }
+.panel.panel-compact .controls label { font-size: 0.7rem; }
 .panel.panel-compact .controls input,
 .panel.panel-compact .controls select {
-  min-width: 0;
-  width: 100%;
-  padding: 6px 8px;
-  font-size: 0.82rem;
+  min-width: 0; width: 100%;
+  padding: 5px 7px; font-size: 0.8rem;
 }
-
-.panel.panel-compact .controls button {
-  padding: 6px 10px;
-  font-size: 0.78rem;
-}
-
-.panel.panel-compact .review-header {
-  grid-template-columns: 1fr;
-  gap: 6px;
-}
-
-.panel.panel-compact .saved-nrc-block {
-  padding: 8px;
-}
-
-.panel.panel-compact .saved-nrc-kpis {
-  gap: 5px;
-}
-
+.panel.panel-compact .controls button { padding: 5px 10px; font-size: 0.76rem; }
+.panel.panel-compact .review-header { grid-template-columns: 1fr; gap: 6px; }
+.panel.panel-compact .saved-nrc-block { padding-top: 8px; margin-top: 8px; }
+.panel.panel-compact .saved-nrc-kpis { gap: 4px; }
 .panel.panel-compact .score-board {
-  margin-top: 8px;
-  padding: 7px 8px;
-  gap: 6px;
-  grid-template-columns: 1fr;
+  margin-top: 8px; padding: 6px 8px;
+  gap: 6px; grid-template-columns: 1fr;
 }
-
-.panel.panel-compact .kpi-value-sm {
-  font-size: 1rem;
-}
-
-.panel.panel-compact .form-grid {
-  grid-template-columns: 1fr;
-  gap: 6px;
-}
-
-.panel.panel-compact .checkbox {
-  padding: 6px 8px;
-  gap: 6px;
-}
-
-.panel.panel-compact .checkbox span {
-  font-size: 0.82rem;
-  line-height: 1.2;
-}
-
+.panel.panel-compact .kpi-value-sm { font-size: 0.94rem; }
+.panel.panel-compact .form-grid { grid-template-columns: 1fr; gap: 6px; }
+.panel.panel-compact .checkbox { padding: 5px 0; gap: 6px; }
+.panel.panel-compact .checkbox span { font-size: 0.8rem; }
 .panel.panel-compact .muted,
 .panel.panel-compact .actions,
-.panel.panel-compact .message {
-  font-size: 0.8rem;
-}
+.panel.panel-compact .message { font-size: 0.78rem; }
 
-/* ─── Ultra Narrow (popup / Moodle side-by-side) ─── */
+/* ─── Ultra narrow (Moodle side-by-side popup) ─── */
 @media (max-width: 430px) {
-  .shell {
-    padding: 8px;
-  }
+  .shell { padding: 8px; }
+  .page-header { margin-bottom: 8px; }
+  .page-header h1 { font-size: 1rem; }
+  .page-header p { font-size: 0.76rem; }
 
-  .page-header {
-    margin-bottom: 10px;
-    padding-bottom: 8px;
-  }
-
-  .page-header h1 {
-    font-size: 1.1rem;
-  }
-
-  .page-header p {
-    font-size: 0.78rem;
-  }
-
-  .panel.panel-compact {
-    padding: 8px;
-    border-radius: 6px;
-  }
-
-  .panel.panel-compact h2 {
-    font-size: 0.88rem;
-    margin-bottom: 4px;
-  }
-
+  .panel.panel-compact { padding: 8px; border-radius: 6px; }
+  .panel.panel-compact h2 { font-size: 0.86rem; margin-bottom: 4px; }
   .panel.panel-compact .controls {
-    display: grid;
-    grid-template-columns: 1fr;
-    gap: 5px;
-    align-items: stretch;
+    display: grid; grid-template-columns: 1fr;
+    gap: 4px; align-items: stretch;
   }
-
-  .panel.panel-compact .controls label {
-    width: 100%;
-    font-size: 0.68rem;
-  }
-
+  .panel.panel-compact .controls label { width: 100%; font-size: 0.66rem; }
   .panel.panel-compact .controls input,
   .panel.panel-compact .controls select {
-    width: 100%;
-    min-width: 0;
-    font-size: 0.76rem;
-    padding: 5px 7px;
+    width: 100%; min-width: 0;
+    font-size: 0.74rem; padding: 5px 6px;
   }
-
   .panel.panel-compact .controls button {
-    width: 100%;
-    padding: 5px 7px;
-    font-size: 0.74rem;
+    width: 100%; padding: 5px 6px; font-size: 0.72rem;
   }
-
-  .panel.panel-compact .review-header {
-    margin-top: 8px;
-    gap: 4px;
-  }
-
-  .panel.panel-compact .saved-nrc-block {
-    margin-top: 8px;
-    padding: 7px;
-  }
-
-  .panel.panel-compact .saved-nrc-kpis {
-    gap: 4px;
-  }
-
-  .panel.panel-compact .kpi-label {
-    font-size: 0.66rem;
-  }
-
-  .panel.panel-compact .kpi-value-sm {
-    font-size: 0.88rem;
-  }
-
-  .panel.panel-compact .form-grid {
-    gap: 5px;
-  }
-
-  .panel.panel-compact .checkbox {
-    padding: 5px 6px;
-    gap: 5px;
-  }
-
-  .panel.panel-compact .checkbox span {
-    font-size: 0.74rem;
-    line-height: 1.15;
-  }
-
-  .panel.panel-compact .subtitle {
-    margin: 7px 0 5px;
-    font-size: 0.68rem;
-  }
-
+  .panel.panel-compact .review-header { margin-top: 6px; gap: 4px; }
+  .panel.panel-compact .saved-nrc-block { margin-top: 6px; padding-top: 6px; }
+  .panel.panel-compact .saved-nrc-kpis { gap: 3px; }
+  .panel.panel-compact .kpi-label { font-size: 0.64rem; }
+  .panel.panel-compact .kpi-value-sm { font-size: 0.86rem; }
+  .panel.panel-compact .form-grid { gap: 4px; }
+  .panel.panel-compact .checkbox { padding: 4px 0; gap: 5px; }
+  .panel.panel-compact .checkbox span { font-size: 0.72rem; line-height: 1.15; }
+  .panel.panel-compact .subtitle { margin: 6px 0 4px; padding-top: 6px; font-size: 0.66rem; }
   .panel.panel-compact .muted,
   .panel.panel-compact .actions,
-  .panel.panel-compact .message {
-    font-size: 0.72rem;
-    line-height: 1.25;
-  }
-
-  .panel.panel-compact .score-board {
-    margin-top: 7px;
-    padding: 6px;
-  }
+  .panel.panel-compact .message { font-size: 0.7rem; line-height: 1.2; }
+  .panel.panel-compact .score-board { margin-top: 6px; padding: 5px; }
 }

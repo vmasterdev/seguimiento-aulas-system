@@ -112,6 +112,29 @@ export class CoursesService {
     return root as Prisma.InputJsonValue;
   }
 
+  private readMoodleSidecarMetrics(rawJson: unknown): {
+    participants: number | null;
+    participantsDetected: boolean | null;
+    updatedAt: string | null;
+  } {
+    const root = this.asRecord(rawJson);
+    const sidecar = this.asRecord(root.moodleSidecar);
+    const participantsRaw = sidecar.participants;
+    const participants =
+      typeof participantsRaw === 'number' && Number.isFinite(participantsRaw)
+        ? participantsRaw
+        : typeof participantsRaw === 'string' && participantsRaw.trim()
+          ? Number(participantsRaw)
+          : null;
+
+    return {
+      participants: Number.isFinite(participants ?? NaN) ? Number(participants) : null,
+      participantsDetected:
+        typeof sidecar.participantsDetected === 'boolean' ? sidecar.participantsDetected : null,
+      updatedAt: typeof sidecar.updatedAt === 'string' && sidecar.updatedAt.trim() ? sidecar.updatedAt.trim() : null,
+    };
+  }
+
   private pickBestReplacement(
     input: {
       group: {
@@ -242,6 +265,7 @@ export class CoursesService {
           courseProgramName: item.programName,
         });
         const bannerReviewStatus = readBannerReviewStatus(item.rawJson);
+        const moodleSidecarMetrics = this.readMoodleSidecarMetrics(item.rawJson);
         const alistamiento = item.evaluations.find((evaluation) => evaluation.phase === 'ALISTAMIENTO') ?? null;
         const ejecucion = item.evaluations.find((evaluation) => evaluation.phase === 'EJECUCION') ?? null;
         const latestEvaluation = item.evaluations[0] ?? null;
@@ -254,6 +278,7 @@ export class CoursesService {
           checklistTemporal: this.readChecklistTemporal(item.rawJson),
           selectedForChecklist: item.selectedInGroups.length > 0,
           selectedSampleGroups: item.selectedInGroups,
+          moodleSidecarMetrics,
           evaluationSummary: {
             alistamientoScore: alistamiento?.score ?? null,
             ejecucionScore: ejecucion?.score ?? null,
@@ -311,6 +336,7 @@ export class CoursesService {
       courseProgramName: course.programName,
     });
     const bannerReviewStatus = readBannerReviewStatus(course.rawJson);
+    const moodleSidecarMetrics = this.readMoodleSidecarMetrics(course.rawJson);
     const sourceIds = [
       ...new Set(
         course.evaluations
@@ -334,6 +360,7 @@ export class CoursesService {
       checklistTemporal: this.readChecklistTemporal(course.rawJson),
       selectedForChecklist: course.selectedInGroups.length > 0,
       selectedSampleGroups: course.selectedInGroups,
+      moodleSidecarMetrics,
       evaluations: course.evaluations.map((evaluation) => ({
         ...evaluation,
         evaluationType: evaluation.replicatedFromCourseId ? 'REPLICADA' : 'MANUAL',

@@ -1,7 +1,7 @@
 export const dynamic = 'force-dynamic';
 
 import { SinglePanelPageShell } from '../../_components/page-shell';
-import { BannerIntegrationPanel } from '../../_features/banner/banner-integration-panel';
+import BannerIntegrationPanel from '../../_features/banner/banner-integration-panel';
 
 export default function AutomatizacionBannerPage() {
   return (

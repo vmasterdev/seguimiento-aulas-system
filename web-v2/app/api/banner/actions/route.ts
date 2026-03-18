@@ -1,13 +1,15 @@
 import { NextRequest, NextResponse } from 'next/server';
 import {
   cancelBannerRun,
+  confirmBannerAuth,
   importBannerResultToSystem,
+  startBannerAuth,
   startBannerRun,
   type StartBannerOptions,
 } from '../../../_lib/banner-runner';
 
 type ActionBody = {
-  action?: 'start' | 'cancel' | 'import';
+  action?: 'start' | 'cancel' | 'import' | 'auth-start' | 'auth-confirm';
   payload?: Record<string, unknown>;
 };
 
@@ -31,6 +33,10 @@ export async function POST(request: NextRequest) {
 
     if (action === 'start') {
       result = startBannerRun(asStartPayload(payload));
+    } else if (action === 'auth-start') {
+      result = await startBannerAuth();
+    } else if (action === 'auth-confirm') {
+      result = await confirmBannerAuth();
     } else if (action === 'cancel') {
       result = cancelBannerRun();
     } else if (action === 'import') {

@@ -73,6 +73,7 @@ async function main() {
 
     let updatedCourses = 0;
     let linkedTeachers = 0;
+    let clearedTeachers = 0;
     let noCourseMatch = 0;
     let invalidRows = 0;
     const statusCounts = new Map<string, number>();
@@ -166,6 +167,9 @@ async function main() {
           courseProgramNameToUse = resolvedProgram.programName;
           linkedTeachers += 1;
         }
+      } else if (status === 'SIN_DOCENTE' && course.teacherId) {
+        teacherIdToUse = null;
+        clearedTeachers += 1;
       }
 
       await prisma.course.update({
@@ -188,6 +192,7 @@ async function main() {
           rows: rows.length,
           updatedCourses,
           linkedTeachers,
+          clearedTeachers,
           noCourseMatch,
           invalidRows,
           statusCounts: Object.fromEntries(statusCounts),

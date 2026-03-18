@@ -85,7 +85,7 @@ function formatAttemptResult(value: TrackingItem['lastAttemptResult']): string {
 }
 
 export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
-  const [periodCode, setPeriodCode] = useState('202615');
+  const [periodCode, setPeriodCode] = useState('');
   const [phase, setPhase] = useState<'ALL' | 'ALISTAMIENTO' | 'EJECUCION'>('ALL');
   const [moment, setMoment] = useState<'ALL' | 'MD1' | 'MD2' | '1' | 'INTER' | 'RM1' | 'RM2'>('ALL');
   const [audience, setAudience] = useState<'ALL' | 'DOCENTE' | 'COORDINADOR' | 'GLOBAL'>('DOCENTE');
@@ -147,7 +147,7 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
   }
 
   function clearFilters() {
-    setPeriodCode('202615');
+    setPeriodCode('');
     setPhase('ALL');
     setMoment('ALL');
     setAudience('DOCENTE');
@@ -185,6 +185,43 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
     } catch (actionError) {
       setActionMessage(
         `No fue posible reenviar este correo: ${actionError instanceof Error ? actionError.message : String(actionError)}`,
+      );
+    } finally {
+      setRowBusyId(null);
+    }
+  }
+
+  async function sendExistingMessage(item: TrackingItem) {
+    const confirmed = window.confirm(
+      `Se enviara o reenviara el correo actual de ${item.recipientName ?? 'destinatario'} (${item.periodCode} ${item.moment}). Continuar?`,
+    );
+    if (!confirmed) return;
+
+    try {
+      setRowBusyId(item.id);
+      setActionMessage('');
+      const response = await fetchJson<{
+        ok: boolean;
+        sentCount?: number;
+        failedCount?: number;
+        skippedCount?: number;
+        deliveryMode?: 'SMTP' | 'OUTLOOK';
+      }>(`${apiBase}/outbox/send`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          ids: [item.id],
+          dryRun: false,
+          forceTo: forceToResend.trim() || undefined,
+        }),
+      });
+      setActionMessage(
+        `Envio ejecutado para el correo seleccionado. Enviados: ${response.sentCount ?? 0}, fallidos: ${response.failedCount ?? 0}, omitidos: ${response.skippedCount ?? 0}${response.deliveryMode ? ` | modo ${response.deliveryMode}` : ''}.`,
+      );
+      setReloadToken((prev) => prev + 1);
+    } catch (actionError) {
+      setActionMessage(
+        `No fue posible enviar este correo: ${actionError instanceof Error ? actionError.message : String(actionError)}`,
       );
     } finally {
       setRowBusyId(null);
@@ -371,7 +408,16 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
                 >
                   {rowBusyId === item.id ? 'Reenviando...' : 'Actualizar y reenviar'}
                 </button>
-              ) : null}
+              ) : (
+                <button
+                  type="button"
+                  className="btn-next-action"
+                  onClick={() => void sendExistingMessage(item)}
+                  disabled={rowBusyId === item.id}
+                >
+                  {rowBusyId === item.id ? 'Enviando...' : 'Enviar o reenviar'}
+                </button>
+              )}
             </div>
           </article>
         ))}

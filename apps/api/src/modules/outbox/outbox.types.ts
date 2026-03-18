@@ -7,6 +7,7 @@ export type GeneratePayload = {
   moment?: SupportedMoment;
   moments?: SupportedMoment[];
   audience?: 'DOCENTE' | 'COORDINADOR' | 'GLOBAL';
+  coordinatorId?: string;
   teacherId?: string;
   recipientName?: string;
   recipientEmails?: string[];
@@ -20,6 +21,7 @@ export type SendPayload = {
   moment?: SupportedMoment;
   moments?: SupportedMoment[];
   audience?: 'DOCENTE' | 'COORDINADOR' | 'GLOBAL';
+  coordinatorId?: string;
   status?: 'DRAFT' | 'EXPORTED' | 'SENT_MANUAL' | 'SENT_AUTO';
   limit?: number;
   forceTo?: string;
