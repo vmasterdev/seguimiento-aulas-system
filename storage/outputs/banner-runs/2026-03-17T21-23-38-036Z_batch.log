@@ -1,0 +1,69 @@
+[START] 2026-03-17T21:23:38.036Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node --import tsx "src/cli.ts" "batch" "--input" "/mnt/c/Users/Duvan/Documents/storage/outputs/banner-batches/2026-03-17T21-23-38-008Z_all/nrc_banner_batch.csv" "--query-name" "ui-autoimport-final-restart-20260317" "--workers" "1"
+
+[2026-03-17T21:23:39.286Z] INFO Iniciando lote Banner {
+  queryId: 'cmmv4dgex0000t2jj1teg0blg',
+  totalRequested: 1,
+  pending: 1,
+  workers: 1
+}
+[2026-03-17T21:23:50.287Z] INFO Sesion restaurada desde storageState
+[2026-03-17T21:23:54.600Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: '08085dd8-c5c4-4e3c-a62a-e32d875df2cd' }
+[2026-03-17T21:23:54.601Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmv4dgex0000t2jj1teg0blg',
+  worker: 1,
+  nrc: '75608',
+  period: '202610'
+}
+[2026-03-17T21:23:54.601Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmv4dgex0000t2jj1teg0blg',
+  worker: 1,
+  nrc: '75608',
+  period: '202610'
+}
+[2026-03-17T21:23:54.951Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmv4dgex0000t2jj1teg0blg',
+  worker: 1,
+  nrc: '75608',
+  period: '202610',
+  status: 'ENCONTRADO'
+}
+{
+  "queryId": "cmmv4dgex0000t2jj1teg0blg",
+  "queryName": "ui-autoimport-final-restart-20260317",
+  "processed": 1,
+  "total": 1,
+  "counts": {
+    "ENCONTRADO": 1,
+    "SIN_DOCENTE": 0,
+    "NO_ENCONTRADO": 0,
+    "ERROR": 0
+  }
+}
+
+[AUTO_EXPORT] cmmv4dgex0000t2jj1teg0blg
+[2026-03-17T21:23:56.665Z] INFO Exportacion completada { queryId: 'cmmv4dgex0000t2jj1teg0blg', formats: [ 'csv', 'json' ] }
+{
+  "csvPath": "storage/exports/ui-autoimport-final-restart-20260317-2026-03-17T21-23-56.662Z.csv",
+  "jsonPath": "storage/exports/ui-autoimport-final-restart-20260317-2026-03-17T21-23-56.662Z.json"
+}
+
+[AUTO_IMPORT]
+{
+  "ok": true,
+  "sourceFile": "ui-autoimport-final-restart-20260317-2026-03-17T21-23-56.662Z.csv",
+  "rows": 1,
+  "updatedCourses": 1,
+  "linkedTeachers": 1,
+  "noCourseMatch": 0,
+  "invalidRows": 0,
+  "statusCounts": {
+    "ENCONTRADO": 1
+  }
+}
+
+[END] 2026-03-17T21:23:58.693Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

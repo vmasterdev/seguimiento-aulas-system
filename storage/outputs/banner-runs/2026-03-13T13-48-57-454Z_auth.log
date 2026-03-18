@@ -1,0 +1,33 @@
+[START] 2026-03-13T13:48:57.455Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\banner buscador de docente en nrc'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'auth'
+
+browserType.launchPersistentContext: Target page, context or browser has been closed
+Browser logs:
+
+<launching> C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --no-sandbox --user-data-dir=C:\Users\Duvan\Documents\banner buscador de docente en nrc\storage\auth\edge-profile --remote-debugging-pipe about:blank
+<launched> pid=41284
+Call log:
+[2m  - <launching> C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe --disable-field-trial-config --disable-background-networking --disable-background-timer-throttling --disable-backgrounding-occluded-windows --disable-back-forward-cache --disable-breakpad --disable-client-side-phishing-detection --disable-component-extensions-with-background-pages --disable-component-update --no-default-browser-check --disable-default-apps --disable-dev-shm-usage --disable-extensions --disable-features=AvoidUnnecessaryBeforeUnloadCheckSync,BoundaryEventDispatchTracksNodeRemoval,DestroyProfileOnBrowserClose,DialMediaRouteProvider,GlobalMediaControls,HttpsUpgrades,LensOverlay,MediaRouter,PaintHolding,ThirdPartyStoragePartitioning,Translate,AutoDeElevate,RenderDocument,OptimizationHints --enable-features=CDPScreenshotNewSurface --allow-pre-commit-input --disable-hang-monitor --disable-ipc-flooding-protection --disable-popup-blocking --disable-prompt-on-repost --disable-renderer-backgrounding --force-color-profile=srgb --metrics-recording-only --no-first-run --password-store=basic --use-mock-keychain --no-service-autorun --export-tagged-pdf --disable-search-engine-choice-screen --unsafely-disable-devtools-self-xss-warnings --edge-skip-compat-layer-relaunch --enable-automation --disable-infobars --disable-search-engine-choice-screen --disable-sync --enable-unsafe-swiftshader --no-sandbox --user-data-dir=C:\Users\Duvan\Documents\banner buscador de docente en nrc\storage\auth\edge-profile --remote-debugging-pipe about:blank[22m
+[2m  - <launched> pid=41284[22m
+[2m  - [pid=41284] <gracefully close start>[22m
+[2m  - [pid=41284] <kill>[22m
+[2m  - [pid=41284] <will force kill>[22m
+[2m  - [pid=41284] taskkill stderr: ERROR: no se encontr� el proceso "41284".[22m
+[2m  - [pid=41284] <process did exit: exitCode=21, signal=null>[22m
+[2m  - [pid=41284] starting temporary directories cleanup[22m
+[2m  - [pid=41284] finished temporary directories cleanup[22m
+[2m  - [pid=41284] <gracefully close end>[22m
+
+    at async BannerAutomationSession.open (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\banner\bannerClient.ts:62:22)
+    at async BannerClient.createSession (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\banner\bannerClient.ts:221:5)
+    at async <anonymous> (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:150:25)
+    at async runWithContext (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:109:12)
+    at async Command.<anonymous> (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:127:7)
+    at async Command.parseAsync (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\node_modules\.pnpm\commander@13.1.0\node_modules\commander\lib\command.js:1104:5)
+    at async main (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:249:3)
+
+[END] 2026-03-13T13:49:13.595Z
+[STATUS] FAILED
+[EXIT_CODE] 1

@@ -1,0 +1,4 @@
+
+> @seguimiento/worker@0.1.0 build /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/apps/worker
+> tsc -p tsconfig.json
+

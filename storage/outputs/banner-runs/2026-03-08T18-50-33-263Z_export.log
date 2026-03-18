@@ -1,0 +1,13 @@
+[START] 2026-03-08T18:50:33.264Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Program Files/nodejs/node.exe
+[CMD] /mnt/c/Program Files/nodejs/node.exe "--import" "tsx" "src/cli.ts" "export" "--query-id" "cmm7tyq820000t2eo8tn50zll" "--format" "csv"
+
+[2026-03-08T18:50:36.132Z] INFO Exportacion completada { queryId: 'cmm7tyq820000t2eo8tn50zll', formats: [ 'csv' ] }
+{
+  "csvPath": "storage\\exports\\nrc-globales-s1-1-md1-final-2026-03-08T18-50-36.115Z.csv"
+}
+
+[END] 2026-03-08T18:50:36.323Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

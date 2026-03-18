@@ -1,0 +1,352 @@
+[START] 2026-03-08T12:26:51.736Z
+[CMD] python3 "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/sidecar_runner.py" "classify" "--input-dir" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/inputs/rpaca_csv/_sidecar_smoke50" "--output" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072642.xlsx" "--workers" "5" "--browser" "edge"
+
+[INFO] Catalogo Distancia 4.0: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/CURSOS DISTANCIA 4.0.xlsx
+[INFO] Cursos en catalogo Distancia 4.0: 445
+[INFO] NRC totales: 50
+[INFO] NRC ya procesados: 0
+[INFO] NRC pendientes: 50
+[INFO] Prioridad de periodos: 202615
+[INFO] CSV checkpoint: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072642.csv
+[INFO] Excel final: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072642.xlsx
+[INFO] Reporte sin matricula: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072642_SIN_MATRICULA.xlsx
+[INFO] Reporte aulas vacias/sin participantes: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072642_AULAS_VACIAS.xlsx
+[INFO] Headless: NO
+[INFO] Workers: 5
+[INFO] Modo estricto por modalidad: SI
+[INFO] Consulta NRC solo 5 digitos: NO
+[INFO] Consulta NRC 5 digitos segun archivo/modalidad: SI
+[INFO] Modo multi-worker activado.
+[WARN] Ejecutar varios workers sin headless abrira multiples ventanas del navegador.
+[INFO] Reutilizando perfil existente para worker 1: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto_w1
+[INFO] Reutilizando perfil existente para worker 2: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto_w2
+[INFO] Reutilizando perfil existente para worker 3: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto_w3
+[INFO] Reutilizando perfil existente para worker 4: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto_w4
+[INFO] Reutilizando perfil existente para worker 5: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto_w5
+
+================================================================================
+[W5/5] [1/10] NRC 72314 | Periodos: 202615 | Metodos: DIST
+
+================================================================================
+[W4/5] [1/10] NRC 72313 | Periodos: 202615 | Metodos: DIST
+
+================================================================================
+[W3/5] [1/10] NRC 72308 | Periodos: 202615 | Metodos: TRAD
+[W2/5] [WARN] Fallo al abrir EDGE con perfil actual: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+#0 0x5eea4d9fc53e <unknown>
+#1 0x5eea4d3d11c4 <unknown>
+#2 0x5eea4d412dc2 <unknown>
+#3 0x5eea4d40ef1a <unknown>
+#4 0x5eea4d408c4d <unknown>
+#5 0x5eea4d459eda <unknown>
+#6 0x5eea4d45969c <unknown>
+#7 0x5eea4d417207 <unknown>
+#8 0x5eea4d417e41 <unknown>
+#9 0x5eea4d9c71ab <unknown>
+#10 0x5eea4d9ca2e5 <unknown>
+#11 0x5eea4d9c9dad <unknown>
+#12 0x5eea4d9b79b9 <unknown>
+#13 0x5eea4d9cab52 <unknown>
+#14 0x5eea4d9a0dae <unknown>
+#15 0x5eea4d9e9b68 <unknown>
+#16 0x5eea4d9e9da6 <unknown>
+#17 0x5eea4d9fae23 <unknown>
+#18 0x7d6764c9caa4 <unknown>
+#19 0x7d6764d29c6c <unknown>
+
+[W2/5] [INFO] Reintentando con perfil limpio...
+[W1/5] [WARN] Fallo al abrir EDGE con perfil actual: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+#0 0x5c69b9d0a53e <unknown>
+#1 0x5c69b96df1c4 <unknown>
+#2 0x5c69b9720dc2 <unknown>
+#3 0x5c69b971cf1a <unknown>
+#4 0x5c69b9716c4d <unknown>
+#5 0x5c69b9767eda <unknown>
+#6 0x5c69b976769c <unknown>
+#7 0x5c69b9725207 <unknown>
+#8 0x5c69b9725e41 <unknown>
+#9 0x5c69b9cd51ab <unknown>
+#10 0x5c69b9cd82e5 <unknown>
+#11 0x5c69b9cd7dad <unknown>
+#12 0x5c69b9cc59b9 <unknown>
+#13 0x5c69b9cd8b52 <unknown>
+#14 0x5c69b9caedae <unknown>
+#15 0x5c69b9cf7b68 <unknown>
+#16 0x5c69b9cf7da6 <unknown>
+#17 0x5c69b9d08e23 <unknown>
+#18 0x7db354e9caa4 <unknown>
+#19 0x7db354f29c6c <unknown>
+
+[W1/5] [INFO] Reintentando con perfil limpio...
+[INFO] Borrando perfil de Edge corrupto...
+[INFO] Borrando perfil de Edge corrupto...
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W2/5] [ERROR] No se pudo abrir EDGE: Message: session not created: DevToolsActivePort file doesn't exist; For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+#0 0x5db66ee6b53e <unknown>
+#1 0x5db66e8401c4 <unknown>
+#2 0x5db66e881dc2 <unknown>
+#3 0x5db66e87df1a <unknown>
+#4 0x5db66e877c4d <unknown>
+#5 0x5db66e8c8eda <unknown>
+#6 0x5db66e8c869c <unknown>
+#7 0x5db66e886207 <unknown>
+#8 0x5db66e886e41 <unknown>
+#9 0x5db66ee361ab <unknown>
+#10 0x5db66ee392e5 <unknown>
+#11 0x5db66ee38dad <unknown>
+#12 0x5db66ee269b9 <unknown>
+#13 0x5db66ee39b52 <unknown>
+#14 0x5db66ee0fdae <unknown>
+#15 0x5db66ee58b68 <unknown>
+#16 0x5db66ee58da6 <unknown>
+#17 0x5db66ee69e23 <unknown>
+#18 0x73d43aa9caa4 <unknown>
+#19 0x73d43ab29c6c <unknown>
+
+[INFO] Worker 2 finalizado: 0/10 registros.
+
+================================================================================
+[W1/5] [1/10] NRC 72305 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[INFO] Sesion iniciada en DISTANCIA.
+[W3/5] [INFO] NRC 72308 | Participantes: 22 | Vacia por participantes: NO (22 participantes encontrados)
+[W3/5] [OK] NRC 72308 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=41
+
+================================================================================
+[W3/5] [2/10] NRC 72331 | Periodos: 202615 | Metodos: TRAD
+[W3/5] [INFO] NRC 72331 | Participantes: 28 | Vacia por participantes: NO (28 participantes encontrados)
+[W3/5] [OK] NRC 72331 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=45
+
+================================================================================
+[W3/5] [3/10] NRC 72338 | Periodos: 202615 | Metodos: TRAD
+[W3/5] [INFO] NRC 72338 | Participantes: 38 | Vacia por participantes: NO (38 participantes encontrados)
+[W3/5] [OK] NRC 72338 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=43
+
+================================================================================
+[W3/5] [4/10] NRC 72356 | Periodos: 202615 | Metodos: TRAD
+[INFO] Sesion iniciada en DISTANCIA.
+[W3/5] [INFO] NRC 72356 | Participantes: 22 | Vacia por participantes: NO (22 participantes encontrados)
+[W3/5] [OK] NRC 72356 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=41
+
+================================================================================
+[W3/5] [5/10] NRC 72400 | Periodos: 202615 | Metodos: DIST
+[W1/5] [INFO] NRC 72305 | Participantes: 30 | Vacia por participantes: NO (30 participantes encontrados)
+[W1/5] [OK] NRC 72305 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=40
+
+================================================================================
+[W1/5] [2/10] NRC 72326 | Periodos: 202615 | Metodos: DIST
+[INFO] Sesion iniciada en DISTANCIA.
+[W3/5] [INFO] NRC 72400 | Participantes: 35 | Vacia por participantes: NO (35 participantes encontrados)
+[W3/5] [OK] NRC 72400 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=39
+
+================================================================================
+[W3/5] [6/10] NRC 72411 | Periodos: 202615 | Metodos: TRAD
+[W1/5] [INFO] NRC 72326 | Participantes: 10 | Vacia por participantes: NO (10 participantes encontrados)
+[W1/5] [OK] NRC 72326 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=39
+
+================================================================================
+[W1/5] [3/10] NRC 72335 | Periodos: 202615 | Metodos: DIST
+[W5/5] [INFO] NRC 72314 | Participantes: 13 | Vacia por participantes: NO (13 participantes encontrados)
+[W5/5] [OK] NRC 72314 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=44
+
+================================================================================
+[W5/5] [2/10] NRC 72334 | Periodos: 202615 | Metodos: DIST
+[INFO] Sesion iniciada en DISTANCIA.
+[W3/5] [INFO] NRC 72411 | Participantes: 17 | Vacia por participantes: NO (17 participantes encontrados)
+[W3/5] [OK] NRC 72411 | Modalidad: DISTANCIA | Tipo: vacia | mod_links=2
+
+================================================================================
+[W3/5] [7/10] NRC 72426 | Periodos: 202615 | Metodos: TRAD
+[W5/5] [INFO] NRC 72334 | Participantes: 25 | Vacia por participantes: NO (25 participantes encontrados)
+[W5/5] [OK] NRC 72334 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=46
+
+================================================================================
+[W5/5] [3/10] NRC 72343 | Periodos: 202615 | Metodos: DIST
+[W1/5] [INFO] NRC 72335 | Participantes: 41 | Vacia por participantes: NO (41 participantes encontrados)
+[W1/5] [OK] NRC 72335 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=38
+[W4/5] [INFO] NRC 72313 | Participantes: 11 | Vacia por participantes: NO (11 participantes encontrados)
+[W4/5] [OK] NRC 72313 | Modalidad: DISTANCIA | Tipo: vacia | mod_links=2
+
+================================================================================
+[W1/5] [4/10] NRC 72346 | Periodos: 202615 | Metodos: TRAD
+
+================================================================================
+[W4/5] [2/10] NRC 72332 | Periodos: 202615 | Metodos: DIST
+[W3/5] [INFO] NRC 72426 | Participantes: 18 | Vacia por participantes: NO (18 participantes encontrados)
+[W3/5] [OK] NRC 72426 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=45
+
+================================================================================
+[W3/5] [8/10] NRC 72434 | Periodos: 202615 | Metodos: DIST
+[W5/5] [INFO] NRC 72343 | Participantes: 37 | Vacia por participantes: NO (37 participantes encontrados)
+[W5/5] [OK] NRC 72343 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=44
+
+================================================================================
+[W5/5] [4/10] NRC 72381 | Periodos: 202615 | Metodos: DIST
+[W3/5] [INFO] NRC 72434 | Participantes: 50 | Vacia por participantes: NO (50 participantes encontrados)
+[W3/5] [OK] NRC 72434 | Modalidad: DISTANCIA | Tipo: vacia | mod_links=2
+[W1/5] [INFO] NRC 72346 | Participantes: 36 | Vacia por participantes: NO (36 participantes encontrados)
+[W1/5] [OK] NRC 72346 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=38
+[W4/5] [INFO] NRC 72332 | Participantes: 30 | Vacia por participantes: NO (30 participantes encontrados)
+[W4/5] [OK] NRC 72332 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=43
+
+================================================================================
+[W3/5] [9/10] NRC 72444 | Periodos: 202615 | Metodos: TRAD
+
+================================================================================
+[W1/5] [5/10] NRC 72388 | Periodos: 202615 | Metodos: DIST
+
+================================================================================
+[W4/5] [3/10] NRC 72340 | Periodos: 202615 | Metodos: TRAD
+[W5/5] [INFO] NRC 72381 | Participantes: 25 | Vacia por participantes: NO (25 participantes encontrados)
+[W5/5] [OK] NRC 72381 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=43
+
+================================================================================
+[W5/5] [5/10] NRC 72406 | Periodos: 202615 | Metodos: TRAD
+[W4/5] [INFO] NRC 72340 | Participantes: 9 | Vacia por participantes: NO (9 participantes encontrados)
+[W4/5] [OK] NRC 72340 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=29
+
+================================================================================
+[W4/5] [4/10] NRC 72364 | Periodos: 202615 | Metodos: TRAD
+[W1/5] [INFO] NRC 72388 | Participantes: 29 | Vacia por participantes: NO (29 participantes encontrados)
+[W1/5] [OK] NRC 72388 | Modalidad: DISTANCIA | Tipo: criba | mod_links=49
+
+================================================================================
+[W1/5] [6/10] NRC 72407 | Periodos: 202615 | Metodos: TRAD
+[W3/5] [INFO] NRC 72444 | Participantes: 38 | Vacia por participantes: NO (38 participantes encontrados)
+[W3/5] [OK] NRC 72444 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=46
+
+================================================================================
+[W3/5] [10/10] NRC 72458 | Periodos: 202615 | Metodos: TRAD
+[W5/5] [INFO] NRC 72406 | Participantes: 24 | Vacia por participantes: NO (24 participantes encontrados)
+[W5/5] [OK] NRC 72406 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=41
+
+================================================================================
+[W5/5] [6/10] NRC 72415 | Periodos: 202615 | Metodos: DIST
+[W4/5] [INFO] NRC 72364 | Participantes: 30 | Vacia por participantes: NO (30 participantes encontrados)
+[W4/5] [OK] NRC 72364 | Modalidad: DISTANCIA | Tipo: criba | mod_links=49
+
+================================================================================
+[W4/5] [5/10] NRC 72405 | Periodos: 202615 | Metodos: TRAD
+[W3/5] [INFO] NRC 72458 | Participantes: 39 | Vacia por participantes: NO (39 participantes encontrados)
+[W3/5] [OK] NRC 72458 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=46
+[INFO] Worker 3 finalizado: 10/10 registros.
+[W5/5] [INFO] NRC 72415 | Participantes: 43 | Vacia por participantes: NO (43 participantes encontrados)
+[W5/5] [OK] NRC 72415 | Modalidad: DISTANCIA | Tipo: vacia | mod_links=2
+
+================================================================================
+[W5/5] [7/10] NRC 72429 | Periodos: 202615 | Metodos: TRAD
+[W4/5] [INFO] NRC 72405 | Participantes: 23 | Vacia por participantes: NO (23 participantes encontrados)
+[W4/5] [OK] NRC 72405 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=44
+
+================================================================================
+[W4/5] [6/10] NRC 72414 | Periodos: 202615 | Metodos: VIRT
+[W5/5] [INFO] NRC 72429 | Participantes: 25 | Vacia por participantes: NO (25 participantes encontrados)
+[W5/5] [OK] NRC 72429 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=44
+
+================================================================================
+[W5/5] [8/10] NRC 72436 | Periodos: 202615 | Metodos: DIST
+[W1/5] [INFO] NRC 72407 | Participantes: 14 | Vacia por participantes: NO (14 participantes encontrados)
+[W1/5] [OK] NRC 72407 | Modalidad: DISTANCIA | Tipo: criba | mod_links=55
+
+================================================================================
+[W1/5] [7/10] NRC 72421 | Periodos: 202615 | Metodos: DIST
+[W4/5] [INFO] NRC 72414 | Participantes: 46 | Vacia por participantes: NO (46 participantes encontrados)
+[W4/5] [OK] NRC 72414 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=39
+
+================================================================================
+[W4/5] [7/10] NRC 72428 | Periodos: 202615 | Metodos: DIST
+[W5/5] [INFO] NRC 72436 | Participantes: 45 | Vacia por participantes: NO (45 participantes encontrados)
+[W5/5] [OK] NRC 72436 | Modalidad: DISTANCIA | Tipo: vacia | mod_links=2
+
+================================================================================
+[W5/5] [9/10] NRC 72448 | Periodos: 202615 | Metodos: DIST
+[W1/5] [INFO] NRC 72421 | Participantes: 8 | Vacia por participantes: NO (8 participantes encontrados)
+[W1/5] [OK] NRC 72421 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=38
+
+================================================================================
+[W1/5] [8/10] NRC 72430 | Periodos: 202615 | Metodos: DIST
+[W4/5] [INFO] NRC 72428 | Participantes: 23 | Vacia por participantes: NO (23 participantes encontrados)
+[W4/5] [OK] NRC 72428 | Modalidad: DISTANCIA | Tipo: vacia | mod_links=2
+
+================================================================================
+[W4/5] [8/10] NRC 72435 | Periodos: 202615 | Metodos: DIST
+[W5/5] [INFO] NRC 72448 | Participantes: 33 | Vacia por participantes: NO (33 participantes encontrados)
+[W5/5] [OK] NRC 72448 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=41
+[W1/5] [INFO] NRC 72430 | Participantes: 46 | Vacia por participantes: NO (46 participantes encontrados)
+[W1/5] [OK] NRC 72430 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=40
+
+================================================================================
+[W5/5] [10/10] NRC 72462 | Periodos: 202615 | Metodos: TRAD
+
+================================================================================
+[W1/5] [9/10] NRC 72439 | Periodos: 202615 | Metodos: DIST
+[W4/5] [INFO] NRC 72435 | Participantes: 21 | Vacia por participantes: NO (21 participantes encontrados)
+[W4/5] [OK] NRC 72435 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=43
+
+================================================================================
+[W4/5] [9/10] NRC 72447 | Periodos: 202615 | Metodos: DIST
+[W1/5] [INFO] NRC 72439 | Participantes: 46 | Vacia por participantes: NO (46 participantes encontrados)
+[W1/5] [OK] NRC 72439 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=41
+
+================================================================================
+[W1/5] [10/10] NRC 72456 | Periodos: 202615 | Metodos: TRAD
+[W5/5] [INFO] NRC 72462 | Participantes: 37 | Vacia por participantes: NO (37 participantes encontrados)
+[W5/5] [OK] NRC 72462 | Modalidad: DISTANCIA | Tipo: innovame | mod_links=80
+[INFO] Worker 5 finalizado: 10/10 registros.
+[W4/5] [INFO] NRC 72447 | Participantes: 34 | Vacia por participantes: NO (34 participantes encontrados)
+[W4/5] [OK] NRC 72447 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=90
+
+================================================================================
+[W4/5] [10/10] NRC 72460 | Periodos: 202615 | Metodos: DIST
+[W1/5] [INFO] NRC 72456 | Participantes: 20 | Vacia por participantes: NO (20 participantes encontrados)
+[W1/5] [OK] NRC 72456 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=47
+[INFO] Worker 1 finalizado: 10/10 registros.
+[W4/5] [INFO] NRC 72460 | Participantes: 18 | Vacia por participantes: NO (18 participantes encontrados)
+[W4/5] [OK] NRC 72460 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=35
+[INFO] Worker 4 finalizado: 10/10 registros.
+[INFO] Filas consolidadas al checkpoint: 40
+[INFO] Filas consolidadas en sin matricula: 0
+
+[FIN] Proceso completado.
+[OK] CSV: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072642.csv
+[OK] Excel: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072642.xlsx
+[OK] CSV aulas vacias/sin participantes: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072642_AULAS_VACIAS.csv (6 filas)
+[OK] Excel aulas vacias/sin participantes: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072642_AULAS_VACIAS.xlsx
+[CMD] python3 /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/moodle_categorizacion_aulas.py --browser edge --input-dir /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/inputs/rpaca_csv/_sidecar_smoke50 --output /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072642.xlsx --workers 5 --resume --modo-estricto-modalidad --nrc-5-segun-archivo
+
+[END] 2026-03-08T12:37:48.351Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

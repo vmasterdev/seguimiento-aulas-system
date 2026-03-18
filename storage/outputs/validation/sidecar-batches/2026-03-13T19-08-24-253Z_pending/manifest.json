@@ -1,0 +1,25 @@
+{
+  "batchId": "2026-03-13T19-08-24-253Z_pending",
+  "preparedAt": "2026-03-13T19:08:24.258Z",
+  "filters": {
+    "source": "PENDING",
+    "periodCodes": [
+      "202685"
+    ],
+    "moments": [
+      "1",
+      "INTER",
+      "MD1",
+      "MD2"
+    ],
+    "templates": [],
+    "limit": null
+  },
+  "total": 0,
+  "files": [],
+  "byPeriod": {},
+  "byMoment": {},
+  "byStatus": {},
+  "byTemplate": {},
+  "sample": []
+}

@@ -1,0 +1,258 @@
+{
+  "timestamp": "2026-03-06T01:02:32.006Z",
+  "filter": "DOCENTE | 2026 except 202685 | ALISTAMIENTO | MD1 y 1 | status DRAFT/EXPORTED",
+  "pendingCount": 18,
+  "responseStatus": 201,
+  "response": {
+    "ok": false,
+    "dryRun": false,
+    "deliveryMode": "OUTLOOK",
+    "sentCount": 3,
+    "failedCount": 15,
+    "skippedCount": 0,
+    "sent": [
+      {
+        "id": "cmm2k8u0k06z5diwq29raz5ow",
+        "to": "nathalie.garcia@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmme2416w000210u3ntcsp985",
+        "to": "alejandra.barrios@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmme2419g000510u354ekr9tf",
+        "to": "oscar.bedoya.s@uniminuto.edu",
+        "messageId": null
+      }
+    ],
+    "failed": [
+      {
+        "id": "cmm2k8ttr06xpdiwqf44jb04c",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8tu006xrdiwqnoejvmnq",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8tuw06xzdiwqhj1nr44b",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8tvj06y5diwq9jngf9ga",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8uci071ndiwqhm2il0ab",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8uf20729diwqddvswws9",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8wgr07d3diwq0jqkv7l3",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8wiw07dhdiwqqxlkv4v3",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8wkm07dtdiwqcvzbffg9",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8wms07eddiwqvs6r8z8n",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8wsk07g5diwqtc9zwo1q",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8wth07gfdiwqv1u1xb54",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmm2k8wwp07hfdiwqhq1a8hxr",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmmdn12u90001ns1q0r666i4p",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      },
+      {
+        "id": "cmmdn12w90004ns1qeg7lh0kj",
+        "to": "sin-correo@invalid.local",
+        "error": "Mensaje sin correo destino valido."
+      }
+    ],
+    "skipped": []
+  },
+  "sentRows": [
+    {
+      "id": "cmm2k8u0k06z5diwq29raz5ow",
+      "docente": "GARCIA CALLE NATHALIE",
+      "correo": "nathalie.garcia@uniminuto.edu",
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO MD1 - 202615",
+      "period": "202615",
+      "moment": "MD1"
+    },
+    {
+      "id": "cmme2416w000210u3ntcsp985",
+      "docente": "BARRIOS RIVERA ALEJANDRA",
+      "correo": "alejandra.barrios@uniminuto.edu",
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+      "period": "202615",
+      "moment": "1"
+    },
+    {
+      "id": "cmme2419g000510u354ekr9tf",
+      "docente": "BEDOYA SANCHEZ OSCAR MAURICIO",
+      "correo": "oscar.bedoya.s@uniminuto.edu",
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+      "period": "202615",
+      "moment": "1"
+    }
+  ],
+  "failedRows": [
+    {
+      "id": "cmm2k8ttr06xpdiwqf44jb04c",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO MD1 - 202615",
+      "period": "202615",
+      "moment": "MD1"
+    },
+    {
+      "id": "cmm2k8tu006xrdiwqnoejvmnq",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO MD1 - 202615",
+      "period": "202615",
+      "moment": "MD1"
+    },
+    {
+      "id": "cmm2k8tuw06xzdiwqhj1nr44b",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO MD1 - 202615",
+      "period": "202615",
+      "moment": "MD1"
+    },
+    {
+      "id": "cmm2k8tvj06y5diwq9jngf9ga",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO MD1 - 202615",
+      "period": "202615",
+      "moment": "MD1"
+    },
+    {
+      "id": "cmm2k8uci071ndiwqhm2il0ab",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO MD1 - 202615",
+      "period": "202615",
+      "moment": "MD1"
+    },
+    {
+      "id": "cmm2k8uf20729diwqddvswws9",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO MD1 - 202615",
+      "period": "202615",
+      "moment": "MD1"
+    },
+    {
+      "id": "cmm2k8wgr07d3diwq0jqkv7l3",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+      "period": "202615",
+      "moment": "1"
+    },
+    {
+      "id": "cmm2k8wiw07dhdiwqqxlkv4v3",
+      "docente": "GONZALEZ PERDOMO MARLY YURANY",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+      "period": "202615",
+      "moment": "1"
+    },
+    {
+      "id": "cmm2k8wkm07dtdiwqcvzbffg9",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+      "period": "202615",
+      "moment": "1"
+    },
+    {
+      "id": "cmm2k8wms07eddiwqvs6r8z8n",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+      "period": "202615",
+      "moment": "1"
+    },
+    {
+      "id": "cmm2k8wsk07g5diwqtc9zwo1q",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+      "period": "202615",
+      "moment": "1"
+    },
+    {
+      "id": "cmm2k8wth07gfdiwqv1u1xb54",
+      "docente": "RODRIGUEZ NIEVES ALBA YULIETH",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+      "period": "202615",
+      "moment": "1"
+    },
+    {
+      "id": "cmm2k8wwp07hfdiwqhq1a8hxr",
+      "docente": "Docente no identificado",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+      "period": "202615",
+      "moment": "1"
+    },
+    {
+      "id": "cmmdn12u90001ns1q0r666i4p",
+      "docente": "ANA, FERRO MORENO L.",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+      "period": "202615",
+      "moment": "1"
+    },
+    {
+      "id": "cmmdn12w90004ns1qeg7lh0kj",
+      "docente": "ANA, FERRO MORENO L.",
+      "correo": null,
+      "subject": "[Seguimiento Aulas] ALISTAMIENTO MD1 - 202615",
+      "period": "202615",
+      "moment": "MD1"
+    }
+  ],
+  "skippedRows": []
+}

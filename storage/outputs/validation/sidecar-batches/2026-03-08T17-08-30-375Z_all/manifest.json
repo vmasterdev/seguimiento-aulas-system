@@ -1,0 +1,210 @@
+{
+  "batchId": "2026-03-08T17-08-30-375Z_all",
+  "preparedAt": "2026-03-08T17:08:30.390Z",
+  "filters": {
+    "source": "ALL",
+    "periodCodes": [
+      "202615"
+    ],
+    "moments": [
+      "MD1",
+      "1"
+    ],
+    "limit": 20
+  },
+  "total": 16,
+  "files": [
+    {
+      "name": "RPACA_GENERADO_PREGRADO_DISTANCIA_202615.csv",
+      "rows": 16
+    }
+  ],
+  "byPeriod": {
+    "202615": 16
+  },
+  "byMoment": {
+    "1": 4,
+    "MD1": 12
+  },
+  "byStatus": {
+    "OK": 16
+  },
+  "sample": [
+    {
+      "courseId": "cmm2a5asw0002wl7ym11cnwgl",
+      "nrc": "15-72305",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Fundamentos de Matemáticas",
+      "method": "DIST",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5auf000cwl7ynpvqicp2",
+      "nrc": "15-72308",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Proceso Administrativo",
+      "method": "TRAD",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5avs000mwl7y9uvdz1ud",
+      "nrc": "15-72314",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Dirección y Control",
+      "method": "DIST",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5awh000rwl7y4jher9v8",
+      "nrc": "15-72326",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "1",
+      "title": "Lectura y Escritura en el Cont",
+      "method": "DIST",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5ax4000wwl7yumo7zj30",
+      "nrc": "15-72330",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Ergonomía",
+      "method": "TRAD",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5axs0011wl7yoz4m9x9n",
+      "nrc": "15-72331",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Riesgos Mecánicos y Eléctricos",
+      "method": "TRAD",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5az1001bwl7y29wlci08",
+      "nrc": "15-72334",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Epidemiología",
+      "method": "DIST",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5azn001gwl7yi3jt2ok2",
+      "nrc": "15-72335",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Investigación de Eventos Labor",
+      "method": "DIST",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5b0y001qwl7yr7bj5r4r",
+      "nrc": "15-72338",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "1",
+      "title": "Contabilidad Financiera II",
+      "method": "TRAD",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5b1m001vwl7ybrjsqgub",
+      "nrc": "15-72340",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "1",
+      "title": "Fundamentación y teoría contab",
+      "method": "TRAD",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5b290020wl7yna7biruw",
+      "nrc": "15-72343",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Formulación y Evaluación de Pr",
+      "method": "DIST",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5b46002fwl7ywwfi1shm",
+      "nrc": "15-72356",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Revisoría Fiscal",
+      "method": "TRAD",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5b73002zwl7ycm7npif0",
+      "nrc": "15-72399",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Formulación y Evaluación de Pr",
+      "method": "DIST",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5b7s0034wl7ycmn1ga9f",
+      "nrc": "15-72400",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "1",
+      "title": "Lectura y Escritura en el Cont",
+      "method": "DIST",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5b8h0039wl7yjqyx5ch8",
+      "nrc": "15-72405",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Desarrollo Psicomotor y Juego",
+      "method": "TRAD",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    },
+    {
+      "courseId": "cmm2a5b94003ewl7ycum9eo3t",
+      "nrc": "15-72406",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Didáctica del Lengu en la Educ",
+      "method": "TRAD",
+      "status": "OK",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    }
+  ]
+}

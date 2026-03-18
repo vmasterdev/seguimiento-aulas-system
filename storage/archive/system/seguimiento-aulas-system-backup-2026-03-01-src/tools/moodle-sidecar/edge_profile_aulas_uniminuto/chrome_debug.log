@@ -1,0 +1,30 @@
+[223546:223546:0226/172327.356169:WARNING:chrome/browser/extensions/activity_log/activity_log_policy.cc:71] Scheduling init
+[223546:223546:0226/172327.371469:WARNING:chrome/browser/extensions/activity_log/activity_log_policy.cc:71] Scheduling init
+[223585:223585:0226/172327.633603:WARNING:ui/gfx/linux/gbm_support_x11.cc:48] dri3 extension not supported.
+[223585:223585:0226/172327.642818:WARNING:sandbox/policy/linux/sandbox_linux.cc:406] InitializeSandbox() called with multiple threads in process gpu-process.
+[223546:223546:0226/172328.357593:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
+[223546:223546:0226/172328.360759:WARNING:dbus/property.cc:174] GetAll request failed for: org.freedesktop.UPower.Device
+[223646:7:0226/172328.372208:ERROR:gpu/ipc/client/command_buffer_proxy_impl.cc:287] ContextResult::kTransientFailure: Failed to send GpuControl.CreateCommandBuffer.
+[223546:223546:0226/172331.467376:INFO:CONSOLE:2] "Error while attempting to measure start/end of 'AdServiceCall.SuperFeed'. Error: SyntaxError: Failed to execute 'measure' on 'Performance': The mark 'AdServiceCall.SuperFeed-start' does not exist. [object Object] Thu Feb 26 2026 17:23:31 GMT-0500 (Colombia Standard Time)", source: https://assets.msn.com/bundles/v1/edgeChromium/latest/vendors.12c1f6e5ff43f6e8efda.js (2)
+[223546:223546:0226/172331.640225:INFO:CONSOLE:0] "Tracking Prevention blocked access to storage for https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js.", source: https://distancia.aulasuniminuto.edu.co/login/index.php (0)
+[223546:223546:0226/172331.664552:INFO:CONSOLE:0] "Tracking Prevention blocked access to storage for https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js.", source: https://distancia.aulasuniminuto.edu.co/login/index.php (0)
+[223546:223546:0226/172331.675876:INFO:CONSOLE:0] "Tracking Prevention blocked access to storage for https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js.", source: https://distancia.aulasuniminuto.edu.co/login/index.php (0)
+[223546:223546:0226/172331.677824:INFO:CONSOLE:0] "Tracking Prevention blocked access to storage for https://cdn.jsdelivr.net/npm/bootstrap@5.3.2/dist/js/bootstrap.bundle.min.js.", source: https://distancia.aulasuniminuto.edu.co/login/index.php (0)
+[223546:223546:0226/172332.133459:INFO:CONSOLE:0] "Tracking Prevention blocked access to storage for https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?delayStartupUntil=configured.", source: https://distancia.aulasuniminuto.edu.co/login/index.php (0)
+[223546:223546:0226/172332.135359:INFO:CONSOLE:0] "Tracking Prevention blocked access to storage for https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?delayStartupUntil=configured.", source: https://distancia.aulasuniminuto.edu.co/login/index.php (0)
+[223546:223546:0226/172332.141119:INFO:CONSOLE:0] "Tracking Prevention blocked access to storage for https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?delayStartupUntil=configured.", source: https://distancia.aulasuniminuto.edu.co/login/index.php (0)
+[223546:223546:0226/172332.144752:INFO:CONSOLE:0] "Tracking Prevention blocked access to storage for https://cdn.jsdelivr.net/npm/mathjax@2.7.9/MathJax.js?delayStartupUntil=configured.", source: https://distancia.aulasuniminuto.edu.co/login/index.php (0)
+[223546:223546:0226/172333.654252:INFO:CONSOLE:1103] "Starting Moodle session timeout warning.", source: https://distancia.aulasuniminuto.edu.co/lib/requirejs.php/1771942437/core/first.js (1103)
+[223546:223546:0226/172334.757693:INFO:CONSOLE:1103] "Starting Moodle session timeout warning.", source: https://distancia.aulasuniminuto.edu.co/lib/requirejs.php/1771942437/core/first.js (1103)
+[223877:1:0226/172336.958686:INFO:components/services/edge_entity_extraction/extractor_impl.cc:990] ExtractorImpl::SetIsPendingEEConfig : 1
+[223546:223546:0226/172337.954147:WARNING:ui/base/idle/idle_linux.cc:111] None of the known D-Bus ScreenSaver services could be used.
+[223546:223546:0226/172343.135633:ERROR:content/common/zygote/zygote_communication_linux.cc:293] Failed to send GetTerminationStatus message to zygote
+[223546:223546:0226/172343.143395:WARNING:content/common/zygote/zygote_communication_linux.cc:305] Socket closed prematurely.
+[223546:223546:0226/172343.258336:ERROR:content/common/zygote/zygote_communication_linux.cc:293] Failed to send GetTerminationStatus message to zygote
+[223546:223546:0226/172343.267749:WARNING:content/common/zygote/zygote_communication_linux.cc:305] Socket closed prematurely.
+[223546:223546:0226/172343.411687:ERROR:content/common/zygote/zygote_communication_linux.cc:293] Failed to send GetTerminationStatus message to zygote
+[223546:223546:0226/172343.419521:WARNING:content/common/zygote/zygote_communication_linux.cc:305] Socket closed prematurely.
+[223546:223546:0226/172343.424118:ERROR:content/common/zygote/zygote_communication_linux.cc:293] Failed to send GetTerminationStatus message to zygote
+[223546:223546:0226/172343.426829:WARNING:content/common/zygote/zygote_communication_linux.cc:305] Socket closed prematurely.
+[223546:223546:0226/172343.431426:ERROR:content/common/zygote/zygote_communication_linux.cc:293] Failed to send GetTerminationStatus message to zygote
+[223546:223546:0226/172343.433019:WARNING:content/common/zygote/zygote_communication_linux.cc:305] Socket closed prematurely.

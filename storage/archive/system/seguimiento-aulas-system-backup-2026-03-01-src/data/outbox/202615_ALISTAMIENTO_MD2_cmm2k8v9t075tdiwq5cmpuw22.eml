@@ -1,0 +1,347 @@
+To: alex.granados@uniminuto.edu
+Subject: [Seguimiento Aulas] ALISTAMIENTO MD2 - 202615
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+<html><head><style>
+    .preheader {
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      color: transparent;
+      height: 0;
+      width: 0;
+      overflow: hidden;
+      mso-hide: all;
+    }
+    .mail-bg {
+      background: linear-gradient(180deg, #edf3fb 0%, #f6f8fc 100%);
+      font-family: Segoe UI, Arial, sans-serif;
+      color: #1f2937;
+    }
+    .shell {
+      max-width: 780px;
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #d4d7dd;
+      box-shadow: 0 10px 28px rgba(4, 30, 66, 0.14);
+      overflow: hidden;
+    }
+    .top-strip {
+      height: 10px;
+      background: linear-gradient(90deg, #ffc300 0%, #ffd95c 100%);
+      font-size: 0;
+      line-height: 0;
+    }
+    .hero {
+      background: linear-gradient(120deg, #002b5c 0%, #0057a4 100%);
+      color: #ffffff;
+      padding: 20px 26px;
+      border-bottom: 1px solid #00244a;
+    }
+    .hero-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+    .hero-subtitle {
+      margin-top: 6px;
+      color: #dde9ff;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .hero-highlight {
+      color: #ffd000;
+    }
+    .body-wrap {
+      padding: 22px 26px;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #1f2937;
+    }
+    .intro-note {
+      margin: 0 0 12px 0;
+      font-size: 12px;
+      color: #46556a;
+      line-height: 1.55;
+      background: #f8fbff;
+      border: 1px solid #d4d7dd;
+      border-left: 4px solid #0057a4;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .panel {
+      margin: 12px 0 16px 0;
+      padding: 14px 16px;
+      background: #f8fafc;
+      border: 1px solid #d4d7dd;
+      border-radius: 14px;
+    }
+    .panel-warm {
+      background: #fffbef;
+      border-color: #f0df9e;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0057a4;
+      margin: 0 0 8px 0;
+      letter-spacing: 0.2px;
+    }
+    .kpi-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 8px 0 10px 0;
+    }
+    .kpi {
+      flex: 1 1 150px;
+      background: #ffffff;
+      border: 1px solid #d4d7dd;
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+    }
+    .kpi-success {
+      background: #dcfce7;
+      border-color: #cce8d6;
+    }
+    .kpi-info {
+      background: #dbeafe;
+      border-color: #c3d9fb;
+    }
+    .kpi-warning {
+      background: #ffedd5;
+      border-color: #f3c9a0;
+    }
+    .kpi-danger {
+      background: #fee2e2;
+      border-color: #f2c7cf;
+    }
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.35px;
+      color: #5c6c82;
+      margin-bottom: 2px;
+    }
+    .kpi-value {
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 800;
+      color: #002b5c;
+    }
+    .kpi-meta {
+      font-size: 11px;
+      color: #5c6c82;
+    }
+    .legend {
+      font-size: 11px;
+      color: #3e4b5b;
+      margin-top: 4px;
+    }
+    .legend-item {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      margin-right: 3px;
+      vertical-align: middle;
+    }
+    .dot-ok {
+      background: #16a34a;
+    }
+    .dot-good {
+      background: #2563eb;
+    }
+    .dot-warn {
+      background: #ea580c;
+    }
+    .dot-bad {
+      background: #b91c1c;
+    }
+    .progress-track {
+      width: 100%;
+      height: 18px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #d4d7dd;
+      background: #f9fafb;
+      margin-top: 6px;
+      font-size: 0;
+      white-space: nowrap;
+    }
+    .progress-seg {
+      display: inline-block;
+      height: 18px;
+    }
+    .seg-ok {
+      width: 25%;
+      background: #16a34a;
+    }
+    .seg-good {
+      width: 75%;
+      background: #2563eb;
+    }
+    .seg-warn {
+      width: 0%;
+      background: #ea580c;
+    }
+    .seg-bad {
+      width: 0%;
+      background: #b91c1c;
+    }
+    .table-container {
+      border: 1px solid #d4d7dd;
+      border-radius: 12px;
+      overflow-x: auto;
+      background: #ffffff;
+    }
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 12px;
+    }
+    .report-table th {
+      background: #0057a4;
+      color: #ffffff;
+      padding: 10px 8px;
+      text-align: left;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .report-table td {
+      padding: 10px 8px;
+      border-top: 1px solid #e4e9f1;
+      vertical-align: top;
+      line-height: 1.45;
+      color: #1f2937;
+    }
+    .report-table tbody tr:nth-child(even) {
+      background: #f8fbff;
+    }
+    .t-center {
+      text-align: center;
+    }
+    .score-pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 700;
+      font-size: 11px;
+      line-height: 1.3;
+      min-width: 78px;
+      text-align: center;
+    }
+    .score-exc {
+      background: #dcfce7;
+      color: #14532d;
+    }
+    .score-good {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.25;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+    .badge-exc {
+      background: #dcfce7;
+      color: #14532d;
+    }
+    .badge-good {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+    .rev-chip {
+      display: inline-block;
+      border-radius: 999px;
+      border: 1px solid #d4d7dd;
+      background: #f9fafb;
+      color: #46556a;
+      padding: 3px 9px;
+      font-size: 11px;
+      line-height: 1.25;
+      font-weight: 600;
+    }
+    .obs-list {
+      margin: 8px 0 0 0;
+      padding-left: 18px;
+      color: #25364d;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .obs-list li {
+      margin-bottom: 6px;
+    }
+    .note {
+      margin-top: 8px;
+      color: #556175;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .cta-wrap {
+      text-align: center;
+      margin-top: 14px;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: #ffd000;
+      color: #002b5c;
+      text-decoration: none;
+      padding: 14px 26px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 800;
+      border: 2px solid #ffc300;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+    }
+    .contact-box {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #2e3c50;
+    }
+    .report-footer {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #e4e9f1;
+      color: #556175;
+      font-size: 12px;
+      text-align: right;
+    }
+    @media only screen and (max-width: 760px) {
+      .body-wrap {
+        padding: 16px;
+      }
+      .hero {
+        padding: 16px;
+      }
+      .hero-title {
+        font-size: 20px;
+      }
+      .kpi {
+        flex: 1 1 46%;
+      }
+      .report-table {
+        font-size: 11px;
+      }
+      .report-table th,
+      .report-table td {
+        padding: 8px 6px;
+      }
+    }
+  </style></head><body class="mail-bg"><div class="shell"><div class="top-strip"></div><div class="hero"><h2 class="hero-title">Seguimiento de aulas virtuales - ALISTAMIENTO</h2><div class="hero-subtitle">Periodo 202615 | Momento MD2</div></div><div class="body-wrap"><p class="intro-note"><strong>Docente:</strong> GRANADOS TRUJILLO ALEX FERNANDO</p><div class="panel"><div class="section-title">Resumen de aulas seleccionadas por muestreo</div><div class="table-container"><table class="report-table"><thead><tr><th>NRC</th><th>Programa</th><th>Plantilla</th><th>Puntaje fase</th></tr></thead><tbody><tr><td>65-84361</td><td>CONTADURÍA PÚBLICA DISTANCIA</td><td>UNKNOWN</td><td class="t-center">0</td></tr></tbody></table></div></div><p class="note">Este correo fue generado por el sistema de seguimiento de aulas.</p></div></div></body></html>

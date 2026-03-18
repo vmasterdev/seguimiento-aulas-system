@@ -1,0 +1,4 @@
+
+> @seguimiento/api@0.1.0 build /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/apps/api
+> tsc -p tsconfig.json
+

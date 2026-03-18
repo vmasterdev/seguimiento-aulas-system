@@ -1,0 +1,36 @@
+[START] 2026-03-17T23:03:05.616Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location '\\wsl.localhost\Ubuntu\home\uvan\banner-batch-run-20260317-1508'; & 'C:\Program Files\nodejs\node.exe' '\\wsl.localhost\Ubuntu\home\uvan\banner-batch-run-20260317-1508\scripts\auth-windows.cjs' 'start'
+
+
+[PROCESS_ERROR] Command failed: /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe -NoProfile -Command Set-Location '\\wsl.localhost\Ubuntu\home\uvan\banner-batch-run-20260317-1508'; & 'C:\Program Files\nodejs\node.exe' '\\wsl.localhost\Ubuntu\home\uvan\banner-batch-run-20260317-1508\scripts\auth-windows.cjs' 'start'
+node:internal/modules/cjs/loader:1386
+  throw err;
+  ^
+
+Error: Cannot find module 'dotenv'
+Require stack:
+- \\wsl.localhost\Ubuntu\home\uvan\banner-batch-run-20260317-1508\scripts\auth-windows.cjs
+    at Function._resolveFilename (node:internal/modules/cjs/loader:1383:15)
+    at defaultResolveImpl (node:internal/modules/cjs/loader:1025:19)
+    at resolveForCJSWithHooks (node:internal/modules/cjs/loader:1030:22)
+    at Function._load (node:internal/modules/cjs/loader:1192:37)
+    at TracingChannel.traceSync (node:diagnostics_channel:322:14)
+    at wrapModuleLoad (node:internal/modules/cjs/loader:237:24)
+    at Module.require (node:internal/modules/cjs/loader:1463:12)
+    at require (node:internal/modules/helpers:147:16)
+    at Object.<anonymous> (\\wsl.localhost\Ubuntu\home\uvan\banner-batch-run-20260317-1508\scripts\auth-windows.cjs:3:1)
+    at Module._compile (node:internal/modules/cjs/loader:1706:14) {
+  code: 'MODULE_NOT_FOUND',
+  requireStack: [
+    '\\\\wsl.localhost\\Ubuntu\\home\\uvan\\banner-batch-run-20260317-1508\\scripts\\auth-windows.cjs'
+  ]
+}
+
+Node.js v22.20.0
+
+
+[END] 2026-03-17T23:03:08.242Z
+[STATUS] FAILED
+[EXIT_CODE] 1

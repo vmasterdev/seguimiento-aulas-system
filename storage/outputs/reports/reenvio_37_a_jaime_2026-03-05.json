@@ -1,0 +1,211 @@
+{
+  "timestamp": "2026-03-05T22:31:01.003Z",
+  "requestedFromHistoricalSent": 37,
+  "existingIds": 36,
+  "missingIds": 1,
+  "replacementMap": [
+    {
+      "missingId": "cmm2k8wpo07f9diwqg6ch1n3s",
+      "docente": "BEDOYA SANCHEZ OSCAR MAURICIO",
+      "replacementId": "cmme0kcid0001mlhcdl9rc775",
+      "replacementStatus": "DRAFT"
+    }
+  ],
+  "finalUniqueIds": 37,
+  "responseStatus": 201,
+  "responseBody": {
+    "ok": true,
+    "dryRun": false,
+    "deliveryMode": "OUTLOOK",
+    "sentCount": 37,
+    "failedCount": 0,
+    "sent": [
+      {
+        "id": "cmm2k8u0k06z5diwq29raz5ow",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wca07c1diwqm7rmk52w",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wds07cddiwqqupkqqnm",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wec07chdiwqznw9hss0",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wem07cjdiwqqy0dkc87",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wet07cldiwqacc8e36i",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wfv07cvdiwqwoedztpr",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wg207cxdiwq2pn0l9gm",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wgd07czdiwq107oe92a",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8whh07d9diwqt3fl4y9z",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wj407djdiwqjnzturzj",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wka07drdiwqu3ldk5un",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wlf07dzdiwqrn7dthv4",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wm807e7diwq5j4je4av",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wnh07eldiwqlca6jcgt",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wno07endiwqh2d6s7y0",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wo207erdiwqb8exgfxs",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wol07exdiwqhtjnddrp",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8woy07f1diwqgr2t38k2",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wqf07fhdiwqzq00e0ae",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wqs07fldiwq8xlnn1oy",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wr507fpdiwqthvig3vi",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wri07ftdiwq90p22jey",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wro07fvdiwqdkrzk6zq",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8ws107fzdiwq8tus4ane",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wse07g3diwqfcd0rfc2",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wsr07g7diwqz9n0tcjj",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wt307gbdiwqied3n4wm",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wta07gddiwqtg9lkpsp",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wtz07gldiwq7yyds4op",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wu607gndiwqjxfuhi0y",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wud07gpdiwqk3xfrxqg",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8wv907gzdiwqvio3svfw",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8ww007h7diwqnvc146a9",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmm2k8ww707h9diwqyy3545g6",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmme0c2ut0001yemohsycr2ck",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      },
+      {
+        "id": "cmme0kcid0001mlhcdl9rc775",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      }
+    ],
+    "failed": []
+  }
+}

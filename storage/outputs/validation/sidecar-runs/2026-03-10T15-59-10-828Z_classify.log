@@ -1,0 +1,7 @@
+[START] 2026-03-10T15:59:10.829Z
+[CMD] /mnt/c/WINDOWS/system32/cmd.exe "/c" "py" "-3" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\tools\\moodle-sidecar\\sidecar_runner.py" "classify" "--input-dir" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-batches\\2026-03-10T15-59-08-508Z_all" "--output" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\RESULTADO_TIPOS_AULA_DESDE_MOODLE_windows_smoke1.xlsx" "--workers" "1" "--browser" "edge" "--prelogin-all-modalidades" "--python" "py"
+
+
+[END] 2026-03-10T16:01:11.299Z
+[STATUS] CANCELLED
+[EXIT_CODE] null

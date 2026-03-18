@@ -1,0 +1,50 @@
+[START] 2026-03-14T04:30:50.738Z
+[CMD] C:\WINDOWS\system32\cmd.exe "/c" "py" "-3" "-u" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\tools\\moodle-sidecar\\sidecar_runner.py" "participants" "--input-json" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-extract-batches\\2026-03-14T04-30-50-705Z_participants\\participants_input.json" "--output-dir" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-extract-batches\\2026-03-14T04-30-50-705Z_participants\\participants_exports" "--browser" "chrome" "--login-wait-seconds" "300" "--python" "py"
+
+[CMD] py C:\Users\Duvan\Documents\seguimiento-aulas-system\tools\moodle-sidecar\moodle_participants_exports.py --input-json C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-extract-batches\2026-03-14T04-30-50-705Z_participants\participants_input.json --output-dir C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-extract-batches\2026-03-14T04-30-50-705Z_participants\participants_exports --browser chrome --login-wait-seconds 300
+[INFO] Participantes: preparando NRC 15-72305 periodo 202615 curso 2565
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[INFO] Sesion iniciada en DISTANCIA.
+[INFO] Participantes: NRC 15-72305 extraido con 30 registros en storage/outputs/validation/sidecar-extract-batches/2026-03-14T04-30-50-705Z_participants/participants_exports/files/202615/15-72305/15-72305_202615_participantes.json
+[INFO] Participantes: preparando NRC 15-72307 periodo 202615 curso 2656
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Participantes: NRC 15-72307 extraido con 14 registros en storage/outputs/validation/sidecar-extract-batches/2026-03-14T04-30-50-705Z_participants/participants_exports/files/202615/15-72307/15-72307_202615_participantes.json
+[INFO] Participantes: preparando NRC 15-72308 periodo 202615 curso 3078
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Participantes: NRC 15-72308 extraido con 22 registros en storage/outputs/validation/sidecar-extract-batches/2026-03-14T04-30-50-705Z_participants/participants_exports/files/202615/15-72308/15-72308_202615_participantes.json
+[INFO] Participantes: preparando NRC 15-72313 periodo 202615 curso 989
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Participantes: NRC 15-72313 extraido con 11 registros en storage/outputs/validation/sidecar-extract-batches/2026-03-14T04-30-50-705Z_participants/participants_exports/files/202615/15-72313/15-72313_202615_participantes.json
+[INFO] Participantes: preparando NRC 15-72314 periodo 202615 curso 2452
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Participantes: NRC 15-72314 extraido con 13 registros en storage/outputs/validation/sidecar-extract-batches/2026-03-14T04-30-50-705Z_participants/participants_exports/files/202615/15-72314/15-72314_202615_participantes.json
+[INFO] Participantes: preparando NRC 15-72326 periodo 202615 curso 2604
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Participantes: NRC 15-72326 extraido con 10 registros en storage/outputs/validation/sidecar-extract-batches/2026-03-14T04-30-50-705Z_participants/participants_exports/files/202615/15-72326/15-72326_202615_participantes.json
+[INFO] Participantes: preparando NRC 15-72330 periodo 202615 curso 772
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Participantes: NRC 15-72330 extraido con 26 registros en storage/outputs/validation/sidecar-extract-batches/2026-03-14T04-30-50-705Z_participants/participants_exports/files/202615/15-72330/15-72330_202615_participantes.json
+[INFO] Participantes: preparando NRC 15-72331 periodo 202615 curso 1763
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Participantes: NRC 15-72331 extraido con 28 registros en storage/outputs/validation/sidecar-extract-batches/2026-03-14T04-30-50-705Z_participants/participants_exports/files/202615/15-72331/15-72331_202615_participantes.json
+[INFO] Participantes: preparando NRC 15-72332 periodo 202615 curso 1414
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Participantes: NRC 15-72332 extraido con 30 registros en storage/outputs/validation/sidecar-extract-batches/2026-03-14T04-30-50-705Z_participants/participants_exports/files/202615/15-72332/15-72332_202615_participantes.json
+[INFO] Participantes: preparando NRC 15-72334 periodo 202615 curso 966
+[INFO] Sesion activa detectada en DISTANCIA.
+[INFO] Participantes: NRC 15-72334 extraido con 25 registros en storage/outputs/validation/sidecar-extract-batches/2026-03-14T04-30-50-705Z_participants/participants_exports/files/202615/15-72334/15-72334_202615_participantes.json
+[INFO] Exportes de participantes generados en C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-extract-batches\2026-03-14T04-30-50-705Z_participants\participants_exports
+[INFO] Cursos procesados: 10
+[INFO] Extracciones exitosas: 10
+[INFO] Errores: 0
+
+[END] 2026-03-14T04:32:14.946Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

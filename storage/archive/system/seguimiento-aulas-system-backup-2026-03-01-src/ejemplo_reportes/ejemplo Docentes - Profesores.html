@@ -1,0 +1,510 @@
+<div>
+  <style>
+    .preheader {
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      color: transparent;
+      height: 0;
+      width: 0;
+      overflow: hidden;
+      mso-hide: all;
+    }
+    .mail-bg {
+      background: linear-gradient(180deg, #edf3fb 0%, #f6f8fc 100%);
+      font-family: Segoe UI, Arial, sans-serif;
+      color: #1f2937;
+    }
+    .shell {
+      max-width: 780px;
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #d4d7dd;
+      box-shadow: 0 10px 28px rgba(4, 30, 66, 0.14);
+      overflow: hidden;
+    }
+    .top-strip {
+      height: 10px;
+      background: linear-gradient(90deg, #ffc300 0%, #ffd95c 100%);
+      font-size: 0;
+      line-height: 0;
+    }
+    .hero {
+      background: linear-gradient(120deg, #002b5c 0%, #0057a4 100%);
+      color: #ffffff;
+      padding: 20px 26px;
+      border-bottom: 1px solid #00244a;
+    }
+    .hero-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+    .hero-subtitle {
+      margin-top: 6px;
+      color: #dde9ff;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .hero-highlight {
+      color: #ffd000;
+    }
+    .body-wrap {
+      padding: 22px 26px;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #1f2937;
+    }
+    .intro-note {
+      margin: 0 0 12px 0;
+      font-size: 12px;
+      color: #46556a;
+      line-height: 1.55;
+      background: #f8fbff;
+      border: 1px solid #d4d7dd;
+      border-left: 4px solid #0057a4;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .panel {
+      margin: 12px 0 16px 0;
+      padding: 14px 16px;
+      background: #f8fafc;
+      border: 1px solid #d4d7dd;
+      border-radius: 14px;
+    }
+    .panel-warm {
+      background: #fffbef;
+      border-color: #f0df9e;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0057a4;
+      margin: 0 0 8px 0;
+      letter-spacing: 0.2px;
+    }
+    .kpi-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 8px 0 10px 0;
+    }
+    .kpi {
+      flex: 1 1 150px;
+      background: #ffffff;
+      border: 1px solid #d4d7dd;
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+    }
+    .kpi-success {
+      background: #dcfce7;
+      border-color: #cce8d6;
+    }
+    .kpi-info {
+      background: #dbeafe;
+      border-color: #c3d9fb;
+    }
+    .kpi-warning {
+      background: #ffedd5;
+      border-color: #f3c9a0;
+    }
+    .kpi-danger {
+      background: #fee2e2;
+      border-color: #f2c7cf;
+    }
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.35px;
+      color: #5c6c82;
+      margin-bottom: 2px;
+    }
+    .kpi-value {
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 800;
+      color: #002b5c;
+    }
+    .kpi-meta {
+      font-size: 11px;
+      color: #5c6c82;
+    }
+    .legend {
+      font-size: 11px;
+      color: #3e4b5b;
+      margin-top: 4px;
+    }
+    .legend-item {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      margin-right: 3px;
+      vertical-align: middle;
+    }
+    .dot-ok {
+      background: #16a34a;
+    }
+    .dot-good {
+      background: #2563eb;
+    }
+    .dot-warn {
+      background: #ea580c;
+    }
+    .dot-bad {
+      background: #b91c1c;
+    }
+    .progress-track {
+      width: 100%;
+      height: 18px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #d4d7dd;
+      background: #f9fafb;
+      margin-top: 6px;
+      font-size: 0;
+      white-space: nowrap;
+    }
+    .progress-seg {
+      display: inline-block;
+      height: 18px;
+    }
+    .seg-ok {
+      width: 25%;
+      background: #16a34a;
+    }
+    .seg-good {
+      width: 75%;
+      background: #2563eb;
+    }
+    .seg-warn {
+      width: 0%;
+      background: #ea580c;
+    }
+    .seg-bad {
+      width: 0%;
+      background: #b91c1c;
+    }
+    .table-container {
+      border: 1px solid #d4d7dd;
+      border-radius: 12px;
+      overflow-x: auto;
+      background: #ffffff;
+    }
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 12px;
+    }
+    .report-table th {
+      background: #0057a4;
+      color: #ffffff;
+      padding: 10px 8px;
+      text-align: left;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .report-table td {
+      padding: 10px 8px;
+      border-top: 1px solid #e4e9f1;
+      vertical-align: top;
+      line-height: 1.45;
+      color: #1f2937;
+    }
+    .report-table tbody tr:nth-child(even) {
+      background: #f8fbff;
+    }
+    .t-center {
+      text-align: center;
+    }
+    .score-pill {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 700;
+      font-size: 11px;
+      line-height: 1.3;
+      min-width: 78px;
+      text-align: center;
+    }
+    .score-exc {
+      background: #dcfce7;
+      color: #14532d;
+    }
+    .score-good {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+    .badge {
+      display: inline-block;
+      border-radius: 999px;
+      padding: 3px 9px;
+      font-size: 11px;
+      font-weight: 700;
+      line-height: 1.25;
+      text-transform: uppercase;
+      letter-spacing: 0.2px;
+    }
+    .badge-exc {
+      background: #dcfce7;
+      color: #14532d;
+    }
+    .badge-good {
+      background: #dbeafe;
+      color: #1d4ed8;
+    }
+    .rev-chip {
+      display: inline-block;
+      border-radius: 999px;
+      border: 1px solid #d4d7dd;
+      background: #f9fafb;
+      color: #46556a;
+      padding: 3px 9px;
+      font-size: 11px;
+      line-height: 1.25;
+      font-weight: 600;
+    }
+    .obs-list {
+      margin: 8px 0 0 0;
+      padding-left: 18px;
+      color: #25364d;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .obs-list li {
+      margin-bottom: 6px;
+    }
+    .note {
+      margin-top: 8px;
+      color: #556175;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .cta-wrap {
+      text-align: center;
+      margin-top: 14px;
+    }
+    .cta-btn {
+      display: inline-block;
+      background: #ffd000;
+      color: #002b5c;
+      text-decoration: none;
+      padding: 14px 26px;
+      border-radius: 999px;
+      font-size: 15px;
+      font-weight: 800;
+      border: 2px solid #ffc300;
+      box-shadow: 0 5px 12px rgba(0, 0, 0, 0.2);
+    }
+    .contact-box {
+      margin-top: 10px;
+      font-size: 13px;
+      line-height: 1.55;
+      color: #2e3c50;
+    }
+    .report-footer {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #e4e9f1;
+      color: #556175;
+      font-size: 12px;
+      text-align: right;
+    }
+    @media only screen and (max-width: 760px) {
+      .body-wrap {
+        padding: 16px;
+      }
+      .hero {
+        padding: 16px;
+      }
+      .hero-title {
+        font-size: 20px;
+      }
+      .kpi {
+        flex: 1 1 46%;
+      }
+      .report-table {
+        font-size: 11px;
+      }
+      .report-table th,
+      .report-table td {
+        padding: 8px 6px;
+      }
+    }
+  </style>
+
+  <span class="preheader">Informe final de seguimiento – Momento 2 (Alistamiento + Ejecución).</span>
+
+  <table class="mail-bg" border="0" width="100%" cellspacing="0" cellpadding="0">
+    <tr>
+      <td align="center" style="padding: 28px 12px;">
+        <table class="shell" width="780" cellspacing="0" cellpadding="0" border="0">
+          <tr><td class="top-strip">&nbsp;</td></tr>
+
+          <tr>
+            <td class="hero">
+              <div class="hero-title">Informe final de seguimiento – <span class="hero-highlight">Campus Virtual RCS</span></div>
+              <div class="hero-subtitle">Momento 2 · Fase de Alistamiento (50%) + Fase de Ejecución (50%)</div>
+            </td>
+          </tr>
+
+          <tr>
+            <td class="body-wrap">
+              <div class="intro-note"><em>Este informe corresponde al <strong>seguimiento final de sus aulas (Momento 2)</strong>, integrando la <strong>Fase de Alistamiento</strong> y la <strong>Fase de Ejecución</strong>. La calificación final se interpreta en niveles de desempeño: excelente, bueno, aceptable e insatisfactorio.</em></div>
+
+              <p><strong>Cordial saludo, ADRIANA LUCIA VILLARRAGA CASTIBLANCO (ID: 802606),</strong></p>
+              <p>Desde el <strong>Campus Virtual</strong> realizamos el seguimiento de sus aulas en dos fases: <strong>Alistamiento</strong> y <strong>Ejecución</strong>. A continuación encontrará el resumen final por NRC, junto con las observaciones registradas durante la revisión.</p>
+
+              <div class="panel">
+                <div class="section-title">Resumen de desempeño de sus aulas (Momento 2)</div>
+
+                <div class="kpi-grid">
+                  <div class="kpi">
+                    <div class="kpi-label">Aulas revisadas</div>
+                    <div class="kpi-value">4</div>
+                  </div>
+                  <div class="kpi">
+                    <div class="kpi-label">Promedio final</div>
+                    <div class="kpi-value">91.39</div>
+                    <div class="kpi-meta">(0–100)</div>
+                  </div>
+                  <div class="kpi kpi-success">
+                    <div class="kpi-label" style="color:#14532d;">Excelente</div>
+                    <div class="kpi-value" style="color:#14532d;">1</div>
+                    <div class="kpi-meta" style="color:#14532d;">25.0%</div>
+                  </div>
+                  <div class="kpi kpi-info">
+                    <div class="kpi-label" style="color:#1d4ed8;">Bueno</div>
+                    <div class="kpi-value" style="color:#1d4ed8;">3</div>
+                    <div class="kpi-meta" style="color:#1d4ed8;">75.0%</div>
+                  </div>
+                  <div class="kpi kpi-warning">
+                    <div class="kpi-label" style="color:#92400e;">Aceptable</div>
+                    <div class="kpi-value" style="color:#92400e;">0</div>
+                    <div class="kpi-meta" style="color:#92400e;">0.0%</div>
+                  </div>
+                  <div class="kpi kpi-danger">
+                    <div class="kpi-label" style="color:#7f1d1d;">Insatisfactorio</div>
+                    <div class="kpi-value" style="color:#7f1d1d;">0</div>
+                    <div class="kpi-meta" style="color:#7f1d1d;">0.0%</div>
+                  </div>
+                </div>
+
+                <div class="legend">
+                  <span class="legend-item"><span class="dot dot-ok"></span>Excelente</span>
+                  <span class="legend-item"><span class="dot dot-good"></span>Bueno</span>
+                  <span class="legend-item"><span class="dot dot-warn"></span>Aceptable</span>
+                  <span class="legend-item"><span class="dot dot-bad"></span>Insatisfactorio</span>
+                </div>
+
+                <div class="progress-track">
+                  <span class="progress-seg seg-ok"></span>
+                  <span class="progress-seg seg-good"></span>
+                  <span class="progress-seg seg-warn"></span>
+                  <span class="progress-seg seg-bad"></span>
+                </div>
+
+                <div class="note">Excelente: 1 (25.0%) · Bueno: 3 (75.0%) · Aceptable: 0 (0.0%) · Insatisf.: 0 (0.0%)</div>
+              </div>
+
+              <div class="panel">
+                <div class="section-title">Resumen final de aulas revisadas (Alistamiento + Ejecución)</div>
+                <div class="table-container">
+                  <table class="report-table">
+                    <thead>
+                      <tr>
+                        <th style="width:11%;text-align:center;">NRC</th>
+                        <th style="width:22%;">Asignatura</th>
+                        <th style="width:14%;">Programa</th>
+                        <th style="width:16%;">Puntajes (Fase 1 y 2)</th>
+                        <th style="width:11%;text-align:center;">Desempeño</th>
+                        <th style="width:11%;">Revisión</th>
+                        <th style="width:15%;">Observaciones</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      <tr>
+                        <td class="t-center">15-75857</td>
+                        <td>Electiva Cpc</td>
+                        <td>CSOD_CENTRO</td>
+                        <td>Alistamiento: 98<br>Ejecución: 98<br><strong>Final: <span class="score-pill score-exc">98.46 · excelente</span></strong></td>
+                        <td class="t-center"><span class="badge badge-exc">Excelente</span></td>
+                        <td><span class="rev-chip">NO</span></td>
+                        <td>Sin hallazgos críticos. Se mantiene una muy buena coherencia entre recursos y evaluación.</td>
+                      </tr>
+                      <tr>
+                        <td class="t-center">15-72341</td>
+                        <td>Comun Escr y Procesos Lectores</td>
+                        <td>CSOD_CENTRO</td>
+                        <td>Alistamiento: 90<br>Ejecución: 90<br><strong>Final: <span class="score-pill score-good">90.00 · bueno</span></strong></td>
+                        <td class="t-center"><span class="badge badge-good">Bueno</span></td>
+                        <td><span class="rev-chip">Distancia 4.0</span></td>
+                        <td>Revisar configuración de actividades en modalidad Distancia 4.0 y normalizar fechas de entrega.</td>
+                      </tr>
+                      <tr>
+                        <td class="t-center">15-72721</td>
+                        <td>Periodismo de Investigación</td>
+                        <td>CSOD_CENTRO</td>
+                        <td>Alistamiento: 90<br>Ejecución: 90<br><strong>Final: <span class="score-pill score-good">90.00 · bueno</span></strong></td>
+                        <td class="t-center"><span class="badge badge-good">Bueno</span></td>
+                        <td><span class="rev-chip">NO</span></td>
+                        <td>Fortalecer retroalimentación en foros de discusión para elevar participación y cierre de evidencias.</td>
+                      </tr>
+                      <tr>
+                        <td class="t-center">15-72951</td>
+                        <td>Producción Audiovisual</td>
+                        <td>CSOD_CENTRO</td>
+                        <td>Alistamiento: 87<br>Ejecución: 87<br><strong>Final: <span class="score-pill score-good">87.10 · bueno</span></strong></td>
+                        <td class="t-center"><span class="badge badge-good">Bueno</span></td>
+                        <td><span class="rev-chip">NO</span></td>
+                        <td>Incluir rúbrica explícita en actividad integradora y ajustar redacción de criterios de evaluación final.</td>
+                      </tr>
+                    </tbody>
+                  </table>
+                </div>
+                <div class="note">Desempeño excelente (91–100) · bueno (80–90) · aceptable (70–79) · insatisfactorio (0–69)</div>
+              </div>
+
+              <p>El promedio final de sus aulas (Alistamiento + Ejecución) es <strong>91.4</strong>, con <span class="score-pill score-exc">Desempeño excelente</span>.</p>
+
+              <div class="panel panel-warm">
+                <div class="section-title" style="color:#7a5b00;">Observaciones priorizadas para siguiente ciclo</div>
+                <ul class="obs-list">
+                  <li><strong>15-72341:</strong> priorizar estandarización de actividades para modalidad Distancia 4.0.</li>
+                  <li><strong>15-72721:</strong> reforzar estrategia de retroalimentación formativa en foros.</li>
+                  <li><strong>15-72951:</strong> publicar rúbrica de evaluación antes de la actividad final.</li>
+                </ul>
+              </div>
+
+              <p>Recuerde que esta nota integra los dos momentos de seguimiento sobre la calidad del aula. Si desea revisar en detalle algún caso puntual o recibir retroalimentación personalizada, puede agendar un espacio conmigo.</p>
+
+              <div class="contact-box">
+                <strong>Contacto:</strong><br>
+                Profesional de Campus Virtual: Jaime Duván Lozano Ardila<br>
+                Correo: <a href="mailto:jaime.lozano.a@uniminuto.edu" style="color:#0057a4;text-decoration:underline;">jaime.lozano.a@uniminuto.edu</a><br>
+                Ubicación: Biblioteca – Sede Principal Chicalá
+              </div>
+
+              <div class="cta-wrap">
+                <a class="cta-btn" href="https://outlook.office.com/bookwithme/user/56cf01a4fb97453195dc6e912f82b2a5@uniminuto.edu/meetingtype/OLZ8ynZ2zkCBBRiqMRB-aQ2?bookingcode=3df0e75a-f6ba-4539-979f-a8276c1d0fc5&anonymous&ismsaljsauthenabled&ep=mlink" target="_blank" rel="noopener">Agendar llamada / videollamada</a>
+              </div>
+
+              <div style="margin-top:16px;text-align:center;color:#334155;font-size:13px;">Campus Virtual – Rectoría Centro Sur</div>
+              <div class="report-footer">Generado el 2026-02-19 – Rectoría Centro Sur</div>
+            </td>
+          </tr>
+        </table>
+      </td>
+    </tr>
+  </table>
+</div>

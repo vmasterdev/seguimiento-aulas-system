@@ -1,0 +1,22 @@
+[
+  {
+    "NRC": "15-72340",
+    "PERIODOS": "202615",
+    "TIPO_AULA": "distancia 4.0",
+    "ESTADO": "OK",
+    "COURSE_ID": "4109",
+    "MODALIDAD_DONDE_SE_ENCONTRO": "DISTANCIA",
+    "URL_FINAL": "https://distancia.aulasuniminuto.edu.co/course/view.php?id=4109",
+    "ERROR": ""
+  },
+  {
+    "NRC": "61-55854",
+    "PERIODOS": "202641",
+    "TIPO_AULA": "",
+    "ESTADO": "SIN_MATRICULA",
+    "COURSE_ID": "",
+    "MODALIDAD_DONDE_SE_ENCONTRO": "POSGRADOS",
+    "URL_FINAL": "",
+    "ERROR": "No esta matriculado en este curso"
+  }
+]

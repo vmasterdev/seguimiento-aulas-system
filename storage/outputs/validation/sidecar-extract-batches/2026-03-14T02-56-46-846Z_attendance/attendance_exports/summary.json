@@ -1,0 +1,237 @@
+{
+  "kind": "attendance",
+  "startedAt": "2026-03-14T02:56:50Z",
+  "endedAt": "2026-03-14T03:00:53Z",
+  "outputDir": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports",
+  "totalCourses": 10,
+  "completedCourses": 7,
+  "failedCourses": 1,
+  "skippedCourses": 2,
+  "files": [
+    {
+      "kind": "attendance",
+      "nrc": "15-72305",
+      "periodCode": "202615",
+      "title": "Fundamentos de Matemáticas",
+      "label": "Asistencia",
+      "fileName": "15-72305_202615_Asistencia.xlsx",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72305/15-72305_202615_Asistencia.xlsx"
+    },
+    {
+      "kind": "attendance",
+      "nrc": "15-72308",
+      "periodCode": "202615",
+      "title": "Proceso Administrativo",
+      "label": "Asistencia",
+      "fileName": "15-72308_202615_Asistencia.xlsx",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72308/15-72308_202615_Asistencia.xlsx"
+    },
+    {
+      "kind": "attendance",
+      "nrc": "15-72314",
+      "periodCode": "202615",
+      "title": "Dirección y Control",
+      "label": "Asistencia",
+      "fileName": "15-72314_202615_Asistencia.xlsx",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72314/15-72314_202615_Asistencia.xlsx"
+    },
+    {
+      "kind": "attendance",
+      "nrc": "15-72326",
+      "periodCode": "202615",
+      "title": "Lectura y Escritura en el Cont",
+      "label": "Asistencia",
+      "fileName": "15-72326_202615_Asistencia.xlsx",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72326/15-72326_202615_Asistencia.xlsx"
+    },
+    {
+      "kind": "attendance",
+      "nrc": "15-72330",
+      "periodCode": "202615",
+      "title": "Ergonomía",
+      "label": "Asistencia",
+      "fileName": "15-72330_202615_Asistencia.xlsx",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72330/15-72330_202615_Asistencia.xlsx"
+    },
+    {
+      "kind": "attendance",
+      "nrc": "15-72331",
+      "periodCode": "202615",
+      "title": "Riesgos Mecánicos y Eléctricos",
+      "label": "Asistencia",
+      "fileName": "15-72331_202615_Asistencia.xlsx",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72331/15-72331_202615_Asistencia.xlsx"
+    },
+    {
+      "kind": "attendance",
+      "nrc": "15-72334",
+      "periodCode": "202615",
+      "title": "Epidemiología",
+      "label": "Asistencia",
+      "fileName": "15-72334_202615_Asistencia.xlsx",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72334/15-72334_202615_Asistencia.xlsx"
+    }
+  ],
+  "items": [
+    {
+      "courseId": "cmm2a5asw0002wl7ym11cnwgl",
+      "nrc": "15-72305",
+      "periodCode": "202615",
+      "title": "Fundamentos de Matemáticas",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "attendance",
+          "nrc": "15-72305",
+          "periodCode": "202615",
+          "title": "Fundamentos de Matemáticas",
+          "label": "Asistencia",
+          "fileName": "15-72305_202615_Asistencia.xlsx",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72305/15-72305_202615_Asistencia.xlsx"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5atq0007wl7y330g8v18",
+      "nrc": "15-72307",
+      "periodCode": "202615",
+      "title": "Cálculo Diferencial e Integral",
+      "status": "NO_ATTENDANCE",
+      "message": "No se encontraron actividades de asistencia en el aula.",
+      "downloads": []
+    },
+    {
+      "courseId": "cmm2a5auf000cwl7ynpvqicp2",
+      "nrc": "15-72308",
+      "periodCode": "202615",
+      "title": "Proceso Administrativo",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "attendance",
+          "nrc": "15-72308",
+          "periodCode": "202615",
+          "title": "Proceso Administrativo",
+          "label": "Asistencia",
+          "fileName": "15-72308_202615_Asistencia.xlsx",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72308/15-72308_202615_Asistencia.xlsx"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5av3000hwl7ykrdfekcb",
+      "nrc": "15-72313",
+      "periodCode": "202615",
+      "title": "Estadística Inferencia",
+      "status": "NO_ATTENDANCE",
+      "message": "No se encontraron actividades de asistencia en el aula.",
+      "downloads": []
+    },
+    {
+      "courseId": "cmm2a5avs000mwl7y9uvdz1ud",
+      "nrc": "15-72314",
+      "periodCode": "202615",
+      "title": "Dirección y Control",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "attendance",
+          "nrc": "15-72314",
+          "periodCode": "202615",
+          "title": "Dirección y Control",
+          "label": "Asistencia",
+          "fileName": "15-72314_202615_Asistencia.xlsx",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72314/15-72314_202615_Asistencia.xlsx"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5awh000rwl7y4jher9v8",
+      "nrc": "15-72326",
+      "periodCode": "202615",
+      "title": "Lectura y Escritura en el Cont",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "attendance",
+          "nrc": "15-72326",
+          "periodCode": "202615",
+          "title": "Lectura y Escritura en el Cont",
+          "label": "Asistencia",
+          "fileName": "15-72326_202615_Asistencia.xlsx",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72326/15-72326_202615_Asistencia.xlsx"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5ax4000wwl7yumo7zj30",
+      "nrc": "15-72330",
+      "periodCode": "202615",
+      "title": "Ergonomía",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "attendance",
+          "nrc": "15-72330",
+          "periodCode": "202615",
+          "title": "Ergonomía",
+          "label": "Asistencia",
+          "fileName": "15-72330_202615_Asistencia.xlsx",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72330/15-72330_202615_Asistencia.xlsx"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5axs0011wl7yoz4m9x9n",
+      "nrc": "15-72331",
+      "periodCode": "202615",
+      "title": "Riesgos Mecánicos y Eléctricos",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "attendance",
+          "nrc": "15-72331",
+          "periodCode": "202615",
+          "title": "Riesgos Mecánicos y Eléctricos",
+          "label": "Asistencia",
+          "fileName": "15-72331_202615_Asistencia.xlsx",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72331/15-72331_202615_Asistencia.xlsx"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5aye0016wl7yv1csy5c4",
+      "nrc": "15-72332",
+      "periodCode": "202615",
+      "title": "Riesgos Físicos",
+      "status": "ERROR",
+      "message": "No se detecto descarga para la asistencia 'Asistencia'.",
+      "downloads": []
+    },
+    {
+      "courseId": "cmm2a5az1001bwl7y29wlci08",
+      "nrc": "15-72334",
+      "periodCode": "202615",
+      "title": "Epidemiología",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "attendance",
+          "nrc": "15-72334",
+          "periodCode": "202615",
+          "title": "Epidemiología",
+          "label": "Asistencia",
+          "fileName": "15-72334_202615_Asistencia.xlsx",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-56-46-846Z_attendance/attendance_exports/files/202615/15-72334/15-72334_202615_Asistencia.xlsx"
+        }
+      ]
+    }
+  ]
+}

@@ -1,0 +1,31 @@
+{
+  "paths": {
+    "rpacaInputDir": "storage/inputs/rpaca_csv",
+    "classificationOutputXlsx": "storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE.xlsx",
+    "classificationOutputCsv": "storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE.csv",
+    "classificationSinMatriculaXlsx": "storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_SIN_MATRICULA.xlsx",
+    "classificationAulasVaciasXlsx": "storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_AULAS_VACIAS.xlsx",
+    "catalogoDistancia4": "tools/moodle-sidecar/CURSOS DISTANCIA 4.0.xlsx",
+    "nrcsBackupCsv": "tools/moodle-sidecar/nrcs.csv",
+    "sidecarRoot": "tools/moodle-sidecar",
+    "adapterDefaultInput": "storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE.csv"
+  },
+  "runtime": {
+    "pythonCommand": "python3",
+    "browser": "chrome",
+    "workers": 3,
+    "headless": false,
+    "resume": true,
+    "strictMode": true,
+    "nrc5SegunArchivo": true,
+    "noFallbackSemestres": true,
+    "stripLeadingZeros": true,
+    "protectValidTemplateFromUnknown": true
+  },
+  "modalityBaseUrls": {
+    "PRESENCIAL": "https://presencial.aulasuniminuto.edu.co",
+    "DISTANCIA": "https://distancia.aulasuniminuto.edu.co",
+    "POSGRADOS": "https://posgrados.aulasuniminuto.edu.co",
+    "MOOCS": "https://moocs.aulasuniminuto.edu.co"
+  }
+}

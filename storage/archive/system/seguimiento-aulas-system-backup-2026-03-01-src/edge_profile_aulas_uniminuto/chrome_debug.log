@@ -1,0 +1,8 @@
+[217450:217450:0226/163138.567124:WARNING:chrome/browser/extensions/activity_log/activity_log_policy.cc:71] Scheduling init
+[217450:217450:0226/163138.569446:WARNING:chrome/browser/extensions/activity_log/activity_log_policy.cc:71] Scheduling init
+[217490:217490:0226/163139.553460:WARNING:ui/gfx/linux/gbm_support_x11.cc:48] dri3 extension not supported.
+[217490:217490:0226/163139.564877:WARNING:sandbox/policy/linux/sandbox_linux.cc:406] InitializeSandbox() called with multiple threads in process gpu-process.
+[217450:217450:0226/163140.126256:ERROR:dbus/object_proxy.cc:572] Failed to call method: org.freedesktop.DBus.Properties.GetAll: object_path= /org/freedesktop/UPower/devices/DisplayDevice: org.freedesktop.DBus.Error.ServiceUnknown: The name org.freedesktop.UPower was not provided by any .service files
+[217450:217450:0226/163140.167291:WARNING:dbus/property.cc:174] GetAll request failed for: org.freedesktop.UPower.Device
+[217492:217503:0226/163149.336315:WARNING:net/extras/sqlite/sqlite_persistent_store_backend_base.cc:180] Failed to post task from FlushAndNotifyInBackground@net/extras/sqlite/sqlite_persistent_store_backend_base.cc:236 to client_task_runner_.
+[217492:217503:0226/163149.337476:WARNING:net/extras/sqlite/sqlite_persistent_store_backend_base.cc:180] Failed to post task from FlushAndNotifyInBackground@net/extras/sqlite/sqlite_persistent_store_backend_base.cc:236 to client_task_runner_.

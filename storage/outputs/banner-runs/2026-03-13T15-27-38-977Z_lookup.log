@@ -1,0 +1,48 @@
+[START] 2026-03-13T15:27:38.977Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\banner buscador de docente en nrc'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'lookup' '--nrc' '72305' '--period' '202615' '--query-name' 'banner-rpaca'
+
+[2026-03-13T15:27:40.820Z] INFO Iniciando lote Banner {
+  queryId: 'cmmp1w9fa0000t2uss42sdah7',
+  totalRequested: 1,
+  pending: 1,
+  workers: 1
+}
+[2026-03-13T15:27:48.275Z] INFO Sesion restaurada desde storageState
+[2026-03-13T15:27:50.848Z] INFO Sesion backend Banner reutilizada desde trafico de la pagina { taskId: '04f62476-e435-4a05-83bb-32209ac4612e' }
+[2026-03-13T15:27:50.849Z] INFO Preparando NRC en Banner {
+  queryId: 'cmmp1w9fa0000t2uss42sdah7',
+  worker: 1,
+  nrc: '72305',
+  period: '202615'
+}
+[2026-03-13T15:27:50.850Z] INFO Ejecutando lookup NRC {
+  queryId: 'cmmp1w9fa0000t2uss42sdah7',
+  worker: 1,
+  nrc: '72305',
+  period: '202615'
+}
+[2026-03-13T15:27:51.259Z] INFO Lookup NRC finalizado {
+  queryId: 'cmmp1w9fa0000t2uss42sdah7',
+  worker: 1,
+  nrc: '72305',
+  period: '202615',
+  status: 'ENCONTRADO'
+}
+{
+  "queryId": "cmmp1w9fa0000t2uss42sdah7",
+  "queryName": "banner-rpaca",
+  "processed": 1,
+  "total": 1,
+  "counts": {
+    "ENCONTRADO": 1,
+    "SIN_DOCENTE": 0,
+    "NO_ENCONTRADO": 0,
+    "ERROR": 0
+  }
+}
+
+[END] 2026-03-13T15:27:54.677Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

@@ -1,0 +1,274 @@
+{
+  "kind": "activity",
+  "startedAt": "2026-03-14T02:52:42Z",
+  "endedAt": "2026-03-14T02:55:52Z",
+  "outputDir": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports",
+  "totalCourses": 10,
+  "completedCourses": 10,
+  "failedCourses": 0,
+  "skippedCourses": 0,
+  "files": [
+    {
+      "kind": "activity",
+      "nrc": "15-72305",
+      "periodCode": "202615",
+      "title": "Fundamentos de Matemáticas",
+      "fileName": "15-72305_202615_actividad.csv",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72305_202615_actividad.csv"
+    },
+    {
+      "kind": "activity",
+      "nrc": "15-72307",
+      "periodCode": "202615",
+      "title": "Cálculo Diferencial e Integral",
+      "fileName": "15-72307_202615_actividad.csv",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72307_202615_actividad.csv"
+    },
+    {
+      "kind": "activity",
+      "nrc": "15-72308",
+      "periodCode": "202615",
+      "title": "Proceso Administrativo",
+      "fileName": "15-72308_202615_actividad.csv",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72308_202615_actividad.csv"
+    },
+    {
+      "kind": "activity",
+      "nrc": "15-72313",
+      "periodCode": "202615",
+      "title": "Estadística Inferencia",
+      "fileName": "15-72313_202615_actividad.csv",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72313_202615_actividad.csv"
+    },
+    {
+      "kind": "activity",
+      "nrc": "15-72314",
+      "periodCode": "202615",
+      "title": "Dirección y Control",
+      "fileName": "15-72314_202615_actividad.csv",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72314_202615_actividad.csv"
+    },
+    {
+      "kind": "activity",
+      "nrc": "15-72326",
+      "periodCode": "202615",
+      "title": "Lectura y Escritura en el Cont",
+      "fileName": "15-72326_202615_actividad.csv",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72326_202615_actividad.csv"
+    },
+    {
+      "kind": "activity",
+      "nrc": "15-72330",
+      "periodCode": "202615",
+      "title": "Ergonomía",
+      "fileName": "15-72330_202615_actividad.csv",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72330_202615_actividad.csv"
+    },
+    {
+      "kind": "activity",
+      "nrc": "15-72331",
+      "periodCode": "202615",
+      "title": "Riesgos Mecánicos y Eléctricos",
+      "fileName": "15-72331_202615_actividad.csv",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72331_202615_actividad.csv"
+    },
+    {
+      "kind": "activity",
+      "nrc": "15-72332",
+      "periodCode": "202615",
+      "title": "Riesgos Físicos",
+      "fileName": "15-72332_202615_actividad.csv",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72332_202615_actividad.csv"
+    },
+    {
+      "kind": "activity",
+      "nrc": "15-72334",
+      "periodCode": "202615",
+      "title": "Epidemiología",
+      "fileName": "15-72334_202615_actividad.csv",
+      "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72334_202615_actividad.csv"
+    }
+  ],
+  "items": [
+    {
+      "courseId": "cmm2a5asw0002wl7ym11cnwgl",
+      "nrc": "15-72305",
+      "periodCode": "202615",
+      "title": "Fundamentos de Matemáticas",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "activity",
+          "nrc": "15-72305",
+          "periodCode": "202615",
+          "title": "Fundamentos de Matemáticas",
+          "fileName": "15-72305_202615_actividad.csv",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72305_202615_actividad.csv"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5atq0007wl7y330g8v18",
+      "nrc": "15-72307",
+      "periodCode": "202615",
+      "title": "Cálculo Diferencial e Integral",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "activity",
+          "nrc": "15-72307",
+          "periodCode": "202615",
+          "title": "Cálculo Diferencial e Integral",
+          "fileName": "15-72307_202615_actividad.csv",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72307_202615_actividad.csv"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5auf000cwl7ynpvqicp2",
+      "nrc": "15-72308",
+      "periodCode": "202615",
+      "title": "Proceso Administrativo",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "activity",
+          "nrc": "15-72308",
+          "periodCode": "202615",
+          "title": "Proceso Administrativo",
+          "fileName": "15-72308_202615_actividad.csv",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72308_202615_actividad.csv"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5av3000hwl7ykrdfekcb",
+      "nrc": "15-72313",
+      "periodCode": "202615",
+      "title": "Estadística Inferencia",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "activity",
+          "nrc": "15-72313",
+          "periodCode": "202615",
+          "title": "Estadística Inferencia",
+          "fileName": "15-72313_202615_actividad.csv",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72313_202615_actividad.csv"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5avs000mwl7y9uvdz1ud",
+      "nrc": "15-72314",
+      "periodCode": "202615",
+      "title": "Dirección y Control",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "activity",
+          "nrc": "15-72314",
+          "periodCode": "202615",
+          "title": "Dirección y Control",
+          "fileName": "15-72314_202615_actividad.csv",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72314_202615_actividad.csv"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5awh000rwl7y4jher9v8",
+      "nrc": "15-72326",
+      "periodCode": "202615",
+      "title": "Lectura y Escritura en el Cont",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "activity",
+          "nrc": "15-72326",
+          "periodCode": "202615",
+          "title": "Lectura y Escritura en el Cont",
+          "fileName": "15-72326_202615_actividad.csv",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72326_202615_actividad.csv"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5ax4000wwl7yumo7zj30",
+      "nrc": "15-72330",
+      "periodCode": "202615",
+      "title": "Ergonomía",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "activity",
+          "nrc": "15-72330",
+          "periodCode": "202615",
+          "title": "Ergonomía",
+          "fileName": "15-72330_202615_actividad.csv",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72330_202615_actividad.csv"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5axs0011wl7yoz4m9x9n",
+      "nrc": "15-72331",
+      "periodCode": "202615",
+      "title": "Riesgos Mecánicos y Eléctricos",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "activity",
+          "nrc": "15-72331",
+          "periodCode": "202615",
+          "title": "Riesgos Mecánicos y Eléctricos",
+          "fileName": "15-72331_202615_actividad.csv",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72331_202615_actividad.csv"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5aye0016wl7yv1csy5c4",
+      "nrc": "15-72332",
+      "periodCode": "202615",
+      "title": "Riesgos Físicos",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "activity",
+          "nrc": "15-72332",
+          "periodCode": "202615",
+          "title": "Riesgos Físicos",
+          "fileName": "15-72332_202615_actividad.csv",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72332_202615_actividad.csv"
+        }
+      ]
+    },
+    {
+      "courseId": "cmm2a5az1001bwl7y29wlci08",
+      "nrc": "15-72334",
+      "periodCode": "202615",
+      "title": "Epidemiología",
+      "status": "DOWNLOADED",
+      "message": null,
+      "downloads": [
+        {
+          "kind": "activity",
+          "nrc": "15-72334",
+          "periodCode": "202615",
+          "title": "Epidemiología",
+          "fileName": "15-72334_202615_actividad.csv",
+          "relativePath": "storage/outputs/validation/sidecar-extract-batches/2026-03-14T02-52-33-859Z_activity/activity_exports/files/202615/15-72334_202615_actividad.csv"
+        }
+      ]
+    }
+  ]
+}

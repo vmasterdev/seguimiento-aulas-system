@@ -1,0 +1,5 @@
+2026/02/26-17:12:45.715 360fc Reusing MANIFEST /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto/Default/EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/02/26-17:12:45.745 360fc Recovering log #10
+2026/02/26-17:12:45.751 360fc Reusing old log /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto/Default/EdgeCoupons/coupons_data.db/000010.log 
+2026/02/26-17:12:45.807 360fa Level-0 table #14: started
+2026/02/26-17:12:45.841 360fa Level-0 table #14: 681688 bytes OK

@@ -1,0 +1,774 @@
+{
+  "kind": "participants",
+  "courseId": "cmm2a5auf000cwl7ynpvqicp2",
+  "nrc": "15-72308",
+  "periodCode": "202615",
+  "title": "Proceso Administrativo",
+  "pageUrl": "https://distancia.aulasuniminuto.edu.co/user/index.php?id=3078&perpage=5000",
+  "pageTitle": "15-72308: Participantes | Distancia",
+  "headers": [
+    "Seleccionar todos",
+    "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+    "Número de ID\nOrdenar por Número de ID Ascendente",
+    "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+    "Roles",
+    "Grupos",
+    "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+    "Estatus"
+  ],
+  "participants": [
+    {
+      "fullName": "DADanna Sofia Alvarez Rojas",
+      "email": "danna.alvarez-roj@uniminuto.edu.co",
+      "moodleUserId": "21880",
+      "institutionalId": "DADanna Sofia Alvarez Rojas",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 2",
+      "lastAccessLabel": "5 días 7 horas",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Danna Sofia Alvarez Rojas'",
+        "DADanna Sofia Alvarez Rojas",
+        "001118223",
+        "danna.alvarez-roj@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 2",
+        "5 días 7 horas",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "ABAlexander Bastidas Serrato",
+      "email": "alexander.bastidas-s@uniminuto.edu.co",
+      "moodleUserId": "15785",
+      "institutionalId": "ABAlexander Bastidas Serrato",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 2",
+      "lastAccessLabel": "2 días 3 horas",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Alexander Bastidas Serrato'",
+        "ABAlexander Bastidas Serrato",
+        "001124539",
+        "alexander.bastidas-s@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 2",
+        "2 días 3 horas",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "FBFABIO ARMANDO BONILLA ESCOBAR",
+      "email": "fbonillaesc@uniminuto.edu.co",
+      "moodleUserId": "142",
+      "institutionalId": "FBFABIO ARMANDO BONILLA ESCOBAR",
+      "rolesLabel": "Profesor",
+      "roles": [
+        "Profesor"
+      ],
+      "groupsLabel": "No hay grupos",
+      "lastAccessLabel": "1 hora 59 minutos",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'FABIO ARMANDO BONILLA ESCOBAR'",
+        "FBFABIO ARMANDO BONILLA ESCOBAR",
+        "000249142",
+        "fbonillaesc@uniminuto.edu.co",
+        "Profesor",
+        "No hay grupos",
+        "1 hora 59 minutos",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "Sergio Jose Caballero Rivera",
+      "email": "sergio.caballero-r@uniminuto.edu.co",
+      "moodleUserId": "15789",
+      "institutionalId": "Sergio Jose Caballero Rivera",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 3",
+      "lastAccessLabel": "2 horas 47 minutos",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Sergio Jose Caballero Rivera'",
+        "Sergio Jose Caballero Rivera",
+        "001109520",
+        "sergio.caballero-r@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 3",
+        "2 horas 47 minutos",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "DCDaniel Felipe Celis Quintero",
+      "email": "daniel.celis@uniminuto.edu.co",
+      "moodleUserId": "18342",
+      "institutionalId": "DCDaniel Felipe Celis Quintero",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 4",
+      "lastAccessLabel": "2 horas 4 minutos",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Daniel Felipe Celis Quintero'",
+        "DCDaniel Felipe Celis Quintero",
+        "001103785",
+        "daniel.celis@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 4",
+        "2 horas 4 minutos",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "KCKaren Dayana Chavarro Cadena",
+      "email": "karen.chavarro-c@uniminuto.edu.co",
+      "moodleUserId": "15573",
+      "institutionalId": "KCKaren Dayana Chavarro Cadena",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 4",
+      "lastAccessLabel": "1 día 1 hora",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Karen Dayana Chavarro Cadena'",
+        "KCKaren Dayana Chavarro Cadena",
+        "001128281",
+        "karen.chavarro-c@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 4",
+        "1 día 1 hora",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "KGKarol Yulitza Guzman Villegas",
+      "email": "karol.guzman-v@uniminuto.edu.co",
+      "moodleUserId": "26451",
+      "institutionalId": "KGKarol Yulitza Guzman Villegas",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 6",
+      "lastAccessLabel": "12 horas 30 minutos",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Karol Yulitza Guzman Villegas'",
+        "KGKarol Yulitza Guzman Villegas",
+        "001133174",
+        "karol.guzman-v@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 6",
+        "12 horas 30 minutos",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "JHJose Alejandro Herrera Rivera",
+      "email": "jose.herrera-ri@uniminuto.edu.co",
+      "moodleUserId": "13569",
+      "institutionalId": "JHJose Alejandro Herrera Rivera",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 4",
+      "lastAccessLabel": "9 días 1 hora",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Jose Alejandro Herrera Rivera'",
+        "JHJose Alejandro Herrera Rivera",
+        "001112430",
+        "jose.herrera-ri@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 4",
+        "9 días 1 hora",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "Emilce Leon Mejia",
+      "email": "emilce.leon@uniminuto.edu.co",
+      "moodleUserId": "4973",
+      "institutionalId": "Emilce Leon Mejia",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 1",
+      "lastAccessLabel": "4 horas 33 minutos",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Emilce Leon Mejia'",
+        "Emilce Leon Mejia",
+        "001127755",
+        "emilce.leon@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 1",
+        "4 horas 33 minutos",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "Samanda Losada Pascuas",
+      "email": "samanda.losada@uniminuto.edu.co",
+      "moodleUserId": "20906",
+      "institutionalId": "Samanda Losada Pascuas",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 6",
+      "lastAccessLabel": "1 día 2 horas",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Samanda Losada Pascuas'",
+        "Samanda Losada Pascuas",
+        "001131573",
+        "samanda.losada@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 6",
+        "1 día 2 horas",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "LMLoren Sofia Medina Herrera",
+      "email": "loren.medina@uniminuto.edu.co",
+      "moodleUserId": "15802",
+      "institutionalId": "LMLoren Sofia Medina Herrera",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 6",
+      "lastAccessLabel": "10 horas 36 minutos",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Loren Sofia Medina Herrera'",
+        "LMLoren Sofia Medina Herrera",
+        "001132284",
+        "loren.medina@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 6",
+        "10 horas 36 minutos",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "PMPerla Daninxa Murcia Serrano",
+      "email": "perla.murcia@uniminuto.edu.co",
+      "moodleUserId": "19069",
+      "institutionalId": "PMPerla Daninxa Murcia Serrano",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 1",
+      "lastAccessLabel": "1 día 9 horas",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Perla Daninxa Murcia Serrano'",
+        "PMPerla Daninxa Murcia Serrano",
+        "001117769",
+        "perla.murcia@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 1",
+        "1 día 9 horas",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "SOSantiago Ortiz Pizza",
+      "email": "santiago.ortiz-pi@uniminuto.edu.co",
+      "moodleUserId": "14585",
+      "institutionalId": "SOSantiago Ortiz Pizza",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 1",
+      "lastAccessLabel": "55 minutos 21 segundos",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Santiago Ortiz Pizza'",
+        "SOSantiago Ortiz Pizza",
+        "001124535",
+        "santiago.ortiz-pi@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 1",
+        "55 minutos 21 segundos",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "Arnol Ricardo Otavo Medina",
+      "email": "arnol.otavo@uniminuto.edu.co",
+      "moodleUserId": "13595",
+      "institutionalId": "Arnol Ricardo Otavo Medina",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 3",
+      "lastAccessLabel": "2 días 4 horas",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Arnol Ricardo Otavo Medina'",
+        "Arnol Ricardo Otavo Medina",
+        "001128680",
+        "arnol.otavo@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 3",
+        "2 días 4 horas",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "LPLuis Gerardo Perdomo Perdomo",
+      "email": "lperdomoper@uniminuto.edu.co",
+      "moodleUserId": "27043",
+      "institutionalId": "LPLuis Gerardo Perdomo Perdomo",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 5",
+      "lastAccessLabel": "11 días 14 horas",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Luis Gerardo Perdomo Perdomo'",
+        "LPLuis Gerardo Perdomo Perdomo",
+        "000462784",
+        "lperdomoper@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 5",
+        "11 días 14 horas",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "Aitza Katherine Perez Garzon",
+      "email": "aitza.perez@uniminuto.edu.co",
+      "moodleUserId": "18309",
+      "institutionalId": "Aitza Katherine Perez Garzon",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 4",
+      "lastAccessLabel": "1 día 1 hora",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Aitza Katherine Perez Garzon'",
+        "Aitza Katherine Perez Garzon",
+        "001103761",
+        "aitza.perez@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 4",
+        "1 día 1 hora",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "JSJulio Cesar Siabato Rojas",
+      "email": "julio.siabato@uniminuto.edu.co",
+      "moodleUserId": "21350",
+      "institutionalId": "JSJulio Cesar Siabato Rojas",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 2",
+      "lastAccessLabel": "12 horas 13 minutos",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Julio Cesar Siabato Rojas'",
+        "JSJulio Cesar Siabato Rojas",
+        "001018331",
+        "julio.siabato@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 2",
+        "12 horas 13 minutos",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "DSDeisy Julieth Sierra Tovar",
+      "email": "deisy.sierra-t@uniminuto.edu.co",
+      "moodleUserId": "18764",
+      "institutionalId": "DSDeisy Julieth Sierra Tovar",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 3",
+      "lastAccessLabel": "1 hora 24 minutos",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Deisy Julieth Sierra Tovar'",
+        "DSDeisy Julieth Sierra Tovar",
+        "001130288",
+        "deisy.sierra-t@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 3",
+        "1 hora 24 minutos",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "Angie Catalina Tierradentro Mendez",
+      "email": "angie.tierradentro@uniminuto.edu.co",
+      "moodleUserId": "15791",
+      "institutionalId": "Angie Catalina Tierradentro Mendez",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 2",
+      "lastAccessLabel": "1 día 5 horas",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Angie Catalina Tierradentro Mendez'",
+        "Angie Catalina Tierradentro Mendez",
+        "001113023",
+        "angie.tierradentro@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 2",
+        "1 día 5 horas",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "Lorena Patricia Trujillo Dussan",
+      "email": "ltrujillod1@uniminuto.edu.co",
+      "moodleUserId": "15836",
+      "institutionalId": "Lorena Patricia Trujillo Dussan",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 3",
+      "lastAccessLabel": "2 días 1 hora",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Lorena Patricia Trujillo Dussan'",
+        "Lorena Patricia Trujillo Dussan",
+        "000648938",
+        "ltrujillod1@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 3",
+        "2 días 1 hora",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "CVCristian Camilo Valderrama Castillo",
+      "email": "cristian.valderrama@uniminuto.edu.co",
+      "moodleUserId": "20146",
+      "institutionalId": "CVCristian Camilo Valderrama Castillo",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 6",
+      "lastAccessLabel": "22 horas 54 minutos",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Cristian Camilo Valderrama Castillo'",
+        "CVCristian Camilo Valderrama Castillo",
+        "000676497",
+        "cristian.valderrama@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 6",
+        "22 horas 54 minutos",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    },
+    {
+      "fullName": "VZValentina Zamora Lizcano",
+      "email": "valentina.zamora-l@uniminuto.edu.co",
+      "moodleUserId": "18816",
+      "institutionalId": "VZValentina Zamora Lizcano",
+      "rolesLabel": "Estudiante",
+      "roles": [
+        "Estudia",
+        "te"
+      ],
+      "groupsLabel": "Grupo 1",
+      "lastAccessLabel": "1 día 4 horas",
+      "statusLabel": "Activo",
+      "rawCells": [
+        "Seleccionar 'Valentina Zamora Lizcano'",
+        "VZValentina Zamora Lizcano",
+        "000993636",
+        "valentina.zamora-l@uniminuto.edu.co",
+        "Estudiante",
+        "Grupo 1",
+        "1 día 4 horas",
+        "Activo"
+      ],
+      "headers": [
+        "Seleccionar todos",
+        "Nombre\nOrdenar por Nombre Ascendente\n/ Apellido(s)\nOrdenar por Apellido(s) Ascendente",
+        "Número de ID\nOrdenar por Número de ID Ascendente",
+        "Dirección de correo\nOrdenar por Dirección de correo Ascendente",
+        "Roles",
+        "Grupos",
+        "Último acceso al curso\nOrdenar por Último acceso al curso Ascendente",
+        "Estatus"
+      ]
+    }
+  ],
+  "totalParticipants": 22,
+  "roleCounts": {
+    "Estudia": 21,
+    "te": 21,
+    "Profesor": 1
+  }
+}

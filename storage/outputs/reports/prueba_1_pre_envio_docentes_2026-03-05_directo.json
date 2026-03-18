@@ -1,0 +1,17 @@
+{
+  "timestamp": "2026-03-06T00:58:43.863Z",
+  "to": "jaime.lozano.a@uniminuto.edu",
+  "messageId": "cmme2416w000210u3ntcsp985",
+  "docente": "BARRIOS RIVERA ALEJANDRA",
+  "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+  "styleCheck": {
+    "hasCourseCards": true,
+    "hasTopStrip": true,
+    "hasRCS": true
+  },
+  "sendResult": {
+    "ok": true,
+    "to": "jaime.lozano.a@uniminuto.edu",
+    "id": "cmme2416w000210u3ntcsp985"
+  }
+}

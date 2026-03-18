@@ -1,0 +1,30 @@
+{
+  "timestamp": "2026-03-05T23:46:12.328Z",
+  "forceTo": "jaime.lozano.a@uniminuto.edu",
+  "sent": true,
+  "selected": {
+    "id": "cmme241dc000810u37gqrppp4",
+    "recipientName": "BOCANEGRA ROCHA EVELIN DAMARIS",
+    "subject": "[Seguimiento Aulas] ALISTAMIENTO 1 - 202615",
+    "periodCode": "202615",
+    "phase": "ALISTAMIENTO",
+    "moment": "1"
+  },
+  "response": {
+    "ok": true,
+    "dryRun": false,
+    "deliveryMode": "OUTLOOK",
+    "sentCount": 1,
+    "failedCount": 0,
+    "skippedCount": 0,
+    "sent": [
+      {
+        "id": "cmme241dc000810u37gqrppp4",
+        "to": "jaime.lozano.a@uniminuto.edu",
+        "messageId": null
+      }
+    ],
+    "failed": [],
+    "skipped": []
+  }
+}

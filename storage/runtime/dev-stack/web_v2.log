@@ -1,0 +1,67 @@
+
+> @seguimiento/web-v2@0.1.0 dev /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/web-v2
+> next dev -p 3010
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3010
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 49.8s
+ ○ Compiling /api/banner/status ...
+ ✓ Compiled /api/banner/status in 1626ms (63 modules)
+ GET /api/banner/status 200 in 3415ms
+ ○ Compiling /api/banner/actions ...
+ ✓ Compiled /api/banner/actions in 742ms (65 modules)
+ GET /api/banner/status 200 in 1286ms
+ POST /api/banner/actions 200 in 1409ms
+ GET /api/banner/status 200 in 409ms
+ GET /api/banner/status 200 in 450ms
+ GET /api/banner/status 200 in 380ms
+ POST /api/banner/actions 200 in 319ms
+ GET /api/banner/status 200 in 444ms
+ GET /api/banner/status 200 in 486ms
+ GET /api/banner/status 200 in 1018ms
+ POST /api/banner/actions 500 in 1707ms
+ ○ Compiling / ...
+ ✓ Compiled / in 4.9s (453 modules)
+ GET / 200 in 7494ms
+ ○ Compiling /api/ops ...
+ ✓ Compiled /api/ops in 1073ms (271 modules)
+ GET /api/ops 200 in 4706ms
+ GET /api/ops 200 in 4930ms
+ ○ Compiling /review ...
+ ✓ Compiled /review in 2.7s (512 modules)
+ GET /review 200 in 3180ms
+ GET /review?periodCode=202615&moment=MD1&phase=ALISTAMIENTO&category=MUESTREO 200 in 380ms
+ GET /review?periodCode=202615&moment=MD1&phase=ALISTAMIENTO&category=MUESTREO 200 in 612ms
+ ○ Compiling /api/backend/[...path] ...
+ ✓ Compiled /api/backend/[...path] in 758ms (283 modules)
+ GET /api/backend/sampling/review-queue?periodCode=202615&phase=ALISTAMIENTO&category=MUESTREO&moment=MD1 200 in 7996ms
+ POST /api/backend/evaluation/score 201 in 487ms
+ GET /api/backend/sampling/review-queue?periodCode=202615&phase=ALISTAMIENTO&category=MUESTREO&moment=MD1 200 in 814ms
+ GET /api/backend/sampling/review-queue?periodCode=202615&phase=ALISTAMIENTO&category=TEMPORAL&moment=MD1 200 in 363ms
+ GET /api/backend/sampling/review-queue?periodCode=202615&phase=ALISTAMIENTO&category=MUESTREO&moment=MD1 200 in 709ms
+ ○ Compiling /automatizacion-banner ...
+ ✓ Compiled /automatizacion-banner in 1631ms (507 modules)
+ GET /automatizacion-banner 200 in 2277ms
+ ○ Compiling /api/banner/batch/options ...
+ ✓ Compiled /api/banner/batch/options in 912ms (282 modules)
+ ✓ Compiled (284 modules)
+ GET /api/banner/status 200 in 2393ms
+ GET /api/banner/status 200 in 2395ms
+ GET /api/banner/batch/options 200 in 4024ms
+ GET /api/banner/batch/options 200 in 4266ms
+ GET /review 200 in 349ms
+ GET /review?periodCode=202615&moment=MD1&phase=ALISTAMIENTO&category=MUESTREO 200 in 323ms
+ GET /api/backend/sampling/review-queue?periodCode=202615&phase=ALISTAMIENTO&category=MUESTREO&moment=MD1 200 in 672ms
+ GET /review 200 in 402ms
+ ○ Compiling /_not-found ...
+ ✓ Compiled /_not-found in 2.7s (480 modules)
+ GET /_next/static/css/app/(modulos)/layout.css?v=1773760759376 404 in 3711ms
+ GET /_next/static/css/app/layout.css?v=1773760759376 404 in 3818ms
+ GET /_next/static/chunks/webpack.js?v=1773760759376 404 in 3607ms
+ GET /_next/static/chunks/main-app.js?v=1773760759376 404 in 3564ms
+ GET /_next/static/chunks/app/(modulos)/review/page.js 404 in 3369ms
+ GET /_next/static/chunks/app-pages-internals.js 404 in 3522ms
+ GET /_next/static/chunks/app/layout.js 404 in 98ms

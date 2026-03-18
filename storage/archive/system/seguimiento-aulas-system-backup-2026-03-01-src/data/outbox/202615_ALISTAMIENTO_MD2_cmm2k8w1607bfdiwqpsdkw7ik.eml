@@ -1,0 +1,288 @@
+To: carlos.munoz.g@uniminuto.edu
+Subject: [Seguimiento Aulas] ALISTAMIENTO MD2 - 202615 - ADMIN SEGURIDAD SALUD TRABAJO - SUR
+MIME-Version: 1.0
+Content-Type: text/html; charset=UTF-8
+<html><head><style>
+    .preheader {
+      display: none !important;
+      visibility: hidden;
+      opacity: 0;
+      color: transparent;
+      height: 0;
+      width: 0;
+      overflow: hidden;
+      mso-hide: all;
+    }
+    .mail-bg {
+      background: linear-gradient(180deg, #edf3fb 0%, #f6f8fc 100%);
+      font-family: Segoe UI, Arial, sans-serif;
+      color: #1f2937;
+    }
+    .shell {
+      max-width: 860px;
+      background: #ffffff;
+      border-radius: 16px;
+      border: 1px solid #d4d7dd;
+      box-shadow: 0 10px 28px rgba(4, 30, 66, 0.14);
+      overflow: hidden;
+    }
+    .top-strip {
+      height: 10px;
+      background: linear-gradient(90deg, #ffc300 0%, #ffd95c 100%);
+      font-size: 0;
+      line-height: 0;
+    }
+    .hero {
+      background: linear-gradient(120deg, #002b5c 0%, #0057a4 100%);
+      color: #ffffff;
+      padding: 20px 26px;
+      border-bottom: 1px solid #00244a;
+    }
+    .hero-title {
+      margin: 0;
+      font-size: 24px;
+      line-height: 1.25;
+      font-weight: 800;
+    }
+    .hero-subtitle {
+      margin-top: 6px;
+      color: #dde9ff;
+      font-size: 12px;
+      line-height: 1.5;
+    }
+    .hero-highlight {
+      color: #ffd000;
+    }
+    .body-wrap {
+      padding: 22px 26px;
+      font-size: 14px;
+      line-height: 1.65;
+      color: #1f2937;
+    }
+    .intro-note {
+      margin: 0 0 12px 0;
+      font-size: 12px;
+      color: #46556a;
+      line-height: 1.55;
+      background: #f8fbff;
+      border: 1px solid #d4d7dd;
+      border-left: 4px solid #0057a4;
+      border-radius: 10px;
+      padding: 10px 12px;
+    }
+    .panel {
+      margin: 12px 0 16px 0;
+      padding: 14px 16px;
+      background: #f8fafc;
+      border: 1px solid #d4d7dd;
+      border-radius: 14px;
+    }
+    .panel-warm {
+      background: #fffbef;
+      border-color: #f0df9e;
+    }
+    .section-title {
+      font-size: 13px;
+      font-weight: 700;
+      color: #0057a4;
+      margin: 0 0 8px 0;
+      letter-spacing: 0.2px;
+    }
+    .kpi-grid {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 10px;
+      margin: 8px 0 10px 0;
+    }
+    .kpi {
+      flex: 1 1 155px;
+      background: #ffffff;
+      border: 1px solid #d4d7dd;
+      border-radius: 12px;
+      padding: 10px 12px;
+      box-shadow: 0 3px 8px rgba(0, 0, 0, 0.04);
+    }
+    .kpi-success {
+      background: #dcfce7;
+      border-color: #cce8d6;
+    }
+    .kpi-info {
+      background: #dbeafe;
+      border-color: #c3d9fb;
+    }
+    .kpi-warning {
+      background: #ffedd5;
+      border-color: #f3c9a0;
+    }
+    .kpi-danger {
+      background: #fee2e2;
+      border-color: #f2c7cf;
+    }
+    .kpi-label {
+      font-size: 11px;
+      text-transform: uppercase;
+      letter-spacing: 0.35px;
+      color: #5c6c82;
+      margin-bottom: 2px;
+    }
+    .kpi-value {
+      font-size: 22px;
+      line-height: 1.2;
+      font-weight: 800;
+      color: #002b5c;
+    }
+    .kpi-meta {
+      font-size: 11px;
+      color: #5c6c82;
+    }
+    .legend {
+      font-size: 11px;
+      color: #3e4b5b;
+      margin-top: 4px;
+    }
+    .legend-item {
+      display: inline-block;
+      margin-right: 10px;
+    }
+    .dot {
+      display: inline-block;
+      width: 10px;
+      height: 10px;
+      border-radius: 999px;
+      margin-right: 3px;
+      vertical-align: middle;
+    }
+    .dot-ok {
+      background: #16a34a;
+    }
+    .dot-good {
+      background: #2563eb;
+    }
+    .dot-warn {
+      background: #ea580c;
+    }
+    .dot-bad {
+      background: #b91c1c;
+    }
+    .progress-track {
+      width: 100%;
+      height: 18px;
+      border-radius: 999px;
+      overflow: hidden;
+      border: 1px solid #d4d7dd;
+      background: #f9fafb;
+      margin-top: 6px;
+      font-size: 0;
+      white-space: nowrap;
+    }
+    .progress-seg {
+      display: inline-block;
+      height: 18px;
+    }
+    .seg-ok {
+      width: 64.3172%;
+      background: #16a34a;
+    }
+    .seg-good {
+      width: 22.9075%;
+      background: #2563eb;
+    }
+    .seg-warn {
+      width: 9.2511%;
+      background: #ea580c;
+    }
+    .seg-bad {
+      width: 3.5242%;
+      background: #b91c1c;
+    }
+    .table-container {
+      border: 1px solid #d4d7dd;
+      border-radius: 12px;
+      overflow-x: auto;
+      background: #ffffff;
+    }
+    .report-table {
+      width: 100%;
+      border-collapse: collapse;
+      table-layout: fixed;
+      font-size: 12px;
+    }
+    .report-table th {
+      background: #0057a4;
+      color: #ffffff;
+      padding: 10px 8px;
+      text-align: left;
+      letter-spacing: 0.35px;
+      text-transform: uppercase;
+      font-size: 11px;
+      line-height: 1.35;
+    }
+    .report-table td {
+      padding: 10px 8px;
+      border-top: 1px solid #e4e9f1;
+      vertical-align: middle;
+      line-height: 1.45;
+      color: #1f2937;
+    }
+    .report-table tbody tr:nth-child(even) {
+      background: #f8fbff;
+    }
+    .t-center {
+      text-align: center;
+    }
+    .badge-pill {
+      border-radius: 999px;
+      padding: 4px 10px;
+      font-weight: 700;
+      display: inline-block;
+      font-size: 11px;
+      line-height: 1.3;
+      min-width: 82px;
+      text-align: center;
+    }
+    .alert-list {
+      margin: 8px 0 0 0;
+      padding-left: 18px;
+      color: #25364d;
+      font-size: 13px;
+      line-height: 1.55;
+    }
+    .alert-list li {
+      margin-bottom: 5px;
+    }
+    .note {
+      margin-top: 8px;
+      color: #556175;
+      font-size: 11px;
+      line-height: 1.45;
+    }
+    .report-footer {
+      margin-top: 16px;
+      padding-top: 12px;
+      border-top: 1px solid #e4e9f1;
+      color: #556175;
+      font-size: 12px;
+      text-align: right;
+    }
+    @media only screen and (max-width: 760px) {
+      .body-wrap {
+        padding: 16px;
+      }
+      .hero {
+        padding: 16px;
+      }
+      .hero-title {
+        font-size: 20px;
+      }
+      .kpi {
+        flex: 1 1 46%;
+      }
+      .report-table {
+        font-size: 11px;
+      }
+      .report-table th,
+      .report-table td {
+        padding: 8px 6px;
+      }
+    }
+  </style></head><body class="mail-bg"><div class="shell"><div class="top-strip"></div><div class="hero"><h2 class="hero-title">Reporte por coordinacion academica - ALISTAMIENTO</h2><div class="hero-subtitle">Periodo 202615 | Momento MD2</div></div><div class="body-wrap"><p class="intro-note"><strong>Coordinador:</strong> CARLOS HERNANDO MUÑOZ GONZALEZ<br/><strong>Coordinacion:</strong> ADMIN SEGURIDAD SALUD TRABAJO - SUR<br/><strong>Total docentes:</strong> 10 | <strong>Total NRC:</strong> 36</p><div class="panel"><div class="section-title">Detalle de aulas por docente</div><div class="table-container"><table class="report-table"><thead><tr><th>Docente</th><th>NRC</th><th>Asignatura</th><th>Momento</th><th>Estado Moodle</th><th>Plantilla</th><th>Puntaje fase</th></tr></thead><tbody><tr><td>BONILLA ESCOBAR FABIO ARMANDO</td><td>65-72624</td><td>Gerencia Estratégica</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>BONILLA ESCOBAR FABIO ARMANDO</td><td>65-73209</td><td>Gerencia Estratégica</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>DIAZ TOVAR DIEGO FELIPE</td><td>65-73046</td><td>Medicina Preventiva y del Trab</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>DIAZ TOVAR DIEGO FELIPE</td><td>65-79701</td><td>Factores de Riesgos Laborales</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>PEREZ CABRERA MARIA MARGARITA</td><td>65-79703</td><td>Factores de Riesgos Laborales</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>PEREZ CABRERA MARIA MARGARITA</td><td>65-79713</td><td>Riesgos Públicos</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>PEREZ CABRERA MARIA MARGARITA</td><td>65-79761</td><td>Sistemas Integrados de Gestión</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>PEREZ CABRERA MARIA MARGARITA</td><td>65-79772</td><td>Epidemiología</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RIVEROS ANGARITA TITO FERNEY</td><td>65-72581</td><td>Anatomía y Fisiología</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RIVEROS ANGARITA TITO FERNEY</td><td>65-79716</td><td>Investigación de Eventos Labor</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RIVEROS ANGARITA TITO FERNEY</td><td>65-79721</td><td>Plan de Emergencia y Contingen</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RIVEROS ANGARITA TITO FERNEY</td><td>65-84577</td><td>Seguridad Vial</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RUBIANO MORALES INGRID NAYID</td><td>65-79720</td><td>Análisis y Diagn Empresarial</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RUBIANO MORALES INGRID NAYID</td><td>65-79745</td><td>Auditoría de Sistemas de Gesti</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RUBIANO MORALES INGRID NAYID</td><td>65-84269</td><td>Análisis y Diagnóstico Organiz</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RUBIANO MORALES INGRID NAYID</td><td>65-85038</td><td>Riesgos Públicos</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>SERRATO ROJAS DINORY</td><td>65-79708</td><td>Peligros Físicos</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>SERRATO ROJAS DINORY</td><td>65-79710</td><td>Peligros mecánicos y eléctrico</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>SERRATO ROJAS DINORY</td><td>65-79715</td><td>Riesgos Locat y Tareas de Alto</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>SERRATO ROJAS DINORY</td><td>65-79718</td><td>Metodología de la Investigac</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>SERRATO ROJAS DINORY</td><td>65-79731</td><td>Introducción a la Investigació</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>SILVA GAVIRIA DIANA VANESSA</td><td>65-73130</td><td>Riesgos Psicosociales</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>SILVA GAVIRIA DIANA VANESSA</td><td>65-79725</td><td>Electiva Cpc</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>SILVA GAVIRIA DIANA VANESSA</td><td>65-84576</td><td>Seguridad Vial</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>SILVA GAVIRIA DIANA VANESSA</td><td>65-85294</td><td>Peligros Psicosociales</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>TORRES OVALLE GLORIA</td><td>65-85119</td><td>Peligros mecánicos y eléctrico</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>TORRES OVALLE GLORIA</td><td>65-85172</td><td>Introducción a la Investigació</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>BONILLA ESCOBAR FABIO ARMANDO</td><td>65-72864</td><td>Formulación y Evaluación de Pr</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>BONILLA ESCOBAR FABIO ARMANDO</td><td>65-72869</td><td>Formulación y Evaluación de Pr</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>BONILLA ESCOBAR FABIO ARMANDO</td><td>65-73144</td><td>Presupuestos</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>LOZANO ESTEBAN GUSTAVO ADOLFO</td><td>65-72538</td><td>Formulación y Evaluación de Pr</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RODRIGUEZ VASQUEZ ALVARO JAVIER</td><td>65-84969</td><td>Didáctica General</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RODRIGUEZ VASQUEZ ALVARO JAVIER</td><td>65-84983</td><td>La Socialización en las Infanc</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RODRIGUEZ VASQUEZ ALVARO JAVIER</td><td>65-84999</td><td>Ambientes de Aprendizaje</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>RODRIGUEZ VASQUEZ ALVARO JAVIER</td><td>65-85026</td><td>Didáctica del lenguaje</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr><tr><td>BONILLA ESCOBAR FABIO ARMANDO</td><td>65-72632</td><td>Estructura de un Plan Negocios</td><td>MD2</td><td>REVISAR_MANUAL</td><td>UNKNOWN</td><td class="t-center">0</td></tr></tbody></table></div></div><p class="note">Este correo fue generado por el sistema de seguimiento de aulas.</p></div></div></body></html>

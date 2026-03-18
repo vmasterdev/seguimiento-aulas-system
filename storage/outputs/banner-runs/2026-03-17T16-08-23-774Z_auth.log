@@ -1,0 +1,9 @@
+[START] 2026-03-17T16:08:23.775Z
+[CWD] /mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR
+[EXECUTABLE] node
+[CMD] node --import tsx "src/cli.ts" "auth"
+
+
+[END] 2026-03-17T16:09:03.162Z
+[STATUS] CANCELLED
+[EXIT_CODE] null

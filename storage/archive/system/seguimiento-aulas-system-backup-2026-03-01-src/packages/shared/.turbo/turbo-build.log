@@ -1,0 +1,4 @@
+
+> @seguimiento/shared@0.1.0 build /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/packages/shared
+> tsc -p tsconfig.json
+

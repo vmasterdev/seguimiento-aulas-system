@@ -1,0 +1,298 @@
+<!doctype html>
+<html lang="es">
+<head>
+  <meta charset="utf-8" />
+  <meta name="viewport" content="width=device-width,initial-scale=1" />
+  <title>Reporte Ejecutivo - Envio Final Docentes</title>
+  <style>
+    :root{
+      --bg:#f4f7fb;
+      --card:#ffffff;
+      --ink:#0f172a;
+      --muted:#475569;
+      --line:#d7deea;
+      --brand:#0057a4;
+      --ok:#1f9d55;
+      --warn:#d97706;
+      --bad:#dc2626;
+    }
+    *{box-sizing:border-box}
+    body{margin:0;background:linear-gradient(135deg,#eef4ff,#f8fbff);font-family:Segoe UI,Arial,sans-serif;color:var(--ink)}
+    .wrap{max-width:1100px;margin:20px auto;padding:0 12px}
+    .hero{background:linear-gradient(120deg,#002b5c,#0057a4);color:#fff;border-radius:14px;padding:18px 20px}
+    .hero h1{margin:0 0 6px;font-size:24px}
+    .hero p{margin:0;color:#dbeafe}
+    .grid{display:grid;grid-template-columns:repeat(auto-fit,minmax(180px,1fr));gap:10px;margin-top:12px}
+    .kpi{background:var(--card);border:1px solid var(--line);border-radius:12px;padding:10px 12px}
+    .kpi .label{font-size:12px;color:var(--muted);text-transform:uppercase;letter-spacing:.4px}
+    .kpi .value{font-size:26px;font-weight:700;color:#0b2e5a;margin-top:4px}
+    .panel{margin-top:12px;background:var(--card);border:1px solid var(--line);border-radius:12px;padding:12px}
+    h2{margin:0 0 8px;font-size:18px;color:#0b2e5a}
+    h3{margin:10px 0 8px;font-size:15px;color:#1e3a8a}
+    .muted{color:var(--muted);font-size:13px}
+    .bar-row{display:grid;grid-template-columns:220px 1fr 70px;align-items:center;gap:8px;margin:6px 0}
+    .bar-label{font-size:13px;color:#1f2937}
+    .bar-track{height:16px;background:#e5edf8;border-radius:999px;overflow:hidden}
+    .bar-fill{height:100%;border-radius:999px}
+    .bar-value{text-align:right;font-weight:700;color:#1f2937;font-size:13px}
+    table{width:100%;border-collapse:collapse;margin-top:8px}
+    th,td{padding:8px 6px;border-bottom:1px solid #e5ecf6;font-size:13px;text-align:left;vertical-align:top}
+    th{color:var(--muted);font-size:12px;text-transform:uppercase;letter-spacing:.3px}
+    td.num{text-align:right;font-variant-numeric:tabular-nums}
+    ul{margin:6px 0 0;padding-left:18px}
+    li{margin:6px 0;font-size:14px}
+    .foot{margin:14px 0 20px;color:#64748b;font-size:12px;text-align:center}
+    @media (max-width:700px){
+      .bar-row{grid-template-columns:1fr}
+      .bar-value{text-align:left}
+    }
+  </style>
+</head>
+<body>
+  <div class="wrap">
+    <section class="hero">
+      <h1>Reporte Ejecutivo - Operacion Envio Final Docentes</h1>
+      <p>Alcance: RPACA a envio final | Fase ALISTAMIENTO | Momentos MD1 (M1) y RYC (1) | Periodos 2026 excepto 80 y 85</p>
+      <p>Generado: 05/03/2026, 09:45:57 a. m.</p>
+    </section>
+
+    <section class="grid">
+      <article class="kpi"><div class="label">Docentes Totales</div><div class="value">253</div></article>
+      <article class="kpi"><div class="label">Docentes con Correo</div><div class="value">230</div></article>
+      <article class="kpi"><div class="label">Cursos 2026 Analizados</div><div class="value">1729</div></article>
+      <article class="kpi"><div class="label">Muestreos (MD1+1)</div><div class="value">352</div></article>
+      <article class="kpi"><div class="label">Evaluaciones Alistamiento</div><div class="value">1156</div></article>
+      <article class="kpi"><div class="label">Correos Enviados</div><div class="value">303</div></article>
+    </section>
+
+    <section class="panel">
+      <h2>Resumen Ejecutivo</h2>
+      <ul>
+        <li>Efectividad de envio final: 303/358 (84.6%) correos entregados al canal SMTP/Outlook.</li><li>Palanca de replicacion: 873/1156 evaluaciones (75.5%) fueron replicadas desde NRC base, reduciendo carga operativa manual.</li><li>Cobertura de asignacion docente en cursos 2026 (sin 80/85): 1572/1729 (90.9%).</li><li>Pendiente operativo puntual: 2 correos en borrador por ausencia de email docente (mismo docente ID 1141374).</li><li>Ventana de ejecucion final de envios: 05/03/2026, 09:17:55 a. m. a 05/03/2026, 09:33:22 a. m..</li>
+      </ul>
+    </section>
+
+    <section class="panel">
+      <h2>Flujo Operativo End-to-End</h2>
+      <h3>1) Consolidacion RPACA / Docentes</h3>
+      <div class="muted">
+        Docentes cargados: <b>253</b> | con sourceId: <b>253</b> | con documento: <b>236</b> | sin correo: <b>23</b>
+      </div>
+      <h3>2) Cursos y Cobertura Docente</h3>
+      <div class="muted">
+        Cursos con docente: <b>1572</b> (90.9%) | cursos sin docente: <b>157</b> (9.1%)
+      </div>
+      <h3>3) Muestreo y Evaluacion</h3>
+      <div class="muted">
+        Docentes impactados por muestreo: <b>212</b> | Evaluaciones revisadas base: <b>283</b> | replicadas: <b>873</b>
+      </div>
+      <h3>4) Outbox y Envio</h3>
+      <div class="muted">
+        Mensajes outbox docentes: <b>358</b> | enviados: <b>303</b> (84.6%) | en borrador: <b>2</b>
+      </div>
+    </section>
+
+    <section class="panel">
+      <h2>Graficas Operativas</h2>
+      <h3>Estado Outbox (Docentes, Alistamiento, MD1 + 1)</h3>
+      <div class="bar-row"><div class="bar-label">DRAFT</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#0057a4;"></div></div><div class="bar-value">2</div></div><div class="bar-row"><div class="bar-label">EXPORTED</div><div class="bar-track"><div class="bar-fill" style="width:17%;background:#2f855a;"></div></div><div class="bar-value">53</div></div><div class="bar-row"><div class="bar-label">SENT_AUTO</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#d97706;"></div></div><div class="bar-value">303</div></div>
+
+      <h3>Distribucion de Puntajes (Escala 0-50)</h3>
+      <div class="bar-row"><div class="bar-label">Excelente</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#1f9d55;"></div></div><div class="bar-value">495</div></div><div class="bar-row"><div class="bar-label">Bueno</div><div class="bar-track"><div class="bar-fill" style="width:47%;background:#1d4ed8;"></div></div><div class="bar-value">235</div></div><div class="bar-row"><div class="bar-label">Aceptable</div><div class="bar-track"><div class="bar-fill" style="width:15%;background:#d97706;"></div></div><div class="bar-value">76</div></div><div class="bar-row"><div class="bar-label">Insatisfactorio</div><div class="bar-track"><div class="bar-fill" style="width:71%;background:#dc2626;"></div></div><div class="bar-value">350</div></div>
+
+      <h3>Estado Moodle (MD1 + 1)</h3>
+      <div class="bar-row"><div class="bar-label">OK</div><div class="bar-track"><div class="bar-fill" style="width:100%;background:#1f9d55;"></div></div><div class="bar-value">1120</div></div><div class="bar-row"><div class="bar-label">PENDIENTE</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#d97706;"></div></div><div class="bar-value">15</div></div><div class="bar-row"><div class="bar-label">REVISAR_MANUAL</div><div class="bar-track"><div class="bar-fill" style="width:2%;background:#dc2626;"></div></div><div class="bar-value">21</div></div>
+    </section>
+
+    <section class="panel">
+      <h2>Detalle por Periodo y Momento</h2>
+      <h3>Outbox por estado</h3>
+      <table>
+        <thead><tr><th>Periodo</th><th>Momento</th><th>Estado</th><th class="num">Cantidad</th></tr></thead>
+        <tbody>
+      <tr>
+        <td>202615</td>
+        <td>RYC (1)</td>
+        <td>DRAFT</td>
+        <td class="num">1</td>
+      </tr>
+      <tr>
+        <td>202615</td>
+        <td>RYC (1)</td>
+        <td>EXPORTED</td>
+        <td class="num">45</td>
+      </tr>
+      <tr>
+        <td>202615</td>
+        <td>RYC (1)</td>
+        <td>SENT_AUTO</td>
+        <td class="num">54</td>
+      </tr>
+      <tr>
+        <td>202615</td>
+        <td>M1 (MD1)</td>
+        <td>DRAFT</td>
+        <td class="num">1</td>
+      </tr>
+      <tr>
+        <td>202615</td>
+        <td>M1 (MD1)</td>
+        <td>EXPORTED</td>
+        <td class="num">8</td>
+      </tr>
+      <tr>
+        <td>202615</td>
+        <td>M1 (MD1)</td>
+        <td>SENT_AUTO</td>
+        <td class="num">142</td>
+      </tr>
+      <tr>
+        <td>202610</td>
+        <td>RYC (1)</td>
+        <td>SENT_AUTO</td>
+        <td class="num">73</td>
+      </tr>
+      <tr>
+        <td>202611</td>
+        <td>RYC (1)</td>
+        <td>SENT_AUTO</td>
+        <td class="num">14</td>
+      </tr>
+      <tr>
+        <td>202621</td>
+        <td>RYC (1)</td>
+        <td>SENT_AUTO</td>
+        <td class="num">3</td>
+      </tr>
+      <tr>
+        <td>202621</td>
+        <td>M1 (MD1)</td>
+        <td>SENT_AUTO</td>
+        <td class="num">13</td>
+      </tr>
+      <tr>
+        <td>202641</td>
+        <td>RYC (1)</td>
+        <td>SENT_AUTO</td>
+        <td class="num">2</td>
+      </tr>
+      <tr>
+        <td>202641</td>
+        <td>M1 (MD1)</td>
+        <td>SENT_AUTO</td>
+        <td class="num">2</td>
+      </tr></tbody>
+      </table>
+
+      <h3>Evaluaciones (revisado vs replicado)</h3>
+      <table>
+        <thead><tr><th>Periodo</th><th>Momento</th><th class="num">Revisado</th><th class="num">Replicado</th><th class="num">Total</th></tr></thead>
+        <tbody>
+      <tr>
+        <td>202610</td>
+        <td>RYC (1)</td>
+        <td class="num">52</td>
+        <td class="num">260</td>
+        <td class="num">312</td>
+      </tr>
+      <tr>
+        <td>202611</td>
+        <td>RYC (1)</td>
+        <td class="num">28</td>
+        <td class="num">16</td>
+        <td class="num">44</td>
+      </tr>
+      <tr>
+        <td>202612</td>
+        <td>RYC (1)</td>
+        <td class="num">49</td>
+        <td class="num">0</td>
+        <td class="num">49</td>
+      </tr>
+      <tr>
+        <td>202615</td>
+        <td>RYC (1)</td>
+        <td class="num">84</td>
+        <td class="num">153</td>
+        <td class="num">237</td>
+      </tr>
+      <tr>
+        <td>202615</td>
+        <td>M1 (MD1)</td>
+        <td class="num">48</td>
+        <td class="num">426</td>
+        <td class="num">474</td>
+      </tr>
+      <tr>
+        <td>202621</td>
+        <td>RYC (1)</td>
+        <td class="num">11</td>
+        <td class="num">2</td>
+        <td class="num">13</td>
+      </tr>
+      <tr>
+        <td>202621</td>
+        <td>M1 (MD1)</td>
+        <td class="num">8</td>
+        <td class="num">14</td>
+        <td class="num">22</td>
+      </tr>
+      <tr>
+        <td>202641</td>
+        <td>RYC (1)</td>
+        <td class="num">1</td>
+        <td class="num">2</td>
+        <td class="num">3</td>
+      </tr>
+      <tr>
+        <td>202641</td>
+        <td>M1 (MD1)</td>
+        <td class="num">2</td>
+        <td class="num">0</td>
+        <td class="num">2</td>
+      </tr></tbody>
+      </table>
+    </section>
+
+    <section class="panel">
+      <h2>Pendientes y Riesgos</h2>
+      <h3>Correos pendientes por ausencia de email</h3>
+      <table>
+        <thead><tr><th>Periodo</th><th>Momento</th><th>Docente</th><th>ID Docente</th><th>Asunto</th></tr></thead>
+        <tbody>
+      <tr>
+        <td>202615</td>
+        <td>RYC (1)</td>
+        <td>ANA, FERRO MORENO L.</td>
+        <td>1141374</td>
+        <td>[Seguimiento Aulas] ALISTAMIENTO 1 - 202615</td>
+      </tr>
+      <tr>
+        <td>202615</td>
+        <td>M1 (MD1)</td>
+        <td>ANA, FERRO MORENO L.</td>
+        <td>1141374</td>
+        <td>[Seguimiento Aulas] ALISTAMIENTO MD1 - 202615</td>
+      </tr></tbody>
+      </table>
+      <h3>Linea de tiempo de ejecucion</h3>
+      <table>
+        <tbody>
+          <tr><th>Inicio carga base docentes</th><td>25/02/2026, 11:59:57 a. m.</td></tr>
+          <tr><th>Inicio carga cursos 2026</th><td>25/02/2026, 11:59:57 a. m.</td></tr>
+          <tr><th>Primer muestreo MD1/1</th><td>02/03/2026, 07:12:41 p. m.</td></tr>
+          <tr><th>Primera evaluacion alistamiento</th><td>25/02/2026, 04:42:11 p. m.</td></tr>
+          <tr><th>Primer outbox docente generado</th><td>25/02/2026, 04:42:38 p. m.</td></tr>
+          <tr><th>Ventana final de envios auditada</th><td>05/03/2026, 09:17:55 a. m. a 05/03/2026, 09:33:22 a. m. (310 eventos)</td></tr>
+          <tr><th>Eventos de envio exitoso (audit)</th><td>304</td></tr>
+          <tr><th>Eventos de envio fallido (audit)</th><td>5</td></tr>
+        </tbody>
+      </table>
+    </section>
+
+    <div class="foot">
+      Reporte generado automaticamente por seguimiento-aulas-system | Fase ALISTAMIENTO | MD1 + RYC
+    </div>
+  </div>
+</body>
+</html>

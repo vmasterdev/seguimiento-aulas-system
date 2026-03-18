@@ -1,0 +1,4 @@
+
+> @seguimiento/worker@0.1.0 dev /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/apps/worker
+> tsx watch src/main.ts
+

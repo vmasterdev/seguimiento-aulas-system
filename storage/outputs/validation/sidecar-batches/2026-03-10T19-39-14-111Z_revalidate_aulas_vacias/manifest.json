@@ -1,0 +1,44 @@
+{
+  "batchId": "2026-03-10T19-39-14-111Z_revalidate_aulas_vacias",
+  "preparedAt": "2026-03-10T19:39:14.385Z",
+  "filters": {
+    "periodCodes": [
+      "202615"
+    ],
+    "moments": [
+      "MD2"
+    ],
+    "mode": "aulas_vacias",
+    "limit": 1
+  },
+  "total": 1,
+  "inputDir": "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-batches/2026-03-10T19-39-14-111Z_revalidate_aulas_vacias",
+  "csvPath": "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/sidecar-batches/2026-03-10T19-39-14-111Z_revalidate_aulas_vacias/input_revalidate.csv",
+  "byPeriod": {
+    "202615": 1
+  },
+  "byMoment": {
+    "MD2": 1
+  },
+  "byStatus": {
+    "OK": 1
+  },
+  "byTemplate": {
+    "VACIO": 1
+  },
+  "sample": [
+    {
+      "courseId": "cmm2a5atq0007wl7y330g8v18",
+      "nrc": "15-72307",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD2",
+      "title": "Cálculo Diferencial e Integral",
+      "program": "Administración de Empresas - Sur",
+      "method": "DIST",
+      "status": "OK",
+      "template": "VACIO",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    }
+  ]
+}

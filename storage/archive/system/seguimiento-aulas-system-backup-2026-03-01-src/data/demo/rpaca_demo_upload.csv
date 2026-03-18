@@ -1,0 +1,6 @@
+nrc,periodo,periodo_label,id_docente,docente,correo,sede,programa_codigo,programa,asignatura,momento,salon,salon1,tipo_aula,d4
+6512345,202610,PREGRADO PRESENCIAL,1001,CARLOS PEREZ,carlos.perez@uniminuto.edu,Sede Centro,ING01,Ingenieria de Sistemas,Programacion I,MD1,A101,A102,CRIBA,0
+65-22334,202610,PREGRADO PRESENCIAL,1002,ANA GOMEZ,ana.gomez@uniminuto.edu,Sede Norte,ADM02,Administracion de Empresas,Contabilidad I,MD2,B201,B202,INNOVAME,0
+334455,202615,PREGRADO DISTANCIA,1003,LUIS RUIZ,luis.ruiz@uniminuto.edu,Sede Virtual,EDU03,Licenciatura en Pedagogia,Didactica General,1,VIRTUAL,,D4,1
+65-77889,202615,PREGRADO DISTANCIA,1004,MARIA TORRES,maria.torres@uniminuto.edu,Sede Sur,PSI04,Psicologia,Neuropsicologia,INTER,C301,C302,VACIO,0
+6599123,202565,PREGRADO DISTANCIA,1005,JORGE RAMIREZ,jorge.ramirez@uniminuto.edu,Sede Oriente,DER05,Derecho,Derecho Constitucional,RM1,D401,D402,UNKNOWN,0

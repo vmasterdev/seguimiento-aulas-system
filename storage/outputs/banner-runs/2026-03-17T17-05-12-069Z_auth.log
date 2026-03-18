@@ -1,0 +1,9 @@
+[START] 2026-03-17T17:05:12.070Z
+[CWD] /mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\ORGANIZAR TODO\banner buscador de docente en nrc - BORRAR'; & 'C:\Program Files\nodejs\node.exe' '--import' 'tsx' 'src/cli.ts' 'auth'
+
+
+[END] 2026-03-17T17:05:12.164Z
+[STATUS] CANCELLED
+[EXIT_CODE] null

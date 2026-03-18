@@ -1,0 +1,27 @@
+[START] 2026-03-17T21:51:24.398Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node --import tsx "src/cli.ts" "batch" "--input" "/mnt/c/Users/Duvan/Documents/storage/outputs/banner-batches/2026-03-17T21-51-24-358Z_all/nrc_banner_batch.csv" "--query-name" "banner-rpaca" "--workers" "3"
+
+[2026-03-17T21:51:26.299Z] INFO Iniciando lote Banner {
+  queryId: 'cmmv5d6og0000t2ej07zw7pbd',
+  totalRequested: 1773,
+  pending: 1773,
+  workers: 3
+}
+[2026-03-17T21:53:40.222Z] WARN No se detecto el indicador esperado despues del login
+[2026-03-17T21:53:40.223Z] INFO Login completado
+Error: La sesion Banner sigue pidiendo autenticacion Microsoft. URL actual: https://login.microsoftonline.com/b1ba85eb-a253-4467-9ee8-d4f8ed4df300/saml2?SAMLRequest=jZFNa8JAEIbv%2FRVh7%2FnaJJosJiIVQbBQ%2FOihl7LZTHQhmbU7G%2BnPb5RKvRR6HJjnneF5Z%2FOvvvMuYEkbLFkcRMwDVKbReCzZYb%2FyczavnmYk%2B%2B4sFoM74RY%2BByDnLYjAuhF7NkhDD3YH9qIVHLabkp2cO5MIQyITDKh7jYMzATRDqEzfG5RjEvOWY45G6W6370hnjhqDXitryLTOYKcRghEL67iWeQa1L3mW%2BGk6mfoFQO43aZtDkzZtEkXh9VPOvJWxCm7%2FlqyVHQHz1suSfagihniSTNOiziHiWcxr4EWRKAkARTqSa3qVRPoCvyDRAGskJ9GVjEd84keJH0%2F3PBZZItI4SLLinXlvd438qnEUiyRu4ko2WBRGkiaBsgcSTond4mUjxk1xtsYZZTpW%2FWi%2B3bP%2FD5D3Jlj1t%2FdZ%2BBhe3cfHSqtv&RelayState=e6566f72-faa6-465c-a7a1-744e650b620c&SigAlg=http%3A%2F%2Fwww.w3.org%2F2001%2F04%2Fxmldsig-more%23rsa-sha256&Signature=j8O9uuKxQGyye9lTnQon1hfNDnIhgCa%2BSkR6NPPqeSdbKiwg70wgJvUk1oraSmv596%2BskG2jjgC6Cz1f535ReEggcZJD92jNv%2FbaU%2F5%2Fz3F0TK3YLsDwt7NHs3XKLh0kznUFao4xckZXJv8J7AUmruI2QnYx1yQ1YzQCDIPTX%2Fo22%2B%2Br3vxDTCPauvE4HlYkecFMursVExk%2F0noqnp%2F2Ou7R%2B67qQlIP2CnCc3kX56miRq8Mv51oYqcESxURRq0%2FrTxkyWLBKDzNKruVZLgdZVPdxfQouUMt04UxmgS1PJtVsO307qmLXFeBQUnTcf4F%2FxjVTsJnECZVCSPubJnyAQ%3D%3D. Vista: jaime.lozano.a@uniminuto.edu Aprobar la solicitud de inicio de sesión Abra la aplicación Authenticator y apruebe la solicitud. Introduzca el número si se solicita. 99 ¿No ha recibi
+    at BannerAutomationSession.ensureApplicationNavigatorReady (/home/uvan/banner-batch-run-20260317-1508/src/banner/bannerClient.ts:136:15)
+    at async BannerAutomationSession.login (/home/uvan/banner-batch-run-20260317-1508/src/banner/bannerClient.ts:194:7)
+    at async BatchService.processBackendParallelWorkers (/home/uvan/banner-batch-run-20260317-1508/src/services/batchService.ts:270:7)
+    at async BatchService.process (/home/uvan/banner-batch-run-20260317-1508/src/services/batchService.ts:156:13)
+    at async <anonymous> (/home/uvan/banner-batch-run-20260317-1508/src/cli.ts:235:25)
+    at async runWithContext (/home/uvan/banner-batch-run-20260317-1508/src/cli.ts:111:12)
+    at async Command.<anonymous> (/home/uvan/banner-batch-run-20260317-1508/src/cli.ts:233:7)
+    at async Command.parseAsync (/home/uvan/banner-batch-run-20260317-1508/node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/command.js:1104:5)
+    at async main (/home/uvan/banner-batch-run-20260317-1508/src/cli.ts:276:3)
+
+[END] 2026-03-17T21:53:42.800Z
+[STATUS] FAILED
+[EXIT_CODE] 1

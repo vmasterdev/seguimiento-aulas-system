@@ -1,0 +1,15 @@
+2026/02/26-17:23:37.096 36951 Reusing MANIFEST /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto/Default/EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/02/26-17:23:37.149 36951 Recovering log #14
+2026/02/26-17:23:37.153 36951 Reusing old log /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto/Default/EdgeCoupons/coupons_data.db/000014.log 
+2026/02/26-17:23:37.333 36952 Level-0 table #18: started
+2026/02/26-17:23:37.375 36952 Level-0 table #18: 681688 bytes OK
+2026/02/26-17:23:37.443 36952 Delete type=0 #14
+2026/02/26-17:23:37.450 36952 Compacting 4@0 + 1@1 files
+2026/02/26-17:23:37.529 36952 Generated table #19@0: 3 keys, 681688 bytes
+2026/02/26-17:23:37.530 36952 Compacted 4@0 + 1@1 files => 681688 bytes
+2026/02/26-17:23:37.544 36952 compacted to: files[ 0 1 1 0 0 0 0 ]
+2026/02/26-17:23:37.588 36952 Delete type=2 #8
+2026/02/26-17:23:37.589 36952 Delete type=2 #11
+2026/02/26-17:23:37.592 36952 Delete type=2 #13
+2026/02/26-17:23:37.593 36952 Delete type=2 #15
+2026/02/26-17:23:37.594 36952 Delete type=2 #18

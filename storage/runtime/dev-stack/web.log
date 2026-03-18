@@ -1,0 +1,309 @@
+
+> @seguimiento/web-v2@0.1.0 dev /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/web-v2
+> next dev -p 3000
+
+  ▲ Next.js 14.2.35
+  - Local:        http://localhost:3000
+  - Environments: .env.local
+
+ ✓ Starting...
+ ✓ Ready in 65.6s
+ ○ Compiling /automatizacion-banner ...
+ ✓ Compiled /automatizacion-banner in 1105ms (63 modules)
+ ✓ Compiled in 6.5s (230 modules)
+ GET /api/banner/status 200 in 12744ms
+ GET /automatizacion-banner 200 in 13371ms
+ GET /api/banner/status 200 in 404ms
+ ○ Compiling /nrc-globales ...
+ ✓ Compiled /nrc-globales in 1916ms (465 modules)
+ GET /nrc-globales 200 in 2760ms
+ ○ Compiling /api/backend/[...path] ...
+ ✓ Compiled /api/backend/[...path] in 659ms (238 modules)
+ ✓ Compiled (268 modules)
+ GET /automatizacion-banner 200 in 2318ms
+ GET /api/backend/courses?limit=5000 200 in 4050ms
+ GET /api/backend/courses?limit=5000 200 in 4076ms
+ GET /automatizacion-banner 200 in 2015ms
+ ○ Compiling /api/banner/status ...
+ ✓ Compiled /api/banner/batch/options in 2.2s (277 modules)
+ ✓ Compiled (279 modules)
+ GET /api/banner/status 200 in 2270ms
+ GET /api/banner/status 200 in 2261ms
+ GET /api/banner/status 200 in 3965ms
+ GET /api/banner/batch/options 200 in 5648ms
+ GET /api/banner/batch/options 200 in 7500ms
+ GET /api/banner/batch/options 200 in 6144ms
+ ○ Compiling /api/banner/batch/start ...
+ ✓ Compiled /api/banner/batch/start in 736ms (281 modules)
+ POST /api/banner/batch/start 200 in 2017ms
+ GET /api/banner/status 200 in 473ms
+ GET /api/banner/status 200 in 575ms
+ GET /api/banner/status 200 in 690ms
+ GET /api/banner/status 200 in 321ms
+ POST /api/banner/batch/start 200 in 1632ms
+ GET /api/banner/status 200 in 498ms
+ GET /api/banner/status 200 in 175ms
+ POST /api/banner/batch/start 200 in 3196ms
+ GET /api/banner/status 200 in 478ms
+ GET /api/banner/status 200 in 187ms
+ POST /api/banner/batch/start 200 in 4911ms
+ GET /api/banner/status 200 in 446ms
+ GET /api/banner/status 200 in 229ms
+ GET /api/banner/status 200 in 360ms
+ GET /api/banner/status 200 in 293ms
+ GET /api/banner/status 200 in 534ms
+ GET /api/banner/status 200 in 264ms
+ GET /api/banner/status 200 in 1425ms
+ GET /api/banner/status 200 in 943ms
+ GET /api/banner/status 200 in 1027ms
+ GET /api/banner/status 200 in 620ms
+ GET /automatizacion-banner 200 in 325ms
+ GET /api/banner/status 200 in 947ms
+ GET /api/banner/status 200 in 934ms
+ GET /api/banner/batch/options 200 in 2665ms
+ GET /api/banner/batch/options 200 in 2774ms
+ POST /api/banner/batch/start 200 in 2082ms
+ GET /api/banner/status 200 in 483ms
+ GET /api/banner/status 200 in 428ms
+ GET /api/banner/status 200 in 763ms
+ GET /api/banner/status 200 in 459ms
+ GET /api/banner/status 200 in 626ms
+ GET /api/banner/status 200 in 447ms
+ GET /api/banner/status 200 in 604ms
+ GET /api/banner/status 200 in 283ms
+ GET /api/banner/status 200 in 310ms
+ GET /api/banner/status 200 in 359ms
+ GET /api/banner/status 200 in 883ms
+ GET /api/banner/status 200 in 314ms
+ GET /api/banner/status 200 in 309ms
+ GET /api/banner/status 200 in 538ms
+ GET /api/banner/status 200 in 475ms
+ GET /api/banner/status 200 in 1424ms
+ GET /api/banner/status 200 in 282ms
+ GET /api/banner/status 200 in 384ms
+ GET /api/banner/status 200 in 729ms
+ GET /api/banner/status 200 in 286ms
+ GET /api/banner/status 200 in 321ms
+ GET /api/banner/status 200 in 358ms
+ GET /api/banner/status 200 in 471ms
+ GET /api/banner/status 200 in 499ms
+ GET /api/banner/status 200 in 278ms
+ GET /api/banner/status 200 in 374ms
+ GET /api/banner/status 200 in 748ms
+ GET /api/banner/status 200 in 278ms
+ GET /api/banner/status 200 in 291ms
+ GET /api/banner/status 200 in 486ms
+ GET /api/banner/status 200 in 517ms
+ GET /api/banner/status 200 in 268ms
+ GET /api/banner/status 200 in 274ms
+ GET /api/banner/status 200 in 373ms
+ GET /api/banner/status 200 in 481ms
+ GET /api/banner/status 200 in 314ms
+ GET /api/banner/status 200 in 285ms
+ GET /api/banner/status 200 in 412ms
+ GET /api/banner/status 200 in 458ms
+ GET /api/banner/status 200 in 315ms
+ GET /api/banner/status 200 in 304ms
+ GET /api/banner/status 200 in 380ms
+ GET /api/banner/status 200 in 617ms
+ GET /api/banner/status 200 in 273ms
+ GET /api/banner/status 200 in 305ms
+ GET /api/banner/status 200 in 416ms
+ GET /api/banner/status 200 in 504ms
+ GET /api/banner/status 200 in 511ms
+ GET /api/banner/status 200 in 305ms
+ GET /api/banner/status 200 in 400ms
+ GET /api/banner/status 200 in 728ms
+ GET /api/banner/status 200 in 292ms
+ GET /api/banner/status 200 in 439ms
+ GET /api/banner/status 200 in 410ms
+ GET /api/banner/status 200 in 779ms
+ GET /api/banner/status 200 in 328ms
+ GET /api/banner/status 200 in 272ms
+ GET /api/banner/status 200 in 377ms
+ GET /api/banner/status 200 in 504ms
+ GET /api/banner/status 200 in 344ms
+ GET /api/banner/status 200 in 286ms
+ GET /api/banner/status 200 in 407ms
+ GET /api/banner/status 200 in 455ms
+ GET /api/banner/status 200 in 277ms
+ GET /api/banner/status 200 in 290ms
+ GET /api/banner/status 200 in 416ms
+ GET /api/banner/status 200 in 459ms
+ GET /api/banner/status 200 in 339ms
+ GET /api/banner/status 200 in 295ms
+ GET /api/banner/status 200 in 405ms
+ GET /api/banner/status 200 in 628ms
+ GET /api/banner/status 200 in 538ms
+ GET /api/banner/status 200 in 294ms
+ GET /api/banner/status 200 in 390ms
+ GET /api/banner/status 200 in 733ms
+ GET /api/banner/status 200 in 319ms
+ GET /api/banner/status 200 in 400ms
+ GET /api/banner/status 200 in 416ms
+ GET /api/banner/status 200 in 604ms
+ GET /api/banner/status 200 in 380ms
+ GET /api/banner/status 200 in 477ms
+ GET /api/banner/status 200 in 463ms
+ GET /api/banner/status 200 in 482ms
+ GET /api/banner/status 200 in 309ms
+ GET /api/banner/status 200 in 327ms
+ GET /api/banner/status 200 in 454ms
+ GET /api/banner/status 200 in 509ms
+ GET /api/banner/status 200 in 310ms
+ GET /api/banner/status 200 in 309ms
+ GET /api/banner/status 200 in 408ms
+ GET /api/banner/status 200 in 594ms
+ GET /api/banner/status 200 in 326ms
+ GET /api/banner/status 200 in 379ms
+ GET /api/banner/status 200 in 402ms
+ GET /api/banner/status 200 in 502ms
+ GET /api/banner/status 200 in 559ms
+ GET /api/banner/status 200 in 298ms
+ GET /api/banner/status 200 in 412ms
+ GET /api/banner/status 200 in 575ms
+ GET /api/banner/status 200 in 351ms
+ GET /api/banner/status 200 in 327ms
+ GET /api/banner/status 200 in 424ms
+ GET /api/banner/status 200 in 1593ms
+ GET /api/banner/status 200 in 371ms
+ GET /api/banner/status 200 in 297ms
+ GET /api/banner/status 200 in 559ms
+ GET /api/banner/status 200 in 454ms
+ GET /api/banner/status 200 in 320ms
+ GET /api/banner/status 200 in 347ms
+ GET /api/banner/status 200 in 434ms
+ GET /api/banner/status 200 in 635ms
+ GET /api/banner/status 200 in 327ms
+ GET /api/banner/status 200 in 313ms
+ GET /api/banner/status 200 in 416ms
+ GET /api/banner/status 200 in 649ms
+ GET /api/banner/status 200 in 335ms
+ GET /api/banner/status 200 in 323ms
+ GET /api/banner/status 200 in 495ms
+ GET /api/banner/status 200 in 564ms
+ GET /api/banner/status 200 in 601ms
+ GET /api/banner/status 200 in 329ms
+ GET /api/banner/status 200 in 398ms
+ GET /api/banner/status 200 in 479ms
+ GET /api/banner/status 200 in 357ms
+ GET /api/banner/status 200 in 319ms
+ GET /api/banner/status 200 in 525ms
+ GET /api/banner/status 200 in 446ms
+ GET /api/banner/status 200 in 326ms
+ GET /api/banner/status 200 in 301ms
+ GET /api/banner/status 200 in 394ms
+ GET /api/banner/status 200 in 711ms
+ GET /api/banner/status 200 in 383ms
+ GET /api/banner/status 200 in 311ms
+ GET /api/banner/status 200 in 392ms
+ GET /api/banner/status 200 in 466ms
+ GET /api/banner/status 200 in 362ms
+ GET /api/banner/status 200 in 399ms
+ GET /api/banner/status 200 in 544ms
+ GET /api/banner/status 200 in 1052ms
+ GET /api/banner/status 200 in 874ms
+ GET /api/banner/status 200 in 328ms
+ GET /api/banner/status 200 in 305ms
+ GET /api/banner/status 200 in 761ms
+ GET /api/banner/status 200 in 751ms
+ GET /api/banner/status 200 in 393ms
+ GET /api/banner/status 200 in 449ms
+ GET /api/banner/status 200 in 587ms
+ GET /api/banner/status 200 in 398ms
+ GET /api/banner/status 200 in 319ms
+ GET /api/banner/status 200 in 305ms
+ GET /api/banner/status 200 in 1656ms
+ GET /api/banner/status 200 in 760ms
+ GET /api/banner/status 200 in 402ms
+ GET /api/banner/status 200 in 472ms
+ GET /api/banner/status 200 in 665ms
+ GET /api/banner/status 200 in 401ms
+ GET /api/banner/status 200 in 400ms
+ GET /api/banner/status 200 in 345ms
+ GET /api/banner/status 200 in 675ms
+ GET /api/banner/status 200 in 424ms
+ GET /api/banner/status 200 in 1530ms
+ GET /api/banner/status 200 in 1138ms
+ GET /api/banner/status 200 in 772ms
+ GET /nrc-globales 200 in 237ms
+ GET /api/backend/courses?limit=5000 200 in 4285ms
+ GET /api/backend/courses?limit=5000 200 in 4295ms
+ GET /api/backend/courses/cmm2a5ptp033vwl7ymas67vyr 200 in 204ms
+ GET /automatizacion-banner 200 in 312ms
+ GET /api/banner/status 200 in 927ms
+ GET /api/banner/status 200 in 1777ms
+ GET /api/banner/batch/options 200 in 4111ms
+ GET /api/banner/batch/options 200 in 4233ms
+ ○ Compiling /api/banner/actions ...
+ ✓ Compiled /api/banner/actions in 1163ms (275 modules)
+ POST /api/banner/actions 200 in 31657ms
+ ○ Compiling /api/banner/batch/options ...
+ ✓ Compiled /api/banner/batch/options in 723ms (277 modules)
+ ✓ Compiled (279 modules)
+ GET /api/banner/status 200 in 2504ms
+ GET /api/banner/batch/options 200 in 3531ms
+ GET /automatizacion-banner 200 in 355ms
+ GET /api/banner/status 200 in 955ms
+ GET /api/banner/status 200 in 633ms
+ GET /api/banner/batch/options 200 in 2813ms
+ GET /nrc-globales 200 in 794ms
+ ○ Compiling /api/backend/[...path] ...
+ ✓ Compiled /api/backend/[...path] in 1062ms (279 modules)
+ GET /api/backend/courses?limit=5000 200 in 4599ms
+ GET /api/backend/courses?limit=5000 200 in 4773ms
+ GET /api/banner/status 200 in 1030ms
+ GET /api/backend/courses/cmm2jzkiy00l313uedhnztr0d 200 in 254ms
+ ○ Compiling /docentes ...
+ ✓ Compiled /docentes in 3.5s (507 modules)
+ GET /docentes 200 in 4118ms
+ GET /api/backend/teachers?limit=150 200 in 418ms
+ GET /api/backend/teachers?limit=150 200 in 428ms
+ GET /api/backend/teachers?q=JUAN%2C+GIRALDO+CORTES+G.&limit=150 200 in 245ms
+ GET /docentes 200 in 319ms
+ GET /api/backend/teachers?limit=150 200 in 389ms
+ GET /api/backend/teachers?limit=150 200 in 325ms
+ POST /api/backend/teachers 201 in 257ms
+ GET /api/backend/teachers?q=JUAN%2C+GIRALDO+CORTES+G.&limit=150 200 in 411ms
+ GET /api/backend/teachers?q=JUAN%2C+GIRALDO+CORTES+G.&limit=150 200 in 447ms
+ GET /api/backend/teachers?q=JUAN+GILBERTO+GIRALDO+CORTES&limit=150 200 in 423ms
+ GET /nrc-globales 200 in 676ms
+ GET /api/backend/courses?limit=5000 200 in 2837ms
+ GET /api/backend/courses?limit=5000 200 in 2858ms
+ GET /api/backend/courses/cmm2jzkiy00l313uedhnztr0d 200 in 168ms
+ GET /api/backend/courses/cmm2jzmo200xw13ue06p1vhql 200 in 217ms
+ POST /api/backend/evaluation/manual-override 201 in 333ms
+ GET /api/backend/courses/cmm2jzmo200xw13ue06p1vhql 200 in 208ms
+ GET /nrc-globales 200 in 226ms
+ GET /api/backend/courses?limit=5000 200 in 3070ms
+ GET /api/backend/courses?limit=5000 200 in 3095ms
+ ○ Compiling /correos ...
+ ✓ Compiled /correos in 1967ms (520 modules)
+ GET /correos 200 in 2652ms
+ GET /api/backend/outbox/options?yearPrefix=2026 200 in 403ms
+ GET /api/backend/outbox/options?yearPrefix=2026 200 in 417ms
+ GET /api/backend/outbox/tracking?audience=DOCENTE&page=1&pageSize=25 200 in 460ms
+ GET /api/backend/outbox/tracking?audience=DOCENTE&page=1&pageSize=25 200 in 471ms
+ POST /api/backend/outbox/generate 201 in 860ms
+ GET /api/backend/outbox/cmmw4d8iv00056x0jg738do9a/preview 200 in 974ms
+ POST /api/backend/outbox/send 201 in 1511ms
+ POST /api/backend/outbox/send 201 in 7103ms
+ POST /api/backend/outbox/generate 201 in 928ms
+ GET /api/backend/outbox/cmmw4rvxr00086x0jzx26npih/preview 200 in 744ms
+ POST /api/backend/outbox/send 201 in 1357ms
+ GET /docentes 200 in 219ms
+ GET /api/backend/teachers?limit=150 200 in 453ms
+ GET /api/backend/teachers?limit=150 200 in 645ms
+ GET /api/backend/teachers?q=LEIDY+YELITZA+ROMERO+ARDILA&limit=150 200 in 195ms
+ GET /api/backend/teachers?q=YELITZA+ROMERO+ARDILA&limit=150 200 in 289ms
+ GET /api/backend/teachers?q=YELITZA&limit=150 200 in 231ms
+ GET /api/backend/teachers?q=YELITZA&limit=150 200 in 275ms
+ GET /correos 200 in 296ms
+ GET /api/backend/outbox/options?yearPrefix=2026 200 in 298ms
+ GET /api/backend/outbox/options?yearPrefix=2026 200 in 328ms
+ GET /api/backend/outbox/tracking?audience=DOCENTE&page=1&pageSize=25 200 in 354ms
+ GET /api/backend/outbox/tracking?audience=DOCENTE&page=1&pageSize=25 200 in 368ms
+ POST /api/backend/outbox/generate 201 in 750ms
+ GET /api/backend/outbox/cmmw4vx4c000a6x0j0xc8a59r/preview 200 in 1063ms
+ POST /api/backend/outbox/send 201 in 1022ms
+ POST /api/backend/outbox/send 201 in 2936ms

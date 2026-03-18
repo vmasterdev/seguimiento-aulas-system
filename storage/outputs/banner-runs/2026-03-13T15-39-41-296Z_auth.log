@@ -1,0 +1,18 @@
+[START] 2026-03-13T15:39:41.297Z
+[CWD] /mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\banner buscador de docente en nrc'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'auth'
+
+Error: No se detecto la pantalla de inicio de sesion de Banner/Microsoft. URL actual: https://genesisadmin.uniminuto.edu/applicationNavigator/seamless. Vista: Tablero Menu navigation Aplicaciones Regresar al menú principal Aplicaciones Banner Mi Banner Mis enlaces Buscar Regresar al menú principal Buscar Navegación directa Páginas
+    at LoginPage.assertReadyForLogin (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\banner\pages\LoginPage.ts:154:13)
+    at async LoginPage.open (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\banner\pages\LoginPage.ts:25:5)
+    at async BannerAutomationSession.openLoginPage (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\banner\bannerClient.ts:83:5)
+    at async <anonymous> (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:156:11)
+    at async runWithContext (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:109:12)
+    at async Command.<anonymous> (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:127:7)
+    at async Command.parseAsync (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\node_modules\.pnpm\commander@13.1.0\node_modules\commander\lib\command.js:1104:5)
+    at async main (C:\Users\Duvan\Documents\banner buscador de docente en nrc - BORRAR\src\cli.ts:249:3)
+
+[END] 2026-03-13T15:40:13.687Z
+[STATUS] FAILED
+[EXIT_CODE] 1

@@ -1,0 +1,11 @@
+2026/02/26-17:13:45.765 3631d Reusing MANIFEST /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto/Default/EdgeCoupons/coupons_data.db/MANIFEST-000001
+2026/02/26-17:13:45.993 3631d Recovering log #10
+2026/02/26-17:13:46.044 3631d Level-0 table #13: started
+2026/02/26-17:13:46.148 3631d Level-0 table #13: 681688 bytes OK
+2026/02/26-17:13:46.153 3631d Recovering log #13
+2026/02/26-17:13:46.162 3631d Reusing old log /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto/Default/EdgeCoupons/coupons_data.db/000013.log 
+2026/02/26-17:13:46.323 3631d Delete type=0 #10
+2026/02/26-17:13:46.324 3631d Delete type=2 #14
+2026/02/26-17:13:46.840 3631e Level-0 table #15: started
+2026/02/26-17:13:46.893 3631e Level-0 table #15: 681688 bytes OK
+2026/02/26-17:13:46.969 3631e Delete type=0 #13

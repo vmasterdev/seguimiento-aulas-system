@@ -1,0 +1,84 @@
+[START] 2026-03-13T13:42:20.238Z
+[CMD] /mnt/c/WINDOWS/system32/cmd.exe "/c" "py" "-3" "-u" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\tools\\moodle-sidecar\\sidecar_runner.py" "classify" "--input-dir" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-batches\\2026-03-13T13-42-19-960Z_all" "--output" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-42-19-960Z_all.xlsx" "--workers" "1" "--browser" "edge" "--python" "py"
+
+[CMD] py C:\Users\Duvan\Documents\seguimiento-aulas-system\tools\moodle-sidecar\moodle_categorizacion_aulas.py --browser edge --input-dir C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-batches\2026-03-13T13-42-19-960Z_all --output C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-42-19-960Z_all.xlsx --workers 1 --resume --modo-estricto-modalidad --nrc-5-segun-archivo
+[INFO] Catalogo Distancia 4.0: C:\Users\Duvan\Documents\seguimiento-aulas-system\tools\moodle-sidecar\CURSOS DISTANCIA 4.0.xlsx
+[INFO] Cursos en catalogo Distancia 4.0: 445
+[INFO] NRC totales: 1
+[INFO] NRC ya procesados: 0
+[INFO] NRC pendientes: 1
+[INFO] Prioridad de periodos: 202615
+[INFO] CSV checkpoint: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-42-19-960Z_all.csv
+[INFO] Excel final: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-42-19-960Z_all.xlsx
+[INFO] Reporte sin matricula: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-42-19-960Z_all_SIN_MATRICULA.xlsx
+[INFO] Reporte aulas vacias/sin participantes: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-42-19-960Z_all_AULAS_VACIAS.xlsx
+[INFO] Perfil navegador root: C:\Users\Duvan\.cache\seguimiento-aulas\moodle-sidecar
+[INFO] Headless: NO
+[INFO] Workers: 1
+[INFO] Modo estricto por modalidad: SI
+[INFO] Consulta NRC solo 5 digitos: NO
+[INFO] Consulta NRC 5 digitos segun archivo/modalidad: SI
+[W1/1] [WARN] Fallo al abrir EDGE con perfil actual: Message: session not created: Microsoft Edge failed to start: crashed.
+  (session not created: DevToolsActivePort file doesn't exist)
+  (The process started from msedge location C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe is no longer running, so msedgedriver is assuming that msedge has crashed.); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x7ff670877c25
+	0x7ff670877c84
+	0x7ff670bbad0a
+	0x7ff670601ec2
+	0x7ff6705fdb30
+	0x7ff67063eeee
+	0x7ff67063e886
+	0x7ff670609a1c
+	0x7ff670608c76
+	0x7ff670609843
+	0x7ff6706d0564
+	0x7ff6706cca03
+	0x7ff6706dd0c3
+	0x7ff670892308
+	0x7ff67089abe6
+	0x7ff67087f264
+	0x7ff67087f3a9
+	0x7ff67086d1e2
+	0x7ffef796e8d7
+	0x7ffef99cc48c
+
+[W1/1] [INFO] Reintentando con perfil limpio...
+[INFO] Borrando perfil de Edge corrupto...
+[W1/1] [ERROR] No se pudo abrir EDGE: Message: session not created: Microsoft Edge failed to start: crashed.
+  (session not created: DevToolsActivePort file doesn't exist)
+  (The process started from msedge location C:\Program Files (x86)\Microsoft\Edge\Application\msedge.exe is no longer running, so msedgedriver is assuming that msedge has crashed.); For documentation on this error, please visit: https://www.selenium.dev/documentation/webdriver/troubleshooting/errors#sessionnotcreatedexception
+Stacktrace:
+Symbols not available. Dumping unresolved backtrace:
+	0x7ff670877c25
+	0x7ff670877c84
+	0x7ff670bbad0a
+	0x7ff670601ec2
+	0x7ff6705fdb30
+	0x7ff67063eeee
+	0x7ff67063e886
+	0x7ff670609a1c
+	0x7ff670608c76
+	0x7ff670609843
+	0x7ff6706d0564
+	0x7ff6706cca03
+	0x7ff6706dd0c3
+	0x7ff670892308
+	0x7ff67089abe6
+	0x7ff67087f264
+	0x7ff67087f3a9
+	0x7ff67086d1e2
+	0x7ffef796e8d7
+	0x7ffef99cc48c
+
+[INFO] Registros procesados en esta corrida: 0
+
+[FIN] Proceso completado.
+[OK] CSV: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-42-19-960Z_all.csv
+[OK] Excel: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\RESULTADO_TIPOS_AULA_DESDE_MOODLE_2026-03-13T13-42-19-960Z_all.xlsx
+[INFO] No se encontraron aulas vacias/sin participantes para reporte dedicado.
+
+[END] 2026-03-13T13:42:28.564Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

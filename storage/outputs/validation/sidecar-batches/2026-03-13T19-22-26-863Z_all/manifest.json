@@ -1,0 +1,160 @@
+{
+  "batchId": "2026-03-13T19-22-26-863Z_all",
+  "preparedAt": "2026-03-13T19:22:26.901Z",
+  "filters": {
+    "source": "ALL",
+    "periodCodes": [
+      "202641"
+    ],
+    "moments": [
+      "1",
+      "INTER",
+      "MD1",
+      "MD2"
+    ],
+    "templates": [],
+    "limit": null
+  },
+  "total": 9,
+  "files": [
+    {
+      "name": "RPACA_GENERADO_CUATRIMESTRAL_202641.csv",
+      "rows": 9
+    }
+  ],
+  "byPeriod": {
+    "202641": 9
+  },
+  "byMoment": {
+    "1": 3,
+    "MD1": 2,
+    "MD2": 4
+  },
+  "byStatus": {
+    "OK": 9
+  },
+  "byTemplate": {
+    "D4": 4,
+    "VACIO": 4,
+    "INNOVAME": 1
+  },
+  "sample": [
+    {
+      "courseId": "cmm2k0n3k04zh13uey1uv0itw",
+      "nrc": "41-68200",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "moment": "1",
+      "title": "Metodología de la Investigac",
+      "program": "Contaduría Pública Distancia - Centro",
+      "method": "TRAD",
+      "status": "OK",
+      "template": "D4",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv"
+    },
+    {
+      "courseId": "cmm2k0n4904zm13uezcayogbx",
+      "nrc": "41-68201",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "moment": "MD1",
+      "title": "Formulación de Proyectos",
+      "program": "Posgrados - Centro",
+      "method": "DIST",
+      "status": "OK",
+      "template": "D4",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv"
+    },
+    {
+      "courseId": "cmm2k0n4x04zr13uei9de5e0p",
+      "nrc": "41-68202",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "moment": "MD2",
+      "title": "Evaluación de Proyectos",
+      "program": "Posgrados - Centro",
+      "method": "TRAD",
+      "status": "OK",
+      "template": "VACIO",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv"
+    },
+    {
+      "courseId": "cmm2k0n5n04zw13uen0i4mbkn",
+      "nrc": "41-68204",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "moment": "MD1",
+      "title": "Ejecución de Proyectos",
+      "program": "Posgrados - Centro",
+      "method": "TRAD",
+      "status": "OK",
+      "template": "D4",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv"
+    },
+    {
+      "courseId": "cmm2k0n6b050113ue9tq0g0nz",
+      "nrc": "41-68205",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "moment": "MD2",
+      "title": "Direccionamiento Estratégico",
+      "program": "MS Gerencia Innovación Proyect - Centro",
+      "method": "TRAD",
+      "status": "OK",
+      "template": "VACIO",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv"
+    },
+    {
+      "courseId": "cmm2k0n70050613ueppbuot0f",
+      "nrc": "41-68206",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "moment": "1",
+      "title": "Proyecto de Grado",
+      "program": "Posgrados - Centro",
+      "method": "TRAD",
+      "status": "OK",
+      "template": "INNOVAME",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv"
+    },
+    {
+      "courseId": "cmm2k0n7p050b13ueef1dgiu6",
+      "nrc": "41-68207",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "moment": "1",
+      "title": "Competencias Gerenciales Básic",
+      "program": "Posgrados - Centro",
+      "method": "TRAD",
+      "status": "OK",
+      "template": "D4",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv"
+    },
+    {
+      "courseId": "cmm2k0n8f050g13ueffcefiw8",
+      "nrc": "41-70080",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "moment": "MD2",
+      "title": "Electiva I",
+      "program": "ESP EN GERENCIA DE PROYECTOS",
+      "method": "TRAD",
+      "status": "OK",
+      "template": "VACIO",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv"
+    },
+    {
+      "courseId": "cmm2k0n9e050l13uenynm7rgs",
+      "nrc": "41-70081",
+      "periodCode": "202641",
+      "periodLabel": "PERIODO 202641",
+      "moment": "MD2",
+      "title": "Electiva II",
+      "program": "Posgrados - Centro",
+      "method": "TRAD",
+      "status": "OK",
+      "template": "VACIO",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202641.csv"
+    }
+  ]
+}

@@ -1,0 +1,9 @@
+[START] 2026-03-14T02:51:35.203Z
+[CMD] /mnt/c/WINDOWS/system32/cmd.exe "/c" "py" "-3" "-u" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\tools\\moodle-sidecar\\sidecar_runner.py" "activity" "--input-json" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-extract-batches\\2026-03-14T02-51-35-161Z_activity\\activity_input.json" "--output-dir" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-extract-batches\\2026-03-14T02-51-35-161Z_activity\\activity_exports" "--browser" "chrome" "--python" "py"
+
+
+[PROCESS_ERROR] spawn /mnt/c/WINDOWS/system32/cmd.exe ENOENT
+
+[END] 2026-03-14T02:51:35.217Z
+[STATUS] FAILED
+[EXIT_CODE] -4058

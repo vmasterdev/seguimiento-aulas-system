@@ -1,0 +1,7 @@
+[START] 2026-03-08T12:23:37.473Z
+[CMD] python3 "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/sidecar_runner.py" "classify" "--input-dir" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/inputs/rpaca_csv/_sidecar_smoke50" "--output" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_retry_20260308_072329.xlsx" "--workers" "5" "--browser" "edge"
+
+
+[END] 2026-03-08T12:26:42.819Z
+[STATUS] FAILED
+[EXIT_CODE] null

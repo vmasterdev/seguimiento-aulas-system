@@ -1,0 +1,6 @@
+
+> @seguimiento/worker@0.1.0 start /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/apps/worker
+> node --enable-source-maps dist/apps/worker/src/main.js
+
+[worker] iniciado cola=moodle.classify redis=redis://127.0.0.1:6380 concurrency=3
+[worker] modalidades activas: PRESENCIAL=https://presencial.aulasuniminuto.edu.co | DISTANCIA=https://distancia.aulasuniminuto.edu.co | POSGRADOS=https://posgrados.aulasuniminuto.edu.co | MOOCS=https://moocs.aulasuniminuto.edu.co

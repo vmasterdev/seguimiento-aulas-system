@@ -1,0 +1,18 @@
+[START] 2026-03-17T13:38:40.518Z
+[CWD] /mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR
+[EXECUTABLE] /mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe
+[CMD] Set-Location 'C:\Users\Duvan\Documents\ORGANIZAR TODO\banner buscador de docente en nrc - BORRAR'; & '.\node_modules\.bin\tsx.CMD' 'src/cli.ts' 'auth'
+
+& : El t�rmino '.\node_modules\.bin\tsx.CMD' no se reconoce como nombre de un cmdlet, funci�n, archivo de script o 
+programa ejecutable. Compruebe si escribi� correctamente el nombre o, si incluy� una ruta de acceso, compruebe que 
+dicha ruta es correcta e int�ntelo de nuevo.
+En l�nea: 1 Car�cter: 102
++ ...  de docente en nrc - BORRAR'; & '.\node_modules\.bin\tsx.CMD' 'src/cl ...
++                                     ~~~~~~~~~~~~~~~~~~~~~~~~~~~~~
+    + CategoryInfo          : ObjectNotFound: (.\node_modules\.bin\tsx.CMD:String) [], CommandNotFoundException
+    + FullyQualifiedErrorId : CommandNotFoundException
+ 
+
+[END] 2026-03-17T13:38:42.152Z
+[STATUS] FAILED
+[EXIT_CODE] 1

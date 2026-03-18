@@ -1,0 +1,582 @@
+[START] 2026-03-07T19:56:08.833Z
+[CMD] python3 "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/sidecar_runner.py" "classify" "--input-dir" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/inputs/rpaca_csv/_sidecar_smoke50" "--output" "/mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50.xlsx" "--workers" "5" "--browser" "edge"
+
+[INFO] Catalogo Distancia 4.0: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/CURSOS DISTANCIA 4.0.xlsx
+[INFO] Cursos en catalogo Distancia 4.0: 445
+[INFO] NRC totales: 50
+[INFO] NRC ya procesados: 0
+[INFO] NRC pendientes: 50
+[INFO] Prioridad de periodos: 202615
+[INFO] CSV checkpoint: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50.csv
+[INFO] Excel final: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50.xlsx
+[INFO] Reporte sin matricula: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_SIN_MATRICULA.xlsx
+[INFO] Reporte aulas vacias/sin participantes: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_AULAS_VACIAS.xlsx
+[INFO] Headless: NO
+[INFO] Workers: 5
+[INFO] Modo estricto por modalidad: SI
+[INFO] Consulta NRC solo 5 digitos: NO
+[INFO] Consulta NRC 5 digitos segun archivo/modalidad: SI
+[INFO] Modo multi-worker activado.
+[WARN] Ejecutar varios workers sin headless abrira multiples ventanas del navegador.
+[INFO] Preparando perfil worker 1: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto_w1
+[INFO] Preparando perfil worker 2: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto_w2
+[INFO] Preparando perfil worker 3: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto_w3
+[INFO] Preparando perfil worker 4: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto_w4
+[INFO] Preparando perfil worker 5: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/edge_profile_aulas_uniminuto_w5
+
+================================================================================
+[W2/5] [1/10] NRC 72307 | Periodos: 202615 | Metodos: DIST
+
+================================================================================
+[W5/5] [1/10] NRC 72314 | Periodos: 202615 | Metodos: DIST
+
+================================================================================
+[W4/5] [1/10] NRC 72313 | Periodos: 202615 | Metodos: DIST
+
+================================================================================
+[W3/5] [1/10] NRC 72308 | Periodos: 202615 | Metodos: TRAD
+
+================================================================================
+[W1/5] [1/10] NRC 72305 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[INFO] Sesion iniciada en DISTANCIA.
+[W2/5] [INFO] NRC 72307 | Participantes: 14 | Vacia por participantes: NO (14 participantes encontrados)
+[W2/5] [OK] NRC 72307 | Modalidad: DISTANCIA | Tipo: vacia | mod_links=2
+
+================================================================================
+[W2/5] [2/10] NRC 72330 | Periodos: 202615 | Metodos: TRAD
+[W2/5] [INFO] NRC 72330 | Participantes: 26 | Vacia por participantes: NO (26 participantes encontrados)
+[W2/5] [OK] NRC 72330 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=39
+
+================================================================================
+[W2/5] [3/10] NRC 72337 | Periodos: 202615 | Metodos: DIST
+[W2/5] [INFO] NRC 72337 | Participantes: 26 | Vacia por participantes: NO (26 participantes encontrados)
+[W2/5] [OK] NRC 72337 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=39
+
+================================================================================
+[W2/5] [4/10] NRC 72351 | Periodos: 202615 | Metodos: DIST
+[W2/5] [INFO] NRC 72351 | Participantes: 16 | Vacia por participantes: NO (16 participantes encontrados)
+[W2/5] [OK] NRC 72351 | Modalidad: DISTANCIA | Tipo: criba | mod_links=54
+
+================================================================================
+[W2/5] [5/10] NRC 72399 | Periodos: 202615 | Metodos: DIST
+[W2/5] [INFO] NRC 72399 | Participantes: 53 | Vacia por participantes: NO (53 participantes encontrados)
+[W2/5] [OK] NRC 72399 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=44
+
+================================================================================
+[W2/5] [6/10] NRC 72408 | Periodos: 202615 | Metodos: TRAD
+[W2/5] [INFO] NRC 72408 | Participantes: 20 | Vacia por participantes: NO (20 participantes encontrados)
+[W2/5] [OK] NRC 72408 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=39
+
+================================================================================
+[W2/5] [7/10] NRC 72423 | Periodos: 202615 | Metodos: TRAD
+[W2/5] [INFO] NRC 72423 | Participantes: 21 | Vacia por participantes: NO (21 participantes encontrados)
+[W2/5] [OK] NRC 72423 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=39
+
+================================================================================
+[W2/5] [8/10] NRC 72433 | Periodos: 202615 | Metodos: DIST
+[W2/5] [INFO] NRC 72433 | Participantes: 17 | Vacia por participantes: NO (17 participantes encontrados)
+[W2/5] [OK] NRC 72433 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=45
+
+================================================================================
+[W2/5] [9/10] NRC 72442 | Periodos: 202615 | Metodos: DIST
+[W2/5] [INFO] NRC 72442 | Participantes: 25 | Vacia por participantes: NO (25 participantes encontrados)
+[W2/5] [OK] NRC 72442 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=39
+
+================================================================================
+[W2/5] [10/10] NRC 72457 | Periodos: 202615 | Metodos: TRAD
+[W2/5] [INFO] NRC 72457 | Participantes: 30 | Vacia por participantes: NO (30 participantes encontrados)
+[W2/5] [OK] NRC 72457 | Modalidad: DISTANCIA | Tipo: distancia 4.0 | mod_links=43
+[INFO] Worker 2 finalizado: 10/10 registros.
+[W1/5] [WARN] Error procesando NRC 72305: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W1/5] [2/10] NRC 72326 | Periodos: 202615 | Metodos: DIST
+[W5/5] [WARN] Error procesando NRC 72314: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W5/5] [2/10] NRC 72334 | Periodos: 202615 | Metodos: DIST
+[W3/5] [WARN] Error procesando NRC 72308: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W3/5] [2/10] NRC 72331 | Periodos: 202615 | Metodos: TRAD
+[W4/5] [WARN] Error procesando NRC 72313: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W4/5] [2/10] NRC 72332 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/5] [WARN] Error procesando NRC 72326: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W1/5] [3/10] NRC 72335 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W3/5] [WARN] Error procesando NRC 72331: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W3/5] [3/10] NRC 72338 | Periodos: 202615 | Metodos: TRAD
+[W5/5] [WARN] Error procesando NRC 72334: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W5/5] [3/10] NRC 72343 | Periodos: 202615 | Metodos: DIST
+[W4/5] [WARN] Error procesando NRC 72332: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W4/5] [3/10] NRC 72340 | Periodos: 202615 | Metodos: TRAD
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/5] [WARN] Error procesando NRC 72335: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W1/5] [4/10] NRC 72346 | Periodos: 202615 | Metodos: TRAD
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W5/5] [WARN] Error procesando NRC 72343: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W5/5] [4/10] NRC 72381 | Periodos: 202615 | Metodos: DIST
+[W4/5] [WARN] Error procesando NRC 72340: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W4/5] [4/10] NRC 72364 | Periodos: 202615 | Metodos: TRAD
+[W3/5] [WARN] Error procesando NRC 72338: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W3/5] [4/10] NRC 72356 | Periodos: 202615 | Metodos: TRAD
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/5] [WARN] Error procesando NRC 72346: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W1/5] [5/10] NRC 72388 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W4/5] [WARN] Error procesando NRC 72364: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W4/5] [5/10] NRC 72405 | Periodos: 202615 | Metodos: TRAD
+[W5/5] [WARN] Error procesando NRC 72381: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W5/5] [5/10] NRC 72406 | Periodos: 202615 | Metodos: TRAD
+[W3/5] [WARN] Error procesando NRC 72356: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W3/5] [5/10] NRC 72400 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/5] [WARN] Error procesando NRC 72388: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W1/5] [6/10] NRC 72407 | Periodos: 202615 | Metodos: TRAD
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W4/5] [WARN] Error procesando NRC 72405: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W4/5] [6/10] NRC 72414 | Periodos: 202615 | Metodos: VIRT
+[W5/5] [WARN] Error procesando NRC 72406: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W5/5] [6/10] NRC 72415 | Periodos: 202615 | Metodos: DIST
+[W3/5] [WARN] Error procesando NRC 72400: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W3/5] [6/10] NRC 72411 | Periodos: 202615 | Metodos: TRAD
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/5] [WARN] Error procesando NRC 72407: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W1/5] [7/10] NRC 72421 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W4/5] [WARN] Error procesando NRC 72414: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W4/5] [7/10] NRC 72428 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W5/5] [WARN] Error procesando NRC 72415: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W5/5] [7/10] NRC 72429 | Periodos: 202615 | Metodos: TRAD
+[W3/5] [WARN] Error procesando NRC 72411: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W3/5] [7/10] NRC 72426 | Periodos: 202615 | Metodos: TRAD
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/5] [WARN] Error procesando NRC 72421: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W1/5] [8/10] NRC 72430 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W4/5] [WARN] Error procesando NRC 72428: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W4/5] [8/10] NRC 72435 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W5/5] [WARN] Error procesando NRC 72429: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W5/5] [8/10] NRC 72436 | Periodos: 202615 | Metodos: DIST
+[W3/5] [WARN] Error procesando NRC 72426: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W3/5] [8/10] NRC 72434 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/5] [WARN] Error procesando NRC 72430: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W1/5] [9/10] NRC 72439 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W4/5] [WARN] Error procesando NRC 72435: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W4/5] [9/10] NRC 72447 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W5/5] [WARN] Error procesando NRC 72436: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W5/5] [9/10] NRC 72448 | Periodos: 202615 | Metodos: DIST
+[W3/5] [WARN] Error procesando NRC 72434: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W3/5] [9/10] NRC 72444 | Periodos: 202615 | Metodos: TRAD
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/5] [WARN] Error procesando NRC 72439: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W1/5] [10/10] NRC 72456 | Periodos: 202615 | Metodos: TRAD
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W4/5] [WARN] Error procesando NRC 72447: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W4/5] [10/10] NRC 72460 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W5/5] [WARN] Error procesando NRC 72448: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W5/5] [10/10] NRC 72462 | Periodos: 202615 | Metodos: TRAD
+[W3/5] [WARN] Error procesando NRC 72444: No se detecto login completado en DISTANCIA despues de 600 segundos.
+
+================================================================================
+[W3/5] [10/10] NRC 72458 | Periodos: 202615 | Metodos: TRAD
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/5] [WARN] Error procesando NRC 72456: No se detecto login completado en DISTANCIA despues de 600 segundos.
+[INFO] Worker 1 finalizado: 10/10 registros.
+[W4/5] [WARN] Error procesando NRC 72460: No se detecto login completado en DISTANCIA despues de 600 segundos.
+[INFO] Worker 4 finalizado: 10/10 registros.
+[W5/5] [WARN] Error procesando NRC 72462: No se detecto login completado en DISTANCIA despues de 600 segundos.
+[W3/5] [WARN] Error procesando NRC 72458: No se detecto login completado en DISTANCIA despues de 600 segundos.
+[INFO] Worker 5 finalizado: 10/10 registros.
+[INFO] Worker 3 finalizado: 10/10 registros.
+[INFO] Filas consolidadas al checkpoint: 50
+[INFO] Filas consolidadas en sin matricula: 0
+
+[FIN] Proceso completado.
+[OK] CSV: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50.csv
+[OK] Excel: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50.xlsx
+[OK] CSV aulas vacias/sin participantes: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_AULAS_VACIAS.csv (1 filas)
+[OK] Excel aulas vacias/sin participantes: /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50_AULAS_VACIAS.xlsx
+[CMD] python3 /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/tools/moodle-sidecar/moodle_categorizacion_aulas.py --browser edge --input-dir /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/inputs/rpaca_csv/_sidecar_smoke50 --output /mnt/c/Users/Duvan/Documents/seguimiento-aulas-system/storage/outputs/validation/RESULTADO_TIPOS_AULA_DESDE_MOODLE_smoke50.xlsx --workers 5 --resume --modo-estricto-modalidad --nrc-5-segun-archivo
+
+[END] 2026-03-07T21:42:57.069Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

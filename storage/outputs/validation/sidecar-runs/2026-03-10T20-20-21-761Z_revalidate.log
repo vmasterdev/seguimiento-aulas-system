@@ -1,0 +1,960 @@
+[START] 2026-03-10T20:20:21.762Z
+[CMD] /mnt/c/WINDOWS/system32/cmd.exe "/c" "py" "-3" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\tools\\moodle-sidecar\\sidecar_runner.py" "revalidate" "--input-dir" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\sidecar-batches\\2026-03-10T20-20-21-397Z_revalidate_sin_matricula" "--output" "C:\\Users\\Duvan\\Documents\\seguimiento-aulas-system\\storage\\outputs\\validation\\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula.xlsx" "--mode" "sin_matricula" "--workers" "3" "--browser" "edge" "--python" "py"
+
+[INFO] Catalogo Distancia 4.0: C:\Users\Duvan\Documents\seguimiento-aulas-system\tools\moodle-sidecar\CURSOS DISTANCIA 4.0.xlsx
+[INFO] Cursos en catalogo Distancia 4.0: 445
+[INFO] NRC totales: 206
+[INFO] NRC ya procesados: 0
+[INFO] NRC pendientes: 206
+[INFO] Prioridad de periodos: 202615
+[INFO] CSV checkpoint: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula.csv
+[INFO] Excel final: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula.xlsx
+[INFO] Reporte sin matricula: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula_SIN_MATRICULA.xlsx
+[INFO] Reporte aulas vacias/sin participantes: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula_AULAS_VACIAS.xlsx
+[INFO] Perfil navegador root: C:\Users\Duvan\.cache\seguimiento-aulas\moodle-sidecar
+[INFO] Headless: NO
+[INFO] Workers: 3
+[INFO] Modo estricto por modalidad: SI
+[INFO] Consulta NRC solo 5 digitos: NO
+[INFO] Consulta NRC 5 digitos segun archivo/modalidad: SI
+[INFO] Modo multi-worker activado.
+[WARN] Ejecutar varios workers sin headless abrira multiples ventanas del navegador.
+[INFO] Preparando perfil worker 1: C:\Users\Duvan\.cache\seguimiento-aulas\moodle-sidecar\edge_profile_aulas_uniminuto_w1
+[INFO] Preparando perfil worker 2: C:\Users\Duvan\.cache\seguimiento-aulas\moodle-sidecar\edge_profile_aulas_uniminuto_w2
+[INFO] Preparando perfil worker 3: C:\Users\Duvan\.cache\seguimiento-aulas\moodle-sidecar\edge_profile_aulas_uniminuto_w3
+
+================================================================================
+[W2/3] [1/69] NRC 72554 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+================================================================================
+[W1/3] [1/69] NRC 72516 | Periodos: 202615 | Metodos: TRAD
+
+================================================================================
+[W3/3] [1/68] NRC 72559 | Periodos: 202615 | Metodos: DIST
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN DISTANCIA] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[INFO] Sesion iniciada en DISTANCIA.
+[W3/3] [WARN] NRC 72559 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [2/68] NRC 73127 | Periodos: 202615 | Metodos: TRAD
+[W3/3] [WARN] NRC 73127 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [3/68] NRC 79730 | Periodos: 202615 | Metodos: DIST
+[W3/3] [WARN] NRC 79730 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [4/68] NRC 84641 | Periodos: 202615 | Metodos: DIST
+[W3/3] [WARN] NRC 84641 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [5/68] NRC 85269 | Periodos: 202615 | Metodos: TRAD
+[W3/3] [WARN] NRC 85269 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [6/68] NRC 85358 | Periodos: 202615 | Metodos: TRAD
+[INFO] Sesion iniciada en DISTANCIA.
+[W3/3] [WARN] NRC 85358 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [7/68] NRC 85361 | Periodos: 202615 | Metodos: DIST
+[W3/3] [WARN] NRC 85361 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [8/68] NRC 85364 | Periodos: 202615 | Metodos: DIST
+[W3/3] [WARN] NRC 85364 no encontrado en ninguna modalidad.
+[W1/3] [WARN] NRC 72516 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [9/68] NRC 85820 | Periodos: 202615 | Metodos: TRAD
+[INFO] Sesion iniciada en DISTANCIA.
+
+================================================================================
+[W1/3] [2/69] NRC 72630 | Periodos: 202615 | Metodos: DIST
+[W2/3] [WARN] NRC 72554 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [2/69] NRC 72698 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 72630 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [3/69] NRC 73302 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 73302 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [4/69] NRC 84273 | Periodos: 202615 | Metodos: TRAD
+[W3/3] [WARN] NRC 85820 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+[W1/3] [WARN] NRC 84273 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [5/69] NRC 85265 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 72698 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [10/68] NRC 85823 | Periodos: 202615 | Metodos: TRAD
+
+================================================================================
+[W2/3] [3/69] NRC 73368 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 85265 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [6/69] NRC 85356 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 73368 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [4/69] NRC 84487 | Periodos: 202615 | Metodos: DIST
+[W2/3] [WARN] NRC 84487 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [5/69] NRC 85267 | Periodos: 202615 | Metodos: TRAD
+[W3/3] [WARN] NRC 85823 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [11/68] NRC 85826 | Periodos: 202615 | Metodos: DIST
+[W2/3] [WARN] NRC 85267 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [6/69] NRC 85357 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 85356 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [7/69] NRC 85359 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 85357 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+[W3/3] [WARN] NRC 85826 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [7/69] NRC 85360 | Periodos: 202615 | Metodos: TRAD
+
+================================================================================
+[W3/3] [12/68] NRC 85829 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 85359 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [8/69] NRC 85362 | Periodos: 202615 | Metodos: DIST
+[W2/3] [WARN] NRC 85360 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [8/69] NRC 85363 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 85362 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [9/69] NRC 85818 | Periodos: 202615 | Metodos: DIST
+[W2/3] [WARN] NRC 85363 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [9/69] NRC 85819 | Periodos: 202615 | Metodos: TRAD
+[W3/3] [WARN] NRC 85829 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [13/68] NRC 85832 | Periodos: 202615 | Metodos: VIRT
+[W1/3] [WARN] NRC 85818 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [10/69] NRC 85821 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 85819 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [10/69] NRC 85822 | Periodos: 202615 | Metodos: TRAD
+[W3/3] [WARN] NRC 85832 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [14/68] NRC 85835 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 85821 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [11/69] NRC 85824 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 85822 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [11/69] NRC 85825 | Periodos: 202615 | Metodos: DIST
+[W3/3] [WARN] NRC 85835 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [15/68] NRC 85838 | Periodos: 202615 | Metodos: TRAD
+[W1/3] [WARN] NRC 85824 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [12/69] NRC 85827 | Periodos: 202615 | Metodos: DIST
+[W2/3] [WARN] NRC 85825 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [12/69] NRC 85828 | Periodos: 202615 | Metodos: DIST
+[W3/3] [WARN] NRC 85838 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [16/68] NRC 85841 | Periodos: 202615 | Metodos: TRAD
+[W1/3] [WARN] NRC 85827 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [13/69] NRC 85830 | Periodos: 202615 | Metodos: DIST
+[W2/3] [WARN] NRC 85828 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [13/69] NRC 85831 | Periodos: 202615 | Metodos: DIST
+[W3/3] [WARN] NRC 85841 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [17/68] NRC 85844 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 85830 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [14/69] NRC 85833 | Periodos: 202615 | Metodos: DIST
+[W2/3] [WARN] NRC 85831 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [14/69] NRC 85834 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 85834 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [15/69] NRC 85837 | Periodos: 202615 | Metodos: TRAD
+[W1/3] [WARN] NRC 85833 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [15/69] NRC 85836 | Periodos: 202615 | Metodos: TRAD
+[W3/3] [WARN] NRC 85844 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [18/68] NRC 85847 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 85836 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [16/69] NRC 85839 | Periodos: 202615 | Metodos: DIST
+[W2/3] [WARN] NRC 85837 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [16/69] NRC 85840 | Periodos: 202615 | Metodos: DIST
+[W2/3] [WARN] NRC 85840 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [17/69] NRC 85843 | Periodos: 202615 | Metodos: DIST
+[W3/3] [WARN] NRC 85847 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [19/68] NRC 85850 | Periodos: 202615 | Metodos: TRAD
+[W1/3] [WARN] NRC 85839 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [17/69] NRC 85842 | Periodos: 202615 | Metodos: TRAD
+[W3/3] [WARN] NRC 85850 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [20/68] NRC 85853 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 85843 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [18/69] NRC 85846 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 85842 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [18/69] NRC 85845 | Periodos: 202615 | Metodos: TRAD
+[W3/3] [WARN] NRC 85853 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [21/68] NRC 85888 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 85846 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [19/69] NRC 85849 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 85845 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [19/69] NRC 85848 | Periodos: 202615 | Metodos: DIST
+[W3/3] [WARN] NRC 85888 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [22/68] NRC 85892 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 85849 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [20/69] NRC 85852 | Periodos: 202615 | Metodos: DIST
+[W1/3] [WARN] NRC 85848 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [20/69] NRC 85851 | Periodos: 202615 | Metodos: VIRT
+[W2/3] [WARN] NRC 85852 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [21/69] NRC 85887 | Periodos: 202615 | Metodos: TRAD
+[W3/3] [WARN] NRC 85892 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [23/68] NRC 21113 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 85851 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [21/69] NRC 85886 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 85887 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [22/69] NRC 85890 | Periodos: 202615 | Metodos: TRAD
+
+[LOGIN PRESENCIAL] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/3] [WARN] NRC 85886 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [22/69] NRC 85889 | Periodos: 202615 | Metodos: TRAD
+[W2/3] [WARN] NRC 85890 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [23/69] NRC 21112 | Periodos: 202612 | Metodos: TRAD
+
+[LOGIN PRESENCIAL] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[W1/3] [WARN] NRC 85889 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [23/69] NRC 21111 | Periodos: 202612 | Metodos: DIST
+[W1/3] [WARN] NRC 21111 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [24/69] NRC 21114 | Periodos: 202612 | Metodos: TRAD
+
+[LOGIN PRESENCIAL] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[INFO] Sesion iniciada en PRESENCIAL.
+[INFO] Sesion iniciada en PRESENCIAL.
+[INFO] Sesion iniciada en PRESENCIAL.
+
+[LOGIN POSGRADOS] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN POSGRADOS] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+
+[LOGIN POSGRADOS] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[INFO] Sesion iniciada en POSGRADOS.
+[INFO] Sesion iniciada en POSGRADOS.
+[INFO] Sesion iniciada en POSGRADOS.
+
+[LOGIN MOOCs] Inicia sesion en el navegador.
+1) Clic en 'Iniciar sesion con Microsoft'.
+2) Ingresa correo/contrasena.
+3) Completa autenticador.
+4) Si aparece, marca mantener sesion iniciada.
+5) Espera: el script detectara automaticamente cuando quedes dentro.
+
+[INFO] Sesion iniciada en MOOCs.
+[INFO] Sesion activa detectada en MOOCs (redirigida).
+[INFO] Sesion activa detectada en MOOCs.
+[W2/3] [WARN] NRC 21112 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [24/69] NRC 21115 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21113 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [24/68] NRC 21116 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21114 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [25/69] NRC 21117 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21115 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [25/69] NRC 21118 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21116 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [25/68] NRC 21119 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21117 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [26/69] NRC 21120 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21118 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [26/69] NRC 21121 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21119 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [26/68] NRC 21122 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21120 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [27/69] NRC 21123 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21121 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [27/69] NRC 21124 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21122 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [27/68] NRC 21125 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21123 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [28/69] NRC 21126 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21125 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [28/68] NRC 21128 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21124 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [28/69] NRC 21127 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21126 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [29/69] NRC 21129 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21127 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [29/69] NRC 21130 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21128 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [29/68] NRC 21131 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21129 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [30/69] NRC 21132 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21131 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [30/68] NRC 21134 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21130 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [30/69] NRC 21133 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21132 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [31/69] NRC 21137 | Periodos: 202612 | Metodos: VIRT
+[W3/3] [WARN] NRC 21134 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [31/68] NRC 21139 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21133 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [31/69] NRC 21138 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21139 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [32/68] NRC 21142 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21137 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [32/69] NRC 21140 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21138 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [32/69] NRC 21141 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21140 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [33/69] NRC 21143 | Periodos: 202612 | Metodos: VIRT
+[W3/3] [WARN] NRC 21142 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [33/68] NRC 21145 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21141 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [33/69] NRC 21144 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21145 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [34/68] NRC 21148 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21143 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [34/69] NRC 21146 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21144 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [34/69] NRC 21147 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21146 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [35/69] NRC 21163 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21148 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [35/68] NRC 21165 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21147 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [35/69] NRC 21164 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21163 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [36/69] NRC 21166 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21165 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [36/68] NRC 21168 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21164 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [36/69] NRC 21167 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21168 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [37/68] NRC 21261 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21166 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [37/69] NRC 21259 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21167 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [37/69] NRC 21260 | Periodos: 202612 | Metodos: TRAD
+[W3/3] [WARN] NRC 21261 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [38/68] NRC 21264 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21259 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [38/69] NRC 21262 | Periodos: 202612 | Metodos: TRAD
+[W2/3] [WARN] NRC 21260 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [38/69] NRC 21263 | Periodos: 202612 | Metodos: TRAD
+[W1/3] [WARN] NRC 21262 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [39/69] NRC 51813 | Periodos: 202685 | Metodos: DIST
+[W1/3] [WARN] NRC 51813 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [40/69] NRC 51816 | Periodos: 202685 | Metodos: DIST
+[W2/3] [WARN] NRC 21263 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [39/69] NRC 51814 | Periodos: 202685 | Metodos: DIST
+[W1/3] [WARN] NRC 51816 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [41/69] NRC 51823 | Periodos: 202685 | Metodos: VIRT
+[W3/3] [WARN] NRC 21264 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [39/68] NRC 51815 | Periodos: 202685 | Metodos: DIST
+[W2/3] [WARN] NRC 51814 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [40/69] NRC 51821 | Periodos: 202685 | Metodos: VIRT
+[W3/3] [WARN] NRC 51815 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [40/68] NRC 51822 | Periodos: 202685 | Metodos: VIRT
+[W1/3] [WARN] NRC 51823 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [42/69] NRC 51826 | Periodos: 202685 | Metodos: TRAD
+[W3/3] [WARN] NRC 51822 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [41/68] NRC 51825 | Periodos: 202685 | Metodos: DIST
+[W2/3] [WARN] NRC 51821 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [41/69] NRC 51824 | Periodos: 202685 | Metodos: VIRT
+[W3/3] [WARN] NRC 51825 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [42/68] NRC 51828 | Periodos: 202685 | Metodos: TRAD
+[W1/3] [WARN] NRC 51826 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [43/69] NRC 51829 | Periodos: 202685 | Metodos: TRAD
+[W2/3] [WARN] NRC 51824 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [42/69] NRC 51827 | Periodos: 202685 | Metodos: TRAD
+[W3/3] [WARN] NRC 51828 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [43/68] NRC 51831 | Periodos: 202685 | Metodos: TRAD
+[W1/3] [WARN] NRC 51829 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [44/69] NRC 51832 | Periodos: 202685 | Metodos: TRAD
+[W2/3] [WARN] NRC 51827 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [43/69] NRC 51830 | Periodos: 202685 | Metodos: TRAD
+[W3/3] [WARN] NRC 51831 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [44/68] NRC 51834 | Periodos: 202685 | Metodos: TRAD
+[W1/3] [WARN] NRC 51832 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [45/69] NRC 51835 | Periodos: 202685 | Metodos: TRAD
+[W2/3] [WARN] NRC 51830 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [44/69] NRC 51833 | Periodos: 202685 | Metodos: TRAD
+[W3/3] [WARN] NRC 51834 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [45/68] NRC 51837 | Periodos: 202685 | Metodos: TRAD
+[W1/3] [WARN] NRC 51835 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [46/69] NRC 51838 | Periodos: 202685 | Metodos: TRAD
+[W2/3] [WARN] NRC 51833 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [45/69] NRC 51836 | Periodos: 202685 | Metodos: TRAD
+[W3/3] [WARN] NRC 51837 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [46/68] NRC 51852 | Periodos: 202685 | Metodos: DIST
+[W3/3] [WARN] NRC 51852 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [47/68] NRC 51855 | Periodos: 202685 | Metodos: DIST
+[W1/3] [WARN] NRC 51838 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [47/69] NRC 51853 | Periodos: 202685 | Metodos: DIST
+[W3/3] [WARN] NRC 51855 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [48/68] NRC 51858 | Periodos: 202685 | Metodos: DIST
+[W1/3] [WARN] NRC 51853 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [48/69] NRC 51856 | Periodos: 202685 | Metodos: DIST
+[W3/3] [WARN] NRC 51858 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [49/68] NRC 51861 | Periodos: 202685 | Metodos: DIST
+[W1/3] [WARN] NRC 51856 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [49/69] NRC 51859 | Periodos: 202685 | Metodos: DIST
+[W2/3] [WARN] NRC 51836 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [46/69] NRC 51851 | Periodos: 202685 | Metodos: DIST
+[W3/3] [WARN] NRC 51861 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [50/68] NRC 51864 | Periodos: 202685 | Metodos: DIST
+[W1/3] [WARN] NRC 51859 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [50/69] NRC 51862 | Periodos: 202685 | Metodos: DIST
+[W2/3] [WARN] NRC 51851 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [47/69] NRC 51854 | Periodos: 202685 | Metodos: DIST
+[W3/3] [WARN] NRC 51864 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [51/68] NRC 51867 | Periodos: 202685 | Metodos: TRAD
+[W1/3] [WARN] NRC 51862 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [51/69] NRC 51865 | Periodos: 202685 | Metodos: TRAD
+[W2/3] [WARN] NRC 51854 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [48/69] NRC 51857 | Periodos: 202685 | Metodos: TRAD
+[W3/3] [WARN] NRC 51867 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [52/68] NRC 51870 | Periodos: 202685 | Metodos: TRAD
+[W1/3] [WARN] NRC 51865 no encontrado en ninguna modalidad.
+[W2/3] [WARN] NRC 51857 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [49/69] NRC 51860 | Periodos: 202685 | Metodos: DIST
+
+================================================================================
+[W1/3] [52/69] NRC 51868 | Periodos: 202685 | Metodos: TRAD
+[W2/3] [WARN] NRC 51860 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [50/69] NRC 51863 | Periodos: 202685 | Metodos: DIST
+[W2/3] [WARN] NRC 51863 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [51/69] NRC 51866 | Periodos: 202685 | Metodos: TRAD
+[W3/3] [WARN] NRC 51870 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [53/68] NRC 75203 | Periodos: 202611 | Metodos: DIST
+[W1/3] [WARN] NRC 51868 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [53/69] NRC 51871 | Periodos: 202685 | Metodos: TRAD
+[W2/3] [WARN] NRC 51866 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [52/69] NRC 51869 | Periodos: 202685 | Metodos: TRAD
+[W3/3] [WARN] NRC 75203 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [54/68] NRC 75206 | Periodos: 202611 | Metodos: DIST
+[W1/3] [WARN] NRC 51871 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [54/69] NRC 75204 | Periodos: 202611 | Metodos: DIST
+[W2/3] [WARN] NRC 51869 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [53/69] NRC 51872 | Periodos: 202685 | Metodos: TRAD
+[W3/3] [WARN] NRC 75206 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [55/68] NRC 79558 | Periodos: 202621 | Metodos: TRAD
+[W3/3] [WARN] NRC 79558 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [56/68] NRC 79605 | Periodos: 202621 | Metodos: TRAD
+[W1/3] [WARN] NRC 75204 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [55/69] NRC 75849 | Periodos: 202610 | Metodos: TRAD
+[W2/3] [WARN] NRC 51872 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [54/69] NRC 75205 | Periodos: 202611 | Metodos: DIST
+[W3/3] [WARN] NRC 79605 | Modalidad: POSGRADOS | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [57/68] NRC 79766 | Periodos: 202621 | Metodos: TRAD
+[W2/3] [WARN] NRC 75205 | Modalidad: DISTANCIA | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [55/69] NRC 79556 | Periodos: 202621 | Metodos: TRAD
+[W1/3] [INFO] NRC 75849 | Participantes: 35 | Vacia por participantes: NO (35 participantes encontrados)
+[W1/3] [OK] NRC 75849 | Modalidad: PRESENCIAL | Tipo: criba | mod_links=46
+
+================================================================================
+[W1/3] [56/69] NRC 79559 | Periodos: 202621 | Metodos: TRAD
+[W3/3] [WARN] NRC 79766 | Modalidad: POSGRADOS | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [58/68] NRC 80375 | Periodos: 202580 | Metodos: TRAD
+[W2/3] [WARN] NRC 79556 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [56/69] NRC 79598 | Periodos: 202621 | Metodos: TRAD
+[W3/3] [WARN] NRC 80375 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [59/68] NRC 80391 | Periodos: 202580 | Metodos: DIST
+[W3/3] [WARN] NRC 80391 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [60/68] NRC 80394 | Periodos: 202580 | Metodos: DIST
+[W1/3] [WARN] NRC 79559 | Modalidad: POSGRADOS | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [57/69] NRC 79610 | Periodos: 202621 | Metodos: TRAD
+[W2/3] [WARN] NRC 79598 | Modalidad: POSGRADOS | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [57/69] NRC 79711 | Periodos: 202621 | Metodos: TRAD
+[W1/3] [WARN] NRC 79610 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [58/69] NRC 80368 | Periodos: 202580 | Metodos: DIST
+[W3/3] [WARN] NRC 80394 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [61/68] NRC 81291 | Periodos: 202611 | Metodos: TRAD
+[W3/3] [WARN] NRC 81291 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [62/68] NRC 81294 | Periodos: 202611 | Metodos: TRAD
+[W1/3] [WARN] NRC 80368 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [59/69] NRC 80378 | Periodos: 202580 | Metodos: TRAD
+[W3/3] [WARN] NRC 81294 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [63/68] NRC 81345 | Periodos: 202611 | Metodos: TRAD
+[W1/3] [WARN] NRC 80378 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [60/69] NRC 80392 | Periodos: 202580 | Metodos: DIST
+[W2/3] [WARN] NRC 79711 | Modalidad: POSGRADOS | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [58/69] NRC 80370 | Periodos: 202580 | Metodos: DIST
+[W1/3] [WARN] NRC 80392 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [61/69] NRC 80396 | Periodos: 202580 | Metodos: DIST
+[W2/3] [WARN] NRC 80370 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [59/69] NRC 80390 | Periodos: 202580 | Metodos: DIST
+[W3/3] [WARN] NRC 81345 | Modalidad: POSGRADOS | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [64/68] NRC 87339 | Periodos: 202610 | Metodos: TRAD
+[W3/3] [WARN] NRC 87339 no encontrado en ninguna modalidad.
+
+================================================================================
+[W3/3] [65/68] NRC 88428 | Periodos: 202610 | Metodos: TRAD
+[W1/3] [WARN] NRC 80396 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [62/69] NRC 81292 | Periodos: 202611 | Metodos: TRAD
+[W2/3] [WARN] NRC 80390 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [60/69] NRC 80393 | Periodos: 202580 | Metodos: DIST
+[W1/3] [WARN] NRC 81292 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [63/69] NRC 81295 | Periodos: 202611 | Metodos: TRAD
+[W1/3] [WARN] NRC 81295 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [64/69] NRC 81346 | Periodos: 202611 | Metodos: TRAD
+[W3/3] [WARN] NRC 88428 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [66/68] NRC 88431 | Periodos: 202610 | Metodos: DIST
+[W2/3] [WARN] NRC 80393 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [61/69] NRC 80399 | Periodos: 202580 | Metodos: DIST
+[W2/3] [WARN] NRC 80399 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [62/69] NRC 81293 | Periodos: 202611 | Metodos: TRAD
+[W2/3] [WARN] NRC 81293 no encontrado en ninguna modalidad.
+
+================================================================================
+[W2/3] [63/69] NRC 81344 | Periodos: 202611 | Metodos: TRAD
+[W1/3] [WARN] NRC 81346 | Modalidad: POSGRADOS | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [65/69] NRC 87359 | Periodos: 202610 | Metodos: TRAD
+[W1/3] [WARN] NRC 87359 no encontrado en ninguna modalidad.
+
+================================================================================
+[W1/3] [66/69] NRC 88429 | Periodos: 202610 | Metodos: TRAD
+[W3/3] [WARN] NRC 88431 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [67/68] NRC 88434 | Periodos: 202610 | Metodos: TRAD
+[W2/3] [WARN] NRC 81344 | Modalidad: POSGRADOS | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [64/69] NRC 81347 | Periodos: 202611 | Metodos: TRAD
+[W1/3] [WARN] NRC 88429 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [67/69] NRC 88432 | Periodos: 202610 | Metodos: TRAD
+[W3/3] [WARN] NRC 88434 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W3/3] [68/68] NRC 88438 | Periodos: 202610 | Metodos: TRAD
+[W2/3] [WARN] NRC 81347 | Modalidad: POSGRADOS | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [65/69] NRC 88427 | Periodos: 202610 | Metodos: TRAD
+[W1/3] [WARN] NRC 88432 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [68/69] NRC 88436 | Periodos: 202610 | Metodos: TRAD
+[W3/3] [WARN] NRC 88438 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+[INFO] Worker 3 finalizado: 68/68 registros.
+[W2/3] [WARN] NRC 88427 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [66/69] NRC 88430 | Periodos: 202610 | Metodos: TRAD
+[W1/3] [WARN] NRC 88436 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W1/3] [69/69] NRC 88499 | Periodos: 202610 | Metodos: TRAD
+[W2/3] [WARN] NRC 88430 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [67/69] NRC 88433 | Periodos: 202610 | Metodos: TRAD
+[W1/3] [WARN] NRC 88499 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+[INFO] Worker 1 finalizado: 69/69 registros.
+[W2/3] [WARN] NRC 88433 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [68/69] NRC 88437 | Periodos: 202610 | Metodos: TRAD
+[W2/3] [WARN] NRC 88437 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+
+================================================================================
+[W2/3] [69/69] NRC 88500 | Periodos: 202610 | Metodos: TRAD
+[W2/3] [WARN] NRC 88500 | Modalidad: PRESENCIAL | Curso encontrado pero sin matriculacion.
+[INFO] Worker 2 finalizado: 69/69 registros.
+[INFO] Filas consolidadas al checkpoint: 206
+[INFO] Filas consolidadas en sin matricula: 75
+
+[FIN] Proceso completado.
+[OK] CSV: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula.csv
+[OK] Excel: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula.xlsx
+[OK] CSV sin matricula: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula_SIN_MATRICULA.csv
+[OK] Excel sin matricula: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula_SIN_MATRICULA.xlsx
+[INFO] No se encontraron aulas vacias/sin participantes para reporte dedicado.
+[INFO] Revalidacion desde lote BD: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-batches\2026-03-10T20-20-21-397Z_revalidate_sin_matricula
+[INFO] Revalidacion output: C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula.xlsx
+[CMD] py C:\Users\Duvan\Documents\seguimiento-aulas-system\tools\moodle-sidecar\moodle_categorizacion_aulas.py --browser edge --input-dir C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\sidecar-batches\2026-03-10T20-20-21-397Z_revalidate_sin_matricula --output C:\Users\Duvan\Documents\seguimiento-aulas-system\storage\outputs\validation\REVALIDACION_PENDIENTES_2026-03-10T20-20-21-397Z_revalidate_sin_matricula.xlsx --workers 3 --no-resume --modo-estricto-modalidad --nrc-5-segun-archivo
+
+[END] 2026-03-10T20:59:53.098Z
+[STATUS] COMPLETED
+[EXIT_CODE] 0

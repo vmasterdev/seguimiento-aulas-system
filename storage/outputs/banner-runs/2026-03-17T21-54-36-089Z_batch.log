@@ -1,0 +1,26 @@
+[START] 2026-03-17T21:54:36.090Z
+[CWD] /home/uvan/banner-docente-runner
+[EXECUTABLE] node
+[CMD] node --import tsx "src/cli.ts" "batch" "--input" "/mnt/c/Users/Duvan/Documents/storage/outputs/banner-batches/2026-03-17T21-54-35-904Z_all/nrc_banner_batch.csv" "--query-name" "banner-rpaca" "--workers" "3"
+
+[2026-03-17T21:54:37.662Z] INFO Iniciando lote Banner {
+  queryId: 'cmmv5hacp0000t2qg61yqip09',
+  totalRequested: 1773,
+  pending: 1773,
+  workers: 3
+}
+Error: No se encontro un selector editable
+    at fillFirst (/home/uvan/banner-batch-run-20260317-1508/src/banner/selectors.ts:116:11)
+    at async LoginPage.login (/home/uvan/banner-batch-run-20260317-1508/src/banner/pages/LoginPage.ts:80:5)
+    at async BannerAutomationSession.login (/home/uvan/banner-batch-run-20260317-1508/src/banner/bannerClient.ts:193:7)
+    at async BatchService.processBackendParallelWorkers (/home/uvan/banner-batch-run-20260317-1508/src/services/batchService.ts:270:7)
+    at async BatchService.process (/home/uvan/banner-batch-run-20260317-1508/src/services/batchService.ts:156:13)
+    at async <anonymous> (/home/uvan/banner-batch-run-20260317-1508/src/cli.ts:235:25)
+    at async runWithContext (/home/uvan/banner-batch-run-20260317-1508/src/cli.ts:111:12)
+    at async Command.<anonymous> (/home/uvan/banner-batch-run-20260317-1508/src/cli.ts:233:7)
+    at async Command.parseAsync (/home/uvan/banner-batch-run-20260317-1508/node_modules/.pnpm/commander@13.1.0/node_modules/commander/lib/command.js:1104:5)
+    at async main (/home/uvan/banner-batch-run-20260317-1508/src/cli.ts:276:3)
+
+[END] 2026-03-17T21:55:11.373Z
+[STATUS] FAILED
+[EXIT_CODE] 1

@@ -1,0 +1,47 @@
+{
+  "batchId": "2026-03-13T13-43-05-131Z_all",
+  "preparedAt": "2026-03-13T13:43:05.228Z",
+  "filters": {
+    "source": "ALL",
+    "periodCodes": [
+      "202615"
+    ],
+    "moments": [],
+    "templates": [],
+    "limit": 1
+  },
+  "total": 1,
+  "files": [
+    {
+      "name": "RPACA_GENERADO_PREGRADO_DISTANCIA_202615.csv",
+      "rows": 1
+    }
+  ],
+  "byPeriod": {
+    "202615": 1
+  },
+  "byMoment": {
+    "MD1": 1
+  },
+  "byStatus": {
+    "OK": 1
+  },
+  "byTemplate": {
+    "D4": 1
+  },
+  "sample": [
+    {
+      "courseId": "cmm2a5asw0002wl7ym11cnwgl",
+      "nrc": "15-72305",
+      "periodCode": "202615",
+      "periodLabel": "PERIODO 202615",
+      "moment": "MD1",
+      "title": "Fundamentos de Matemáticas",
+      "program": "Contaduría Pública Distancia - Sur",
+      "method": "DIST",
+      "status": "OK",
+      "template": "D4",
+      "sourceFile": "RPACA002v1 Reporte ProgramaciÃ³n AcadÃ©mica_202615.csv"
+    }
+  ]
+}
