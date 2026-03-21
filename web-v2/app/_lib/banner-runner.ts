@@ -16,10 +16,12 @@ const LOG_DIR = path.join(SYSTEM_ROOT, 'storage', 'outputs', 'banner-runs');
 const BANNER_CONFIG_DIR = path.join(SYSTEM_ROOT, 'storage', 'runtime', 'banner');
 const BANNER_CONFIG_FILE = path.join(BANNER_CONFIG_DIR, 'runner-config.json');
 const DEV_STACK_ENV_FILE = path.join(SYSTEM_ROOT, 'storage', 'runtime', 'dev-stack', 'stack.env');
-const API_SHADOW_RUN_DIR = process.env.API_LINUX_RUN_DIR ?? path.join(process.env.HOME ?? '/home/uvan', 'seguimiento-api-run-20260307');
-const BANNER_FALLBACK_ROOT = '/home/uvan/banner-docente-runner';
+const HOME_DIR = process.env.HOME ?? '';
+const API_SHADOW_RUN_DIR = process.env.API_LINUX_RUN_DIR ?? path.join(HOME_DIR || '/home', 'seguimiento-api-run-20260307');
+const BANNER_FALLBACK_ROOT = path.join(HOME_DIR || '/home', 'banner-docente-runner');
 const WINDOWS_NODE_CANDIDATE = '/mnt/c/Program Files/nodejs/node.exe';
 const WINDOWS_POWERSHELL_CANDIDATE = '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe';
+const INTERNAL_API_BASE_URL = process.env.INTERNAL_API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:3001';
 const STATE_FILE = path.join(LOG_DIR, 'runner-state.json');
 
 type BannerProjectConfig = {
@@ -44,18 +46,32 @@ function writeBannerProjectConfig(config: BannerProjectConfig) {
   fs.writeFileSync(BANNER_CONFIG_FILE, JSON.stringify(config, null, 2), 'utf8');
 }
 
+function uniquePaths(values: Array<string | null | undefined>) {
+  return [...new Set(values.map((value) => value?.trim()).filter((value): value is string => Boolean(value)))];
+}
+
+function getRepoSiblingBannerCandidates() {
+  const repoParent = path.resolve(SYSTEM_ROOT, '..');
+  return [
+    path.join(repoParent, 'banner-docente-runner'),
+    path.join(repoParent, 'banner-batch-run-current'),
+    path.join(repoParent, 'banner buscador de docente en nrc'),
+  ];
+}
+
 function getBannerRootCandidates() {
   const configuredRoot = readBannerProjectConfig().projectRoot;
-  return [
+  return uniquePaths([
     configuredRoot,
     process.env.BANNER_PROJECT_ROOT,
-    '/home/uvan/banner-docente-runner',
-    '/home/uvan/banner-batch-run-current',
-    '/home/uvan/banner-batch-run-20260317-1508',
+    ...getRepoSiblingBannerCandidates(),
+    HOME_DIR ? path.join(HOME_DIR, 'banner-docente-runner') : null,
+    HOME_DIR ? path.join(HOME_DIR, 'banner-batch-run-current') : null,
+    HOME_DIR ? path.join(HOME_DIR, 'banner-batch-run-20260317-1508') : null,
     '/mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc',
     '/mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc - BORRAR',
     '/mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR',
-  ].filter((value): value is string => Boolean(value && value.trim()));
+  ]);
 }
 
 function resolveBannerRoot() {
@@ -81,7 +97,7 @@ function getWindowsAuthSessionFile(bannerRoot = getBannerProjectRoot()) {
 }
 
 type BannerCommand = 'lookup' | 'batch' | 'retry-errors' | 'export';
-type BannerInteractiveCommand = BannerCommand | 'auth';
+type BannerInteractiveCommand = BannerCommand | 'auth' | 'enrollment';
 
 type BannerRunnerRun = {
   id: string;
@@ -168,6 +184,14 @@ export type BannerLiveActivity = {
   workers: number | null;
   processed: number;
   pending: number | null;
+  phase: 'BOOTSTRAP' | 'LOOKUP' | 'IMPORT' | 'COMPLETE' | 'ERROR';
+  found: number;
+  empty: number;
+  failed: number;
+  totalStudents: number;
+  currentNrc: string | null;
+  currentPeriod: string | null;
+  lastEventAt: string | null;
   recentEvents: BannerLiveEvent[];
   workerStates: BannerLiveWorkerState[];
 };
@@ -190,6 +214,13 @@ export type BannerExportSummary = {
   rowCount: number;
   statusCounts: Record<string, number>;
   preview: BannerExportRecord[];
+};
+
+export type BannerEnrollmentImportResult = {
+  ok: boolean;
+  export: Record<string, unknown>;
+  import: Record<string, unknown>;
+  inputPath: string;
 };
 
 let currentRun: BannerRunState | null = null;
@@ -308,6 +339,47 @@ function parseLogContextValue(rawValue: string) {
   return trimmed;
 }
 
+function splitInlineLogContext(rawContext: string) {
+  const parts: string[] = [];
+  let current = '';
+  let depthSquare = 0;
+  let depthRound = 0;
+  let inSingleQuote = false;
+  let inDoubleQuote = false;
+
+  for (const char of rawContext) {
+    if (char === "'" && !inDoubleQuote) {
+      inSingleQuote = !inSingleQuote;
+      current += char;
+      continue;
+    }
+
+    if (char === '"' && !inSingleQuote) {
+      inDoubleQuote = !inDoubleQuote;
+      current += char;
+      continue;
+    }
+
+    if (!inSingleQuote && !inDoubleQuote) {
+      if (char === '[') depthSquare += 1;
+      if (char === ']') depthSquare = Math.max(0, depthSquare - 1);
+      if (char === '(') depthRound += 1;
+      if (char === ')') depthRound = Math.max(0, depthRound - 1);
+
+      if (char === ',' && depthSquare === 0 && depthRound === 0) {
+        if (current.trim()) parts.push(current.trim());
+        current = '';
+        continue;
+      }
+    }
+
+    current += char;
+  }
+
+  if (current.trim()) parts.push(current.trim());
+  return parts;
+}
+
 type ParsedLogRecord = {
   at: string;
   level: string;
@@ -346,6 +418,20 @@ function parseBannerLogRecords(logContent: string): ParsedLogRecord[] {
 
         index += 1;
       }
+    } else {
+      const inlineContextMatch = message.match(/^(.*?)\s+\{(.+)\}\s*$/);
+      if (inlineContextMatch) {
+        message = inlineContextMatch[1].trim();
+        for (const entry of splitInlineLogContext(inlineContextMatch[2].trim())) {
+          const separatorIndex = entry.indexOf(':');
+          if (separatorIndex <= 0) continue;
+
+          const key = entry.slice(0, separatorIndex).trim();
+          const value = entry.slice(separatorIndex + 1).trim();
+          if (!key) continue;
+          context[key] = parseLogContextValue(value);
+        }
+      }
     }
 
     records.push({
@@ -367,6 +453,44 @@ function stringOrNull(value: unknown) {
   return typeof value === 'string' && value.trim() ? value.trim() : null;
 }
 
+function formatRunnerLogContextValue(value: string | number | boolean | null) {
+  if (value === null) return 'null';
+  if (typeof value === 'string') return JSON.stringify(value);
+  return String(value);
+}
+
+function writeRunnerLogRecord(
+  logStream: fs.WriteStream,
+  level: 'INFO' | 'WARN' | 'ERROR',
+  message: string,
+  context: Record<string, string | number | boolean | null> = {},
+) {
+  const stamp = new Date().toISOString();
+  const entries = Object.entries(context).filter(([, value]) => value !== undefined);
+
+  if (!entries.length) {
+    logStream.write(`[${stamp}] ${level} ${message}\n`);
+    return;
+  }
+
+  logStream.write(`[${stamp}] ${level} ${message} {\n`);
+  for (const [key, value] of entries) {
+    logStream.write(`  ${key}: ${formatRunnerLogContextValue(value)}\n`);
+  }
+  logStream.write('}\n');
+}
+
+function countBannerEnrollmentRequests(inputPath: string) {
+  try {
+    const content = fs.readFileSync(inputPath, 'utf8');
+    const records = parseCsvRecords(content);
+    const count = records.filter((row) => normalizeBannerNrcValue(String(row.nrc ?? '')).trim()).length;
+    return count || null;
+  } catch {
+    return null;
+  }
+}
+
 function buildLiveActivity(logPath?: string): BannerLiveActivity | null {
   const logContent = readLogFile(logPath);
   if (!logContent.trim()) return null;
@@ -378,6 +502,14 @@ function buildLiveActivity(logPath?: string): BannerLiveActivity | null {
   let totalRequested: number | null = null;
   let workerCount: number | null = null;
   let processed = 0;
+  let phase: BannerLiveActivity['phase'] = 'BOOTSTRAP';
+  let found = 0;
+  let empty = 0;
+  let failed = 0;
+  let totalStudents = 0;
+  let currentNrc: string | null = null;
+  let currentPeriod: string | null = null;
+  let lastEventAt: string | null = null;
   const recentEvents: BannerLiveEvent[] = [];
   const workerStates = new Map<number, BannerLiveWorkerState>();
 
@@ -389,26 +521,68 @@ function buildLiveActivity(logPath?: string): BannerLiveActivity | null {
       continue;
     }
 
+    if (record.message === 'Iniciando matricula Banner') {
+      totalRequested = numberOrNull(record.context.totalRequested) ?? totalRequested;
+      workerCount = numberOrNull(record.context.workers) ?? workerCount ?? 1;
+      phase = 'BOOTSTRAP';
+      continue;
+    }
+
     if (
+      record.message !== 'Sesion restaurada desde storageState' &&
+      record.message !== 'Sesion backend Banner reutilizada desde trafico de la pagina' &&
+      record.message !== 'Bootstrap backend WORKSPACE_INIT' &&
+      record.message !== 'Bootstrap backend respuesta' &&
+      record.message !== 'Sesion backend Banner SFAALST inicializada' &&
       record.message !== 'Preparando NRC en Banner' &&
       record.message !== 'Ejecutando lookup NRC' &&
       record.message !== 'Lookup NRC finalizado' &&
-      record.message !== 'Fallo lookup backend, reinicializando tarea Banner'
+      record.message !== 'Fallo lookup backend, reinicializando tarea Banner' &&
+      record.message !== 'Consultando matricula oficial Banner' &&
+      record.message !== 'Matricula Banner obtenida' &&
+      record.message !== 'Fallo consulta de matricula Banner' &&
+      record.message !== 'Importando matricula Banner a analitica' &&
+      record.message !== 'Matricula Banner importada en analitica' &&
+      record.message !== 'Fallo proceso de matricula Banner'
     ) {
       continue;
     }
 
-    const worker = numberOrNull(record.context.worker);
+    const worker =
+      numberOrNull(record.context.worker) ??
+      (record.message === 'Consultando matricula oficial Banner' ||
+      record.message === 'Matricula Banner obtenida' ||
+      record.message === 'Fallo consulta de matricula Banner'
+        ? 1
+        : null);
     const event: BannerLiveEvent = {
       at: record.at,
       stage:
-        record.message === 'Preparando NRC en Banner'
+        record.message === 'Sesion restaurada desde storageState'
+          ? 'PREPARING'
+          : record.message === 'Sesion backend Banner reutilizada desde trafico de la pagina'
+            ? 'PREPARING'
+            : record.message === 'Bootstrap backend WORKSPACE_INIT'
+              ? 'PREPARING'
+              : record.message === 'Bootstrap backend respuesta'
+                ? 'PREPARING'
+                : record.message === 'Sesion backend Banner SFAALST inicializada'
+                  ? 'PREPARING'
+        : record.message === 'Preparando NRC en Banner'
           ? 'PREPARING'
           : record.message === 'Ejecutando lookup NRC'
             ? 'LOOKUP'
             : record.message === 'Lookup NRC finalizado'
               ? 'DONE'
-              : 'WARN',
+              : record.message === 'Consultando matricula oficial Banner'
+                ? 'LOOKUP'
+                : record.message === 'Matricula Banner obtenida'
+                  ? 'DONE'
+                  : record.message === 'Importando matricula Banner a analitica'
+                    ? 'PREPARING'
+                    : record.message === 'Matricula Banner importada en analitica'
+                      ? 'DONE'
+                      : 'WARN',
       message: record.message,
       worker,
       queryId: stringOrNull(record.context.queryId) ?? queryId,
@@ -418,6 +592,7 @@ function buildLiveActivity(logPath?: string): BannerLiveActivity | null {
     };
 
     if (event.queryId) queryId = event.queryId;
+    lastEventAt = event.at;
     recentEvents.push(event);
 
     if (worker !== null) {
@@ -431,8 +606,41 @@ function buildLiveActivity(logPath?: string): BannerLiveActivity | null {
       });
     }
 
-    if (event.stage === 'DONE') {
+    if (record.message === 'Consultando matricula oficial Banner') {
+      phase = 'LOOKUP';
+      currentNrc = event.nrc;
+      currentPeriod = event.period;
+    }
+
+    if (record.message === 'Matricula Banner obtenida') {
       processed += 1;
+      const status = (event.status ?? '').toUpperCase();
+      if (status === 'FOUND') found += 1;
+      if (status === 'EMPTY') empty += 1;
+      totalStudents += numberOrNull(record.context.students) ?? 0;
+      currentNrc = event.nrc;
+      currentPeriod = event.period;
+      phase = 'LOOKUP';
+    }
+
+    if (record.message === 'Fallo consulta de matricula Banner') {
+      processed += 1;
+      failed += 1;
+      currentNrc = event.nrc;
+      currentPeriod = event.period;
+      phase = 'LOOKUP';
+    }
+
+    if (record.message === 'Importando matricula Banner a analitica') {
+      phase = 'IMPORT';
+    }
+
+    if (record.message === 'Matricula Banner importada en analitica') {
+      phase = 'COMPLETE';
+    }
+
+    if (record.message === 'Fallo proceso de matricula Banner') {
+      phase = 'ERROR';
     }
   }
 
@@ -446,6 +654,14 @@ function buildLiveActivity(logPath?: string): BannerLiveActivity | null {
     workers: workerCount,
     processed,
     pending: totalRequested === null ? null : Math.max(totalRequested - processed, 0),
+    phase,
+    found,
+    empty,
+    failed,
+    totalStudents,
+    currentNrc,
+    currentPeriod,
+    lastEventAt,
     recentEvents: recentEvents.slice(-18).reverse(),
     workerStates: [...workerStates.values()].sort((left, right) => left.worker - right.worker),
   };
@@ -589,6 +805,288 @@ function resolveAuthCommand(mode: 'start' | 'confirm' = 'start') {
   };
 }
 
+function buildBannerEnrollmentInputFile(periodCode: string, nrcs: string[]) {
+  ensureBannerConfigDir();
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const inputPath = path.join(BANNER_CONFIG_DIR, `banner-enrollment-${stamp}.csv`);
+  const lines = ['nrc,periodo', ...nrcs.map((nrc) => `${nrc},${periodCode}`)];
+  fs.writeFileSync(inputPath, `${lines.join('\n')}\n`, 'utf8');
+  return inputPath;
+}
+
+function resolveBannerEnrollmentCommand(options: {
+  inputPath: string;
+  periodCode?: string;
+  sourceLabel?: string;
+}) {
+  const bannerRoot = getBannerProjectRoot();
+  const cliArgs = ['src/cli.ts', 'roster', '--input', options.inputPath];
+  if (options.periodCode?.trim()) {
+    cliArgs.push('--period', options.periodCode.trim());
+  }
+  if (options.sourceLabel?.trim()) {
+    cliArgs.push('--source-label', options.sourceLabel.trim());
+  }
+
+  return {
+    bannerRoot,
+    executable: 'node',
+    args: ['--import', 'tsx', ...cliArgs],
+    displayCommand: `node --import tsx ${cliArgs.map((arg) => JSON.stringify(arg)).join(' ')}`,
+  };
+}
+
+async function finalizeBannerEnrollmentImport(options: {
+  inputPath: string;
+  periodCode?: string;
+  sourceLabel?: string;
+}): Promise<BannerEnrollmentImportResult> {
+  if (currentRun) {
+    throw new Error('Ya existe una ejecucion Banner en curso. Cancela o espera a que termine.');
+  }
+
+  const command = resolveBannerEnrollmentCommand({
+    inputPath: options.inputPath,
+    periodCode: options.periodCode,
+    sourceLabel: options.sourceLabel,
+  });
+
+  ensureLogDir();
+  const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+  const logPath = path.join(LOG_DIR, `${stamp}_enrollment.log`);
+  const logStream = fs.createWriteStream(logPath, { flags: 'a', encoding: 'utf8' });
+  const runId = `${Date.now()}-${Math.floor(Math.random() * 1_000_000)}`;
+  const startedAt = new Date().toISOString();
+  const totalRequested = countBannerEnrollmentRequests(options.inputPath);
+
+  logStream.write(`[START] ${startedAt}\n`);
+  logStream.write(`[CWD] ${command.bannerRoot}\n`);
+  logStream.write(`[EXECUTABLE] ${command.executable}\n`);
+  logStream.write(`[CMD] ${command.displayCommand}\n\n`);
+  writeRunnerLogRecord(logStream, 'INFO', 'Iniciando matricula Banner', {
+    totalRequested,
+    workers: 1,
+    ...(options.sourceLabel?.trim() ? { sourceLabel: options.sourceLabel.trim() } : {}),
+  });
+
+  currentRun = {
+    id: runId,
+    command: 'enrollment',
+    args: command.args,
+    startedAt,
+    status: 'RUNNING',
+    logPath,
+    cancelRequested: false,
+  };
+  writePersistedState({
+    current: publicRun(currentRun),
+    lastRun: lastRun ?? readPersistedState().lastRun,
+  });
+
+  let exportResult: Record<string, unknown>;
+  let commandOutput = '';
+  let exitCode: number | null = null;
+  let finalStatus: BannerRunnerRun['status'] = 'RUNNING';
+  try {
+    const child = spawn(command.executable, command.args, {
+      cwd: command.bannerRoot,
+      env: {
+        ...process.env,
+        LOG_LEVEL: 'info',
+      },
+      stdio: 'pipe',
+    });
+
+    if (!currentRun) {
+      throw new Error('No fue posible inicializar la corrida de matricula Banner.');
+    }
+
+    currentRun.pid = child.pid;
+    currentRun.process = child;
+    writePersistedState({
+      current: publicRun(currentRun),
+      lastRun: lastRun ?? readPersistedState().lastRun,
+    });
+
+    child.stdout.on('data', (chunk) => {
+      const text = String(chunk);
+      commandOutput += text;
+      logStream.write(text);
+    });
+
+    child.stderr.on('data', (chunk) => {
+      const text = String(chunk);
+      commandOutput += text;
+      logStream.write(text);
+    });
+
+    const code = await new Promise<number | null>((resolve, reject) => {
+      child.on('error', reject);
+      child.on('close', resolve);
+    });
+
+    exitCode = code;
+
+    if (currentRun?.cancelRequested) {
+      finalStatus = 'CANCELLED';
+      throw new Error('La consulta de matricula Banner fue cancelada.');
+    }
+
+    if (code !== 0) {
+      throw new Error(`No fue posible exportar la matricula Banner: ${commandOutput.trim() || `exit ${String(code)}`}`);
+    }
+
+    try {
+      exportResult = parseJsonFromCommandOutput<Record<string, unknown>>(commandOutput);
+    } catch (error) {
+      const detail = error instanceof Error ? error.message : String(error);
+      throw new Error(`No fue posible exportar la matricula Banner: ${detail}`);
+    }
+
+    const exportedPath = typeof exportResult.outputPath === 'string' ? exportResult.outputPath.trim() : '';
+    if (!exportedPath || !exists(exportedPath)) {
+      throw new Error('La exportacion de matricula Banner no devolvio un archivo CSV valido.');
+    }
+
+    writeRunnerLogRecord(logStream, 'INFO', 'Importando matricula Banner a analitica', {
+      outputPath: exportedPath,
+    });
+
+    const response = await fetch(`${INTERNAL_API_BASE_URL}/integrations/moodle-analytics/import/banner-enrollment`, {
+      method: 'POST',
+      headers: {
+        'Content-Type': 'application/json',
+        accept: 'application/json',
+      },
+      cache: 'no-store',
+      body: JSON.stringify({
+        inputPath: exportedPath,
+        sourceLabel: options.sourceLabel?.trim() || undefined,
+      }),
+    });
+
+    const rawText = await response.text();
+    let importResult: Record<string, unknown>;
+    try {
+      importResult = rawText.trim() ? (JSON.parse(rawText) as Record<string, unknown>) : { ok: response.ok };
+    } catch {
+      throw new Error(rawText.trim() || `La API de analitica respondio HTTP ${response.status}.`);
+    }
+
+    if (!response.ok) {
+      const message =
+        (typeof importResult.message === 'string' && importResult.message) ||
+        (typeof importResult.error === 'string' && importResult.error) ||
+        rawText.trim() ||
+        `La API de analitica respondio HTTP ${response.status}.`;
+      throw new Error(message);
+    }
+
+    writeRunnerLogRecord(logStream, 'INFO', 'Matricula Banner importada en analitica', {
+      importedReports: typeof importResult.importedReports === 'number' ? importResult.importedReports : null,
+      importedStudents: typeof importResult.importedStudents === 'number' ? importResult.importedStudents : null,
+    });
+
+    finalStatus = 'COMPLETED';
+    return {
+      ok: true,
+      export: exportResult,
+      import: importResult,
+      inputPath: options.inputPath,
+    };
+  } catch (error) {
+    if (finalStatus !== 'CANCELLED') {
+      finalStatus = 'FAILED';
+    }
+    writeRunnerLogRecord(logStream, 'ERROR', 'Fallo proceso de matricula Banner', {
+      error: error instanceof Error ? error.message : String(error),
+    });
+    throw error;
+  } finally {
+    const endedAt = new Date().toISOString();
+    const activeRun = currentRun;
+    lastRun = {
+      id: runId,
+      command: 'enrollment',
+      args: command.args,
+      startedAt,
+      endedAt,
+      status: finalStatus,
+      exitCode,
+      pid: activeRun?.pid,
+      logPath,
+    };
+    currentRun = null;
+    writePersistedState({
+      current: null,
+      lastRun,
+    });
+    logStream.write(`\n[END] ${endedAt}\n`);
+    logStream.write(`[STATUS] ${finalStatus}\n`);
+    if (typeof exitCode === 'number') {
+      logStream.write(`[EXIT_CODE] ${exitCode}\n`);
+    }
+    logStream.end();
+  }
+}
+
+function parseCommandOutput(error: unknown) {
+  if (error instanceof Error && 'stdout' in error && 'stderr' in error) {
+    const stdout = String((error as { stdout?: string }).stdout ?? '');
+    const stderr = String((error as { stderr?: string }).stderr ?? '');
+    return `${stdout}${stderr}`.trim();
+  }
+
+  return error instanceof Error ? error.message : String(error);
+}
+
+function parseJsonFromCommandOutput<T>(output: string): T {
+  const trimmed = output.trim();
+  if (!trimmed) {
+    throw new Error('El comando no devolvio salida JSON.');
+  }
+
+  try {
+    return JSON.parse(trimmed) as T;
+  } catch {
+    const lastObjectStart = trimmed.lastIndexOf('\n{');
+    if (lastObjectStart >= 0) {
+      const candidate = trimmed.slice(lastObjectStart + 1).trim();
+      try {
+        return JSON.parse(candidate) as T;
+      } catch {
+        // Sigue con otros intentos.
+      }
+    }
+
+    const lastArrayStart = trimmed.lastIndexOf('\n[');
+    if (lastArrayStart >= 0) {
+      const candidate = trimmed.slice(lastArrayStart + 1).trim();
+      try {
+        return JSON.parse(candidate) as T;
+      } catch {
+        // Sigue con otros intentos.
+      }
+    }
+
+    const firstBrace = trimmed.indexOf('{');
+    const lastBrace = trimmed.lastIndexOf('}');
+    if (firstBrace >= 0 && lastBrace > firstBrace) {
+      const candidate = trimmed.slice(firstBrace, lastBrace + 1);
+      return JSON.parse(candidate) as T;
+    }
+
+    const firstBracket = trimmed.indexOf('[');
+    const lastBracket = trimmed.lastIndexOf(']');
+    if (firstBracket >= 0 && lastBracket > firstBracket) {
+      const candidate = trimmed.slice(firstBracket, lastBracket + 1);
+      return JSON.parse(candidate) as T;
+    }
+
+    throw new Error(trimmed);
+  }
+}
+
 function extractQueryIdFromOutput(output: string) {
   const match = output.match(/"queryId"\s*:\s*"([^"]+)"/);
   return match?.[1]?.trim() || null;
@@ -647,6 +1145,12 @@ function normalizeNrcKey(value: string | null | undefined) {
   if (!digits) return '';
   const relevant = digits.length > 5 ? digits.slice(-5) : digits;
   return String(Number(relevant));
+}
+
+function normalizeBannerNrcValue(value: string | null | undefined) {
+  const digits = String(value ?? '').replace(/[^\d]/g, '');
+  if (!digits) return '';
+  return digits.length > 5 ? digits.slice(-5) : digits;
 }
 
 function pickLatestBannerExportFile() {
@@ -1126,6 +1630,58 @@ export async function importBannerResultToSystem(inputPath?: string) {
       rawOutput: output,
     };
   }
+}
+
+export async function importBannerEnrollmentFromBanner(options: {
+  periodCode: string;
+  nrcs: string[];
+  sourceLabel?: string;
+}): Promise<BannerEnrollmentImportResult> {
+  const periodCode = options.periodCode.trim();
+  const nrcs = [...new Set(options.nrcs.map((value) => normalizeBannerNrcValue(value)).filter(Boolean))];
+
+  if (!periodCode) {
+    throw new Error('Debes indicar un periodo para consultar matricula Banner.');
+  }
+
+  if (!nrcs.length) {
+    throw new Error('Debes indicar al menos un NRC para consultar matricula Banner.');
+  }
+
+  const bannerRoot = getBannerProjectRoot();
+  assertBannerProjectAvailable(bannerRoot);
+
+  const inputPath = buildBannerEnrollmentInputFile(periodCode, nrcs);
+  return finalizeBannerEnrollmentImport({
+    inputPath,
+    periodCode,
+    sourceLabel: options.sourceLabel,
+  });
+}
+
+export async function importBannerEnrollmentFromSystem(options: {
+  periodCodes: string[];
+  sourceLabel?: string;
+}): Promise<BannerEnrollmentImportResult> {
+  const periodCodes = [...new Set(options.periodCodes.map((value) => String(value).trim()).filter(Boolean))];
+
+  if (!periodCodes.length) {
+    throw new Error('Debes seleccionar al menos un periodo para recorrer los NRC cargados por RPACA.');
+  }
+
+  const prepared = await prepareBannerBatchFromSystem({
+    periodCodes,
+    source: 'ALL',
+  });
+
+  if (!prepared.total) {
+    throw new Error('No se encontraron aulas respaldadas por RPACA para los periodos seleccionados.');
+  }
+
+  return finalizeBannerEnrollmentImport({
+    inputPath: prepared.inputPath,
+    sourceLabel: options.sourceLabel,
+  });
 }
 
 export function getBannerProjectRoot() {

@@ -6,8 +6,8 @@ import { NextRequest, NextResponse } from 'next/server';
 
 export const runtime = 'nodejs';
 
-const TEMPLATE_PATH = '/mnt/c/Users/Duvan/Downloads/FORMATO CREACION DE USUARIOS OFICIAL.xlsx';
 const XLSX_MIME = 'application/vnd.openxmlformats-officedocument.spreadsheetml.sheet';
+const TEMPLATE_FILE_NAME = 'FORMATO CREACION DE USUARIOS OFICIAL.xlsx';
 const DEFAULT_IDENTITY = {
   firstName: 'Jaime Duvan',
   lastName: 'Lozano Ardila',
@@ -78,13 +78,37 @@ function extractErrorMessage(stdout: string, stderr: string) {
   return cleanText(stderr) || cleanText(stdout) || 'No se pudo generar el formato oficial.';
 }
 
+function uniquePaths(values: Array<string | null | undefined>) {
+  return [...new Set(values.map((value) => cleanText(value)).filter(Boolean))];
+}
+
+function resolveTemplatePath(repoRoot: string) {
+  const homeDir = process.env.HOME || os.homedir() || '';
+  const candidates = uniquePaths([
+    process.env.MOODLE_AUDITOR_TEMPLATE_PATH,
+    path.join(repoRoot, 'storage', 'inputs', 'reference_excels', TEMPLATE_FILE_NAME),
+    path.join(repoRoot, 'storage', 'inputs', 'templates', TEMPLATE_FILE_NAME),
+    path.join(repoRoot, 'storage', 'runtime', 'moodle', TEMPLATE_FILE_NAME),
+    homeDir ? path.join(homeDir, 'Downloads', TEMPLATE_FILE_NAME) : null,
+    '/mnt/c/Users/Duvan/Downloads/FORMATO CREACION DE USUARIOS OFICIAL.xlsx',
+  ]);
+
+  return {
+    candidates,
+    resolved: candidates.find((candidate) => fs.existsSync(candidate)) ?? null,
+  };
+}
+
 export async function POST(request: NextRequest) {
   try {
-    if (!fs.existsSync(TEMPLATE_PATH)) {
+    const webRoot = process.cwd();
+    const repoRoot = path.resolve(webRoot, '..');
+    const templateResolution = resolveTemplatePath(repoRoot);
+    if (!templateResolution.resolved) {
       return NextResponse.json(
         {
           ok: false,
-          error: `No existe la plantilla oficial en ${TEMPLATE_PATH}.`,
+          error: `No se encontro la plantilla oficial. Define MOODLE_AUDITOR_TEMPLATE_PATH o ubica ${TEMPLATE_FILE_NAME} en storage/inputs/reference_excels. Rutas probadas: ${templateResolution.candidates.join(', ')}`,
         },
         { status: 500 },
       );
@@ -103,8 +127,6 @@ export async function POST(request: NextRequest) {
     }
 
     const identity = resolveIdentity(body.identity);
-    const webRoot = process.cwd();
-    const repoRoot = path.resolve(webRoot, '..');
     const scriptPath = path.join(webRoot, 'scripts', 'fill_auditor_template.py');
     if (!fs.existsSync(scriptPath)) {
       return NextResponse.json(
@@ -126,7 +148,7 @@ export async function POST(request: NextRequest) {
       payloadPath,
       JSON.stringify(
         {
-          templatePath: TEMPLATE_PATH,
+          templatePath: templateResolution.resolved,
           outputPath,
           identity,
           rows: rows.map((row) => ({
