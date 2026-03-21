@@ -11,6 +11,8 @@ import { OutboxModule } from './outbox/outbox.module';
 import { MoodleUrlResolverAdapterModule } from './moodle-url-resolver-adapter/moodle-url-resolver-adapter.module';
 import { TeachersModule } from './teachers/teachers.module';
 import { MoodleAnalyticsModule } from './moodle-analytics/moodle-analytics.module';
+import { CoordinatorsModule } from './coordinators/coordinators.module';
+import { BannerPeopleSyncModule } from './banner-people-sync/banner-people-sync.module';
 
 @Module({
   imports: [
@@ -25,6 +27,8 @@ import { MoodleAnalyticsModule } from './moodle-analytics/moodle-analytics.modul
     MoodleUrlResolverAdapterModule,
     TeachersModule,
     MoodleAnalyticsModule,
+    CoordinatorsModule,
+    BannerPeopleSyncModule,
   ],
   controllers: [HealthController],
 })

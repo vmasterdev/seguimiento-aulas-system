@@ -38,8 +38,12 @@ Puedes crear `.env.local` en esta carpeta si quieres sobrescribir rutas o endpoi
 ```bash
 NEXT_PUBLIC_API_BASE_URL=http://127.0.0.1:3001
 INTERNAL_API_BASE_URL=http://127.0.0.1:3001
-BANNER_PROJECT_ROOT=/mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc
+BANNER_PROJECT_ROOT=/home/<usuario>/banner-docente-runner
+NEXT_PUBLIC_MOODLE_URL_TEMPLATE=https://campus.tuuniversidad.edu/course/search.php?search={nrc}
+MOODLE_AUDITOR_TEMPLATE_PATH=/ruta/al/FORMATO CREACION DE USUARIOS OFICIAL.xlsx
 ```
+
+Tambien puedes copiar `web-v2/.env.example` y ajustarlo a tu entorno.
 
 ## Que integra
 

@@ -10,7 +10,7 @@ type BannerBatchSource = 'ALL' | 'MISSING_TEACHER' | 'PENDING_BANNER';
 
 type BannerRunnerRun = {
   id: string;
-  command: BannerMode | 'auth';
+  command: BannerMode | 'auth' | 'enrollment';
   args: string[];
   startedAt: string;
   endedAt?: string;
@@ -597,7 +597,7 @@ export default function BannerIntegrationPanel() {
           <input
             value={projectRootInput}
             onChange={(event) => setProjectRootInput(event.target.value)}
-            placeholder="/home/uvan/banner-docente-runner"
+            placeholder="/ruta/al/proyecto-banner"
           />
         </label>
         <button onClick={saveProjectRoot} disabled={loading || actionLoading || !!status?.runner.running}>
