@@ -81,6 +81,8 @@ model Course {
   teacher         Teacher? @relation(fields: [teacherId], references: [id])
   templateDeclared String?
   d4FlagLegacy    Boolean  @default(false)
+  bannerStartDate String?
+  bannerEndDate   String?
   rawJson         Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt

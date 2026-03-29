@@ -757,18 +757,52 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
     }
   }
 
-  async function loadFollowupCases() {
+  async function previewRevalidateMode(nextMode: RevalidateMode) {
+    if (!hasBatchSelection) {
+      setMessage('Selecciona al menos un periodo y, si quieres, los momentos antes de revisar estos casos.');
+      return;
+    }
+
+    try {
+      setActionLoading(true);
+      setMessage('');
+      setCommand('revalidate');
+      setMode(nextMode);
+      const result = await fetchJson<SidecarBatchPreview>(`${apiBase}/integrations/moodle-sidecar/run/revalidate/preview`, {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({
+          mode: nextMode,
+          periodCodes: selectedPeriodCodes,
+          moments: selectedMoments.length ? selectedMoments : undefined,
+        }),
+      });
+      setBatchPreview(result);
+      if (result.total === 0) {
+        setMessage(buildEmptyRevalidateMessage(nextMode));
+      } else {
+        setMessage(`Preview listo: ${result.total} NRC para ${nextMode === 'aulas_vacias' ? 'aulas vacias' : nextMode === 'sin_matricula' ? 'sin matricula/no registrado' : 'revalidacion mixta'}.`);
+      }
+    } catch (error) {
+      setMessage(`No fue posible previsualizar la revalidacion: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setActionLoading(false);
+    }
+  }
+
+  async function loadFollowupCases(kindOverride: MoodleFollowupKind = followupKind) {
     try {
       setActionLoading(true);
       setMessage('');
       const params = new URLSearchParams({
-        kind: followupKind,
+        kind: kindOverride,
         limit: '5000',
       });
       if (selectedPeriodCodes.length) params.set('periodCodes', selectedPeriodCodes.join(','));
       if (selectedMoments.length) params.set('moments', selectedMoments.join(','));
 
       const result = await fetchJson<MoodleFollowupResponse>(`${apiBase}/courses/moodle-followup/list?${params.toString()}`);
+      setFollowupKind(kindOverride);
       setFollowupData(result);
       setSelectedFollowupIds([]);
       setMessage(`Lista cargada: ${result.total} NRC en seguimiento.`);
@@ -1089,6 +1123,45 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
         4. {RECOMMENDED_FLOW_HINTS[3]}
       </div>
 
+      <div className="subtitle" style={{ marginTop: 12 }}>Atajos frecuentes</div>
+      <div className="actions">
+        Si tu objetivo es revisar casos especiales, no cambies mas de lo necesario: selecciona periodos y momentos, y usa uno de estos atajos.
+      </div>
+      <div className="controls" style={{ marginTop: 8 }}>
+        <button
+          type="button"
+          onClick={() => {
+            setCommand('revalidate');
+            setMode('aulas_vacias');
+          }}
+          disabled={actionLoading}
+        >
+          Ir a aulas vacias
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setCommand('revalidate');
+            setMode('sin_matricula');
+            setFollowupKind('sin_matricula');
+          }}
+          disabled={actionLoading}
+        >
+          Ir a no registrado
+        </button>
+        <button
+          type="button"
+          onClick={() => {
+            setCommand('revalidate');
+            setMode('ambos');
+            setFollowupKind('ambos');
+          }}
+          disabled={actionLoading}
+        >
+          Ir a ambos casos
+        </button>
+      </div>
+
       {command === 'classify' ? (
         <>
           <div className="controls" style={{ marginTop: 8 }}>
@@ -1387,6 +1460,20 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           </div>
 
           <div className="controls" style={{ marginTop: 10 }}>
+            <button
+              type="button"
+              onClick={() => void previewRevalidateMode('aulas_vacias')}
+              disabled={actionLoading || !hasBatchSelection || !!status?.running}
+            >
+              {actionLoading ? 'Procesando...' : 'Previsualizar aulas vacias'}
+            </button>
+            <button
+              type="button"
+              onClick={() => void previewRevalidateMode('sin_matricula')}
+              disabled={actionLoading || !hasBatchSelection || !!status?.running}
+            >
+              {actionLoading ? 'Procesando...' : 'Previsualizar sin matricula / no registrado'}
+            </button>
             <button type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
               {actionLoading ? 'Procesando...' : 'Previsualizar cursos a revalidar'}
             </button>
@@ -1982,7 +2069,16 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
         disponibles.
       </div>
       <div className="controls" style={{ marginTop: 8 }}>
-        <button type="button" onClick={loadFollowupCases} disabled={actionLoading}>
+        <button type="button" onClick={() => void loadFollowupCases('sin_matricula')} disabled={actionLoading}>
+          {actionLoading ? 'Procesando...' : 'Cargar no registrados'}
+        </button>
+        <button type="button" onClick={() => void loadFollowupCases('no_encontrado')} disabled={actionLoading}>
+          {actionLoading ? 'Procesando...' : 'Cargar no encontrados'}
+        </button>
+        <button type="button" onClick={() => void loadFollowupCases('ambos')} disabled={actionLoading}>
+          {actionLoading ? 'Procesando...' : 'Cargar ambos'}
+        </button>
+        <button type="button" onClick={() => void loadFollowupCases()} disabled={actionLoading}>
           {actionLoading ? 'Procesando...' : 'Cargar lista de seguimiento'}
         </button>
         <button type="button" onClick={exportFollowupCsv} disabled={actionLoading || !followupItems.length}>

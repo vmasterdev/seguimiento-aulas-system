@@ -14,6 +14,8 @@ type ImportCsvResult = {
   createdCourses: number;
   updatedCourses: number;
   skippedRows: number;
+  failedRows?: number;
+  completedWithErrors?: boolean;
   skippedExistingCourses: number;
   preservedTeacherAssignments: number;
   periodsTouched: string[];
@@ -131,7 +133,26 @@ type MissingTeacherResult = {
   total: number;
   limit: number;
   offset: number;
+  filters?: {
+    periodCodes?: string[];
+    moment?: string | null;
+    q?: string | null;
+  };
   items: MissingTeacherItem[];
+};
+
+type BannerBatchOptions = {
+  periods: Array<{
+    code: string;
+    label: string;
+    modality: string;
+    year: string;
+    courseCount: number;
+  }>;
+  defaults: {
+    selectedPeriodCodes: string[];
+    latestYear: string | null;
+  };
 };
 
 export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
@@ -140,13 +161,14 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
   const [createOnly, setCreateOnly] = useState(false);
   const [runBannerAfterImport, setRunBannerAfterImport] = useState(true);
   const [deactivateBannerNotFound, setDeactivateBannerNotFound] = useState(true);
-  const [bannerWorkers, setBannerWorkers] = useState('3');
   const [importLoading, setImportLoading] = useState(false);
   const [importResult, setImportResult] = useState<ImportCsvResult | null>(null);
   const [pipelineSummary, setPipelineSummary] = useState<RpacaBannerPipelineSummary | null>(null);
   const [importMessage, setImportMessage] = useState('');
+  const [recentPeriodsTouched, setRecentPeriodsTouched] = useState<string[]>([]);
 
-  const [periodCode, setPeriodCode] = useState('202615');
+  const [selectedPeriodCodes, setSelectedPeriodCodes] = useState<string[]>([]);
+  const [periodOptions, setPeriodOptions] = useState<BannerBatchOptions['periods']>([]);
   const [momentFilter, setMomentFilter] = useState('');
   const [search, setSearch] = useState('');
   const [missingLimit, setMissingLimit] = useState('150');
@@ -166,6 +188,23 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
     // Cargar tabla inicial al abrir la pagina.
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
+
+  useEffect(() => {
+    void loadPeriodOptions();
+  }, []);
+
+  function toggleSelection(current: string[], value: string) {
+    return current.includes(value) ? current.filter((item) => item !== value) : [...current, value];
+  }
+
+  async function loadPeriodOptions() {
+    try {
+      const data = await fetchJson<BannerBatchOptions>('/api/banner/batch/options');
+      setPeriodOptions(data.periods ?? []);
+    } catch {
+      setPeriodOptions([]);
+    }
+  }
 
   async function waitForBannerRun(runId: string) {
     for (let attempt = 0; attempt < 600; attempt += 1) {
@@ -209,13 +248,13 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
     const started = await fetchJson<BannerStartResponse>('/api/banner/batch/start', {
       method: 'POST',
       headers: { 'Content-Type': 'application/json' },
-      body: JSON.stringify({
-        source: 'ALL',
-        periodCodes: periods,
-        queryName: `rpaca-auto-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`,
-        workers: Number(bannerWorkers) || 1,
-      }),
-    });
+        body: JSON.stringify({
+          source: 'ALL',
+          periodCodes: periods,
+          queryName: `rpaca-auto-${new Date().toISOString().slice(0, 19).replace(/[:T]/g, '-')}`,
+          workers: 1,
+        }),
+      });
 
     const runId = started.result?.run?.id;
     if (!runId) {
@@ -291,6 +330,7 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
       setImportLoading(true);
       setImportMessage('');
       setPipelineSummary(null);
+      setRecentPeriodsTouched([]);
       const formData = new FormData();
       rpacaFiles.forEach((file) => formData.append('files', file, file.name));
       formData.append('preserveTeacherAssignment', preserveTeacherAssignment ? 'true' : 'false');
@@ -309,23 +349,31 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
       }
 
       setImportResult(data);
-      if (data.periodsTouched?.length) {
-        setPeriodCode(data.periodsTouched[0]);
+      setRecentPeriodsTouched(data.periodsTouched ?? []);
+      if ((data.periodsTouched?.length ?? 0) === 1) {
+        setSelectedPeriodCodes([data.periodsTouched[0]]);
+      } else if ((data.periodsTouched?.length ?? 0) > 1) {
+        setSelectedPeriodCodes(data.periodsTouched);
       }
       const historyNote = data.historyRelativePath ? ` Historial: ${data.historyRelativePath}` : '';
-      setImportMessage(`RPACA importado correctamente.${historyNote}`);
+      const importBaseMessage = data.completedWithErrors
+        ? `RPACA importado con observaciones. Fallaron ${data.failedRows ?? 0} filas.${historyNote}`
+        : `RPACA importado correctamente.${historyNote}`;
+      setImportMessage(importBaseMessage);
 
       if (runBannerAfterImport && data.periodsTouched?.length) {
         const summary = await runBannerPipelineForPeriods(data.periodsTouched);
         if (summary) {
           setPipelineSummary(summary);
           setImportMessage(
-            `Flujo RPACA -> Banner completado. ${summary.bannerFound} NRC encontrados quedan listos para revision visual de tipo de aulas. ${summary.systemDeactivated} NRC no encontrados fueron descartados del sistema.`,
+            `Flujo RPACA -> Banner completado. ${summary.bannerFound} NRC encontrados quedan listos para revision visual de tipo de aulas. ${summary.systemDeactivated} NRC no encontrados fueron descartados del sistema.${
+              data.completedWithErrors ? ` Ademas, RPACA dejo ${data.failedRows ?? 0} filas con observaciones.` : ''
+            }`,
           );
         }
       }
 
-      await loadMissingTeacher();
+      await loadMissingTeacher(data.periodsTouched ?? []);
     } catch (error) {
       setImportMessage(`Error importando RPACA: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -333,12 +381,13 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
     }
   }
 
-  async function loadMissingTeacher() {
+  async function loadMissingTeacher(periodCodesOverride?: string[]) {
     try {
       setMissingLoading(true);
       setMissingMessage('');
       const params = new URLSearchParams();
-      if (periodCode.trim()) params.set('periodCode', periodCode.trim());
+      const effectivePeriodCodes = periodCodesOverride ?? selectedPeriodCodes;
+      if (effectivePeriodCodes.length) params.set('periodCodes', effectivePeriodCodes.join(','));
       if (momentFilter.trim()) params.set('moment', momentFilter.trim());
       if (search.trim()) params.set('q', search.trim());
       if (missingLimit.trim()) params.set('limit', missingLimit.trim());
@@ -483,15 +532,9 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
           />
           Descartar del sistema los NRC no encontrados en Banner
         </label>
-        <label>
-          Workers Banner
-          <input
-            value={bannerWorkers}
-            onChange={(event) => setBannerWorkers(event.target.value)}
-            placeholder="3"
-            disabled={!runBannerAfterImport}
-          />
-        </label>
+        <div className="actions" style={{ minWidth: 240 }}>
+          Banner corre en modo estable con <span className="code">1 worker</span>.
+        </div>
       </div>
       {rpacaFiles.length ? (
         <div className="actions">
@@ -505,9 +548,24 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
           <span className="badge">NRC nuevos: {importResult.createdCourses}</span>
           <span className="badge">NRC actualizados: {importResult.updatedCourses}</span>
           <span className="badge">Filas omitidas: {importResult.skippedRows}</span>
+          <span className="badge">Filas con error: {importResult.failedRows ?? 0}</span>
           <span className="badge">Existentes sin tocar: {importResult.skippedExistingCourses}</span>
           <span className="badge">Docentes preservados: {importResult.preservedTeacherAssignments}</span>
           <span className="badge">Periodos: {(importResult.periodsTouched ?? []).join(', ') || 'N/A'}</span>
+        </div>
+      ) : null}
+      {recentPeriodsTouched.length > 1 ? (
+        <div className="actions" style={{ marginTop: 8, flexWrap: 'wrap' }}>
+          Periodos tocados en esta carga:
+          {recentPeriodsTouched.map((period) => (
+            <button
+              key={`recent-period-${period}`}
+              type="button"
+              onClick={() => setSelectedPeriodCodes([period])}
+            >
+              {period}
+            </button>
+          ))}
         </div>
       ) : null}
       {importResult?.historyRelativePath ? (
@@ -538,11 +596,57 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
       <div className="subtitle" style={{ marginTop: 14 }}>
         2) Tabla de NRC pendientes por resolver en RPACA o sistema
       </div>
+      <div className="actions" style={{ marginTop: 8, flexWrap: 'wrap' }}>
+        <span>Periodos RPACA para esta tabla:</span>
+        <button type="button" onClick={() => setSelectedPeriodCodes([])}>
+          Ver todos
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedPeriodCodes(periodOptions.map((period) => period.code))}
+          disabled={!periodOptions.length}
+        >
+          Marcar todos
+        </button>
+        <button
+          type="button"
+          onClick={() => setSelectedPeriodCodes(periodOptions[0]?.code ? [periodOptions[0].code] : [])}
+          disabled={!periodOptions.length}
+        >
+          Solo ultimo
+        </button>
+      </div>
+      {periodOptions.length ? (
+        <div className="actions" style={{ marginTop: 8, flexWrap: 'wrap' }}>
+          {periodOptions.map((period) => {
+            const active = selectedPeriodCodes.includes(period.code);
+            return (
+              <button
+                key={`missing-period-${period.code}`}
+                type="button"
+                style={
+                  active
+                    ? {
+                        borderColor: 'var(--border-strong, #1f2937)',
+                        background: 'var(--surface-strong, #eef2ff)',
+                        fontWeight: 600,
+                      }
+                    : undefined
+                }
+                onClick={() => setSelectedPeriodCodes((current) => toggleSelection(current, period.code))}
+              >
+                {period.code}
+              </button>
+            );
+          })}
+        </div>
+      ) : null}
+      <div className="actions" style={{ marginTop: 8 }}>
+        {selectedPeriodCodes.length
+          ? `Filtrando ${selectedPeriodCodes.length} periodo(s): ${selectedPeriodCodes.join(', ')}`
+          : 'Sin seleccion manual: se muestran todos los periodos cargados por RPACA.'}
+      </div>
       <div className="controls">
-        <label>
-          Periodo
-          <input value={periodCode} onChange={(event) => setPeriodCode(event.target.value)} placeholder="202615" />
-        </label>
         <label>
           Momento
           <select value={momentFilter} onChange={(event) => setMomentFilter(event.target.value)}>

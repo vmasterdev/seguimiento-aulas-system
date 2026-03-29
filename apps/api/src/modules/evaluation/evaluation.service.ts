@@ -5,6 +5,8 @@ import {
   EvaluationReplicateSchema,
   EvaluationRecalculateSchema,
   EvaluationScoreSchema,
+  buildCourseScheduleInfo,
+  buildExecutionExpectations,
   normalizeTemplate,
   scoreAlistamiento,
   scoreEjecucion,
@@ -49,6 +51,8 @@ function findMissingChecklistItems(input: {
   template: string;
   checklist: Checklist;
   executionPolicy: 'APPLIES' | 'AUTO_PASS';
+  bannerStartDate?: string | null;
+  bannerEndDate?: string | null;
 }): string[] {
   const isChecked = (key: string) => toBool(input.checklist[key]);
   const missing: string[] = [];
@@ -87,16 +91,19 @@ function findMissingChecklistItems(input: {
   }
 
   if (input.executionPolicy === 'AUTO_PASS') return missing;
+  const schedule = buildCourseScheduleInfo({
+    startDate: input.bannerStartDate,
+    endDate: input.bannerEndDate,
+  });
+  const expectations = buildExecutionExpectations(schedule);
 
   if (!isChecked('acuerdo')) missing.push('Acuerdo pedagogico');
   if (!isChecked('grabaciones')) missing.push('Grabaciones');
-  if (!isChecked('ingresos')) missing.push('Ingresos (3 por semana)');
+  if (!isChecked('ingresos')) missing.push(expectations.ingresosLabel);
   if (!isChecked('calificacion')) missing.push('Calificaciones');
   if (!isChecked('asistencia')) missing.push('Asistencia');
   if (!isChecked('foro_fp')) missing.push('Foro presentacion');
-  if (!isChecked('foro_fd')) missing.push('Foro dialogo');
   if (!isChecked('foro_fn')) missing.push('Foro novedades');
-  if (!isChecked('foro_ft')) missing.push('Foro tematico');
 
   return missing;
 }
@@ -106,9 +113,15 @@ function buildObservations(input: {
   template: string;
   checklist: Checklist;
   executionPolicy: 'APPLIES' | 'AUTO_PASS';
+  bannerStartDate?: string | null;
+  bannerEndDate?: string | null;
 }): string {
   const missing = findMissingChecklistItems(input);
   if (!missing.length) {
+    const schedule = buildCourseScheduleInfo({
+      startDate: input.bannerStartDate,
+      endDate: input.bannerEndDate,
+    });
     if (input.phase === 'ALISTAMIENTO' && input.template === 'VACIO') {
       return 'Aula vacia: alistamiento no aplica.';
     }
@@ -117,6 +130,9 @@ function buildObservations(input: {
     }
     if (input.phase === 'ALISTAMIENTO') {
       return 'Felicitaciones, el aula cumple completamente con los items del checklist de alistamiento (50/50).';
+    }
+    if (schedule.isShortCourse) {
+      return 'Felicitaciones, el aula cumple completamente con los items del checklist de ejecucion para curso corto (50/50).';
     }
     return 'Felicitaciones, el aula cumple completamente con los items del checklist de ejecucion (50/50).';
   }
@@ -352,6 +368,8 @@ export class EvaluationService {
         ? scoreAlistamiento(template, checklist)
         : scoreEjecucion(checklist, {
             executionPolicy: course.period.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES',
+            bannerStartDate: course.bannerStartDate,
+            bannerEndDate: course.bannerEndDate,
           });
     const executionPolicy = course.period.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES';
     const observations = buildObservations({
@@ -359,6 +377,8 @@ export class EvaluationService {
       template,
       checklist,
       executionPolicy,
+      bannerStartDate: course.bannerStartDate,
+      bannerEndDate: course.bannerEndDate,
     });
 
     const evaluation = await this.prisma.evaluation.upsert({
@@ -520,6 +540,8 @@ export class EvaluationService {
             ? scoreAlistamiento(template, checklist)
             : scoreEjecucion(checklist, {
                 executionPolicy: course.period.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES',
+                bannerStartDate: course.bannerStartDate,
+                bannerEndDate: course.bannerEndDate,
               });
         const executionPolicy = course.period.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES';
         const observations = buildObservations({
@@ -527,6 +549,8 @@ export class EvaluationService {
           template,
           checklist,
           executionPolicy,
+          bannerStartDate: course.bannerStartDate,
+          bannerEndDate: course.bannerEndDate,
         });
 
         await this.prisma.evaluation.upsert({

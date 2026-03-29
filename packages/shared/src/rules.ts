@@ -1,4 +1,5 @@
 import { TemplateSchema } from "./schemas";
+import { buildCourseScheduleInfo } from "./course-schedule";
 
 export type TemplateType = ReturnType<typeof TemplateSchema.parse>;
 
@@ -70,7 +71,11 @@ export function scoreAlistamiento(template: string | null | undefined, checklist
 
 export function scoreEjecucion(
   checklist: BooleanRecord,
-  options: { executionPolicy: "APPLIES" | "AUTO_PASS" },
+  options: {
+    executionPolicy: "APPLIES" | "AUTO_PASS";
+    bannerStartDate?: string | null;
+    bannerEndDate?: string | null;
+  },
 ): ScoreResult {
   const notes: string[] = [];
   if (options.executionPolicy === "AUTO_PASS") {
@@ -78,28 +83,46 @@ export function scoreEjecucion(
     return { score: 50, notes };
   }
 
+  const schedule = buildCourseScheduleInfo({
+    startDate: options.bannerStartDate,
+    endDate: options.bannerEndDate,
+  });
+
+  // ingresos acepta valor numerico (0-100 = tasa de cumplimiento) para puntuacion proporcional
+  const ingresosRaw = checklist.ingresos;
+  const ingresosScore =
+    typeof ingresosRaw === "number"
+      ? Number(((Math.max(0, Math.min(100, ingresosRaw)) / 100) * 10).toFixed(2))
+      : toBool(ingresosRaw) ? 10 : 0;
+
   const core =
     (toBool(checklist.acuerdo) ? 10 : 0) +
     (toBool(checklist.grabaciones) ? 10 : 0) +
-    (toBool(checklist.ingresos) ? 10 : 0) +
+    ingresosScore +
     (toBool(checklist.calificacion) ? 10 : 0) +
     (toBool(checklist.asistencia) ? 5 : 0);
 
-  const forumWeights = {
-    fp: 1.25,
-    fd: 1.25,
-    fn: 0.5,
-    ft: 1.25,
-  };
+  const forumScore = schedule.isShortCourse
+    ? (toBool(checklist.foro_fp) ? 4 : 0) +
+      (toBool(checklist.foro_fn) ? 1 : 0)
+    : (() => {
+        const forumWeights = {
+          fp: 1.25,
+          fn: 0.5,
+        };
 
-  const achievedForumWeight = Object.entries(forumWeights).reduce(
-    (acc, [key, value]) => acc + (toBool(checklist[`foro_${key}`]) ? value : 0),
-    0,
-  );
-  const totalForumWeight = Object.values(forumWeights).reduce((acc, item) => acc + item, 0);
-  const forumScore = totalForumWeight === 0 ? 0 : (achievedForumWeight / totalForumWeight) * 5;
+        const achievedForumWeight = Object.entries(forumWeights).reduce(
+          (acc, [key, value]) => acc + (toBool(checklist[`foro_${key}`]) ? value : 0),
+          0,
+        );
+        const totalForumWeight = Object.values(forumWeights).reduce((acc, item) => acc + item, 0);
+        return totalForumWeight === 0 ? 0 : (achievedForumWeight / totalForumWeight) * 5;
+      })();
 
   const score = Number((core + forumScore).toFixed(2));
+  if (schedule.isShortCourse) {
+    notes.push("Curso corto: la ejecucion se ajusto a la duracion real del NRC.");
+  }
   if (score < 50) notes.push("Faltan evidencias en ejecucion.");
   return { score, notes };
 }

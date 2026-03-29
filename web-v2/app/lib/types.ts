@@ -182,11 +182,44 @@ export type BannerRunnerStatus = {
   current: BannerRunnerRun | null;
   lastRun: BannerRunnerRun | null;
   logTail: string;
+  liveActivity: {
+    queryId: string | null;
+    totalRequested: number | null;
+    workers: number | null;
+    processed: number;
+    pending: number | null;
+    phase: 'BOOTSTRAP' | 'LOOKUP' | 'IMPORT' | 'COMPLETE' | 'ERROR';
+    found: number;
+    empty: number;
+    failed: number;
+    totalStudents: number;
+    currentNrc: string | null;
+    currentPeriod: string | null;
+    lastEventAt: string | null;
+    recentEvents: Array<{
+      at: string;
+      stage: 'PREPARING' | 'LOOKUP' | 'DONE' | 'WARN';
+      message: string;
+      worker: number | null;
+      queryId: string | null;
+      nrc: string | null;
+      period: string | null;
+      status: string | null;
+    }>;
+    workerStates: Array<{
+      worker: number;
+      at: string;
+      stage: 'PREPARING' | 'LOOKUP' | 'DONE' | 'WARN';
+      nrc: string | null;
+      period: string | null;
+      status: string | null;
+    }>;
+  } | null;
 };
 
 export type BannerRunnerRun = {
   id: string;
-  command: 'lookup' | 'batch' | 'retry-errors' | 'export' | 'auth';
+  command: 'lookup' | 'batch' | 'retry-errors' | 'export' | 'auth' | 'enrollment';
   args: string[];
   startedAt: string;
   endedAt?: string;

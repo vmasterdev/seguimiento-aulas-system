@@ -10,6 +10,7 @@ import { PrismaService } from '../prisma.service';
 import { parseWithSchema } from '../common/zod.util';
 import { resolveProgramValue } from '../common/program.util';
 import { resolveProjectRoot } from '../moodle-url-resolver-adapter/adapter.logic';
+import { buildCourseScheduleInfo, scoreEjecucion } from '@seguimiento/shared';
 
 const ImportSchema = z.object({
   summaryPath: z.string().trim().optional(),
@@ -28,6 +29,7 @@ const FiltersSchema = z.object({
   campusCodes: z.string().trim().optional(),
   teacherIds: z.string().trim().optional(),
   nrcs: z.string().trim().optional(),
+  moments: z.string().trim().optional(),
 });
 
 const AttendanceDateReportSchema = FiltersSchema.extend({
@@ -40,6 +42,7 @@ type AnalyticsFilters = {
   campusCodes: string[];
   teacherIds: string[];
   nrcs: string[];
+  moments: string[];
 };
 
 type AttendanceSessionSummary = {
@@ -384,6 +387,7 @@ export class MoodleAnalyticsService {
       programCode: filters.programCodes.length ? { in: filters.programCodes } : undefined,
       campusCode: filters.campusCodes.length ? { in: filters.campusCodes } : undefined,
       teacherId: filters.teacherIds.length ? { in: filters.teacherIds } : undefined,
+      moment: filters.moments.length ? { in: filters.moments } : undefined,
       OR: nrcOr,
     };
   }
@@ -1477,6 +1481,7 @@ export class MoodleAnalyticsService {
       campusCodes: this.parseCsvList(query.campusCodes),
       teacherIds: this.parseCsvList(query.teacherIds),
       nrcs: this.parseCsvList(query.nrcs),
+      moments: this.parseCsvList(query.moments),
     };
 
     const [attendanceReports, activityReports, participantReports, bannerEnrollmentReports] = await Promise.all([
@@ -1576,6 +1581,7 @@ export class MoodleAnalyticsService {
       campusCodes: this.parseCsvList(query.campusCodes),
       teacherIds: this.parseCsvList(query.teacherIds),
       nrcs: this.parseCsvList(query.nrcs),
+      moments: this.parseCsvList(query.moments),
     };
 
     const [attendanceReports, activityReports, participantReports, bannerEnrollmentReports] = await Promise.all([
@@ -2417,6 +2423,7 @@ export class MoodleAnalyticsService {
       campusCodes: this.parseCsvList(query.campusCodes),
       teacherIds: this.parseCsvList(query.teacherIds),
       nrcs: this.parseCsvList(query.nrcs),
+      moments: this.parseCsvList(query.moments),
     };
 
     const reports = await this.latestAttendanceSnapshots(filters);
@@ -2553,6 +2560,342 @@ export class MoodleAnalyticsService {
         inattendanceRate: this.percentage(absentCount, tracked),
       },
       courses,
+    };
+  }
+
+  async teacherAccessReport(rawQuery: unknown) {
+    const query = parseWithSchema(FiltersSchema, rawQuery, 'teacher access report');
+    const filters: AnalyticsFilters = {
+      periodCodes: this.parseCsvList(query.periodCodes),
+      programCodes: this.parseCsvList(query.programCodes),
+      campusCodes: this.parseCsvList(query.campusCodes),
+      teacherIds: this.parseCsvList(query.teacherIds),
+      nrcs: this.parseCsvList(query.nrcs),
+      moments: this.parseCsvList(query.moments),
+    };
+
+    // Traer snapshots de actividad con fechas del curso
+    const activityReports = await this.prisma.moodleActivityReport.findMany({
+      where: { course: this.resolveCourseWhere(filters) },
+      include: {
+        course: {
+          include: {
+            period: true,
+            teacher: { select: { fullName: true, costCenter: true } },
+          },
+        },
+      },
+      orderBy: [{ courseId: 'asc' }, { importedAt: 'desc' }],
+    });
+    const snapshots = this.selectLatestPerCourse(activityReports);
+
+    if (!snapshots.length) {
+      return {
+        ok: true,
+        filters,
+        summary: {
+          courseCount: 0,
+          compliantCourses: 0,
+          partialCourses: 0,
+          nonCompliantCourses: 0,
+          noDataCourses: 0,
+          complianceRate: null as number | null,
+        },
+        courses: [] as unknown[],
+      };
+    }
+
+    // Traer días únicos de ingreso del docente por reporte
+    const reportIds = snapshots.map((r) => r.id);
+    const teacherDayGroups = await this.prisma.moodleActivityEvent.groupBy({
+      by: ['reportId', 'eventDay'],
+      where: {
+        reportId: { in: reportIds },
+        actorCategory: 'DOCENTE',
+        eventDay: { not: null },
+      },
+      _count: { _all: true },
+    });
+
+    // Indexar días por reportId
+    const daysByReport = new Map<string, Set<string>>();
+    for (const group of teacherDayGroups) {
+      if (!group.eventDay) continue;
+      const set = daysByReport.get(group.reportId) ?? new Set<string>();
+      set.add(group.eventDay);
+      daysByReport.set(group.reportId, set);
+    }
+
+    const REQUIRED_DAYS_PER_WEEK = 3;
+
+    const courses = snapshots.map((report) => {
+      const course = report.course;
+      const meta = this.courseMeta(course);
+      const schedule = buildCourseScheduleInfo({
+        startDate: course.bannerStartDate,
+        endDate: course.bannerEndDate,
+      });
+
+      const teacherDays = [...(daysByReport.get(report.id) ?? new Set<string>())].sort();
+      const totalTeacherDays = teacherDays.length;
+
+      // Sin fechas de Banner → no se puede calcular semanas
+      if (!schedule.startIsoDate || !schedule.endIsoDate || schedule.totalWeeks === null) {
+        return {
+          nrc: meta.nrc,
+          subjectName: meta.subjectName,
+          programName: meta.programName,
+          campusCode: meta.campusCode,
+          teacherName: meta.teacherName,
+          periodCode: meta.periodCode,
+          calendarState: schedule.calendarState,
+          isShortCourse: schedule.isShortCourse,
+          totalCourseWeeks: null as number | null,
+          requiredLoginDays: null as number | null,
+          totalTeacherDays,
+          weeksDetail: [] as Array<{ week: string; days: string[]; dayCount: number; compliant: boolean }>,
+          compliantWeeks: null as number | null,
+          complianceRate: null as number | null,
+          status: 'SIN_FECHAS' as string,
+        };
+      }
+
+      const totalCourseWeeks = schedule.totalWeeks;
+
+      // Cap de semanas evaluadas según momento del curso:
+      // MD1 / MD2 → máximo 7 semanas | 1 (RyC, 16 sem) → máximo 15 | resto → sin cap
+      const moment = (course as { moment?: string | null }).moment ?? null;
+      const maxEvalWeeks =
+        moment === 'MD1' || moment === 'MD2' ? 7
+        : moment === '1' ? 15
+        : totalCourseWeeks;
+      const evalWeeks = Math.min(totalCourseWeeks, maxEvalWeeks ?? totalCourseWeeks);
+
+      const requiredLoginDays = schedule.isShortCourse
+        ? (schedule.requiredLoginCount ?? evalWeeks * REQUIRED_DAYS_PER_WEEK)
+        : evalWeeks * REQUIRED_DAYS_PER_WEEK;
+
+      // Calcular semanas ISO dentro de la ventana del curso
+      const startMs = new Date(schedule.startIsoDate).getTime();
+      const endMs = new Date(schedule.endIsoDate).getTime();
+      const DAY_MS = 24 * 60 * 60 * 1000;
+
+      // Construir semanas: agrupar los días del docente por semana ISO (lunes como inicio)
+      const dayToIsoWeek = (dateStr: string): string => {
+        const d = new Date(dateStr + 'T00:00:00Z');
+        const dayOfWeek = d.getUTCDay(); // 0=Sun, 1=Mon...6=Sat
+        const diffToMonday = dayOfWeek === 0 ? -6 : 1 - dayOfWeek;
+        const monday = new Date(d.getTime() + diffToMonday * DAY_MS);
+        return monday.toISOString().slice(0, 10);
+      };
+
+      // Generar las semanas evaluadas del curso (hasta evalWeeks)
+      const courseWeeks = new Set<string>();
+      for (let ms = startMs; ms <= endMs; ms += DAY_MS) {
+        courseWeeks.add(dayToIsoWeek(new Date(ms).toISOString().slice(0, 10)));
+        if (courseWeeks.size >= evalWeeks) break;
+      }
+
+      // Agrupar días del docente por semana
+      const weekMap = new Map<string, string[]>();
+      for (const day of teacherDays) {
+        const dayMs = new Date(day + 'T00:00:00Z').getTime();
+        if (dayMs < startMs || dayMs > endMs) continue; // fuera del rango del NRC
+        const week = dayToIsoWeek(day);
+        if (!courseWeeks.has(week)) continue; // fuera de las semanas evaluadas
+        const arr = weekMap.get(week) ?? [];
+        arr.push(day);
+        weekMap.set(week, arr);
+      }
+
+      const weeksDetail = [...courseWeeks]
+        .sort()
+        .map((week) => {
+          const days = weekMap.get(week) ?? [];
+          const effectiveDays = Math.min(days.length, REQUIRED_DAYS_PER_WEEK);
+          const compliant = days.length >= REQUIRED_DAYS_PER_WEEK;
+          return { week, days, dayCount: days.length, effectiveDays, compliant };
+        });
+
+      let compliantWeeks: number | null;
+      let complianceRate: number | null;
+      let status: string;
+
+      if (schedule.isShortCourse) {
+        // Cursos cortos: total de días vs mínimo requerido
+        const meets = totalTeacherDays >= requiredLoginDays;
+        compliantWeeks = null;
+        complianceRate = requiredLoginDays > 0
+          ? Number(Math.min(100, (totalTeacherDays / requiredLoginDays) * 100).toFixed(1))
+          : null;
+        status = meets ? 'CUMPLE' : totalTeacherDays === 0 ? 'SIN_INGRESOS' : 'INCUMPLE';
+      } else {
+        // Cursos regulares: sumar días efectivos (máx 3 por semana) vs requeridos
+        compliantWeeks = weeksDetail.filter((w) => w.compliant).length;
+        const totalEffectiveDays = weeksDetail.reduce((s, w) => s + w.effectiveDays, 0);
+        complianceRate = requiredLoginDays > 0
+          ? Number(Math.min(100, (totalEffectiveDays / requiredLoginDays) * 100).toFixed(1))
+          : null;
+        const rate = complianceRate ?? 0;
+        const anyDays = weeksDetail.some((w) => w.dayCount > 0);
+        status = !anyDays
+          ? 'SIN_INGRESOS'
+          : rate >= 100
+          ? 'CUMPLE'
+          : rate >= 50
+          ? 'PARCIAL'
+          : 'INCUMPLE';
+      }
+
+      return {
+        nrc: meta.nrc,
+        subjectName: meta.subjectName,
+        programName: meta.programName,
+        campusCode: meta.campusCode,
+        teacherName: meta.teacherName,
+        periodCode: meta.periodCode,
+        calendarState: schedule.calendarState,
+        isShortCourse: schedule.isShortCourse,
+        totalCourseWeeks: evalWeeks,
+        requiredLoginDays,
+        totalTeacherDays,
+        weeksDetail,
+        compliantWeeks,
+        complianceRate,
+        status,
+      };
+    });
+
+    const withData = courses.filter((c) => c.status !== 'SIN_FECHAS');
+    const compliantCourses = withData.filter((c) => c.status === 'CUMPLE').length;
+    const partialCourses = withData.filter((c) => c.status === 'PARCIAL').length;
+    const nonCompliantCourses = withData.filter((c) => c.status === 'INCUMPLE').length;
+    const noDataCourses = withData.filter((c) => c.status === 'SIN_INGRESOS').length;
+    const noDatesCourses = courses.filter((c) => c.status === 'SIN_FECHAS').length;
+
+    const ratedCourses = withData.filter((c) => c.complianceRate !== null);
+    const avgCompliance = ratedCourses.length
+      ? Number((ratedCourses.reduce((sum, c) => sum + (c.complianceRate ?? 0), 0) / ratedCourses.length).toFixed(1))
+      : null;
+
+    return {
+      ok: true,
+      filters,
+      summary: {
+        courseCount: courses.length,
+        compliantCourses,
+        partialCourses,
+        nonCompliantCourses,
+        noDataCourses,
+        noDatesCourses,
+        complianceRate: avgCompliance,
+      },
+      courses: courses.sort((a, b) => {
+        const order: Record<string, number> = { SIN_INGRESOS: 0, INCUMPLE: 1, PARCIAL: 2, SIN_FECHAS: 3, CUMPLE: 4 };
+        return (order[a.status] ?? 5) - (order[b.status] ?? 5);
+      }),
+    };
+  }
+
+  async applyTeacherAccessToChecklists(rawQuery: Record<string, unknown>) {
+    type TeacherCourse = { nrc: string; periodCode: string; status: string; complianceRate: number | null };
+    const report = await this.teacherAccessReport(rawQuery) as { ok: boolean; courses: TeacherCourse[] };
+
+    // Solo procesar cursos con datos de ingresos (excluir SIN_FECHAS)
+    const actionable = report.courses.filter((c) => c.status !== 'SIN_FECHAS');
+
+    let updated = 0;
+    let skipped = 0;
+    const details: Array<{ nrc: string; periodCode: string; status: string; ingresosScore: number; newEjecucionScore: number | null }> = [];
+
+    for (const course of actionable) {
+      // Valor numerico: complianceRate (0-100) si hay datos, 0 si sin ingresos
+      const ingresosValue = course.status === 'SIN_INGRESOS' ? 0 : (course.complianceRate ?? 0);
+
+      // Buscar el curso en BD por NRC + periodo
+      const dbCourse = await this.prisma.course.findFirst({
+        where: {
+          nrc: course.nrc,
+          period: { code: course.periodCode },
+        },
+        select: {
+          id: true,
+          nrc: true,
+          bannerStartDate: true,
+          bannerEndDate: true,
+          period: { select: { executionPolicy: true } },
+          evaluations: {
+            where: { phase: 'EJECUCION' },
+            select: { id: true, checklist: true, score: true, observations: true },
+          },
+        },
+      });
+
+      if (!dbCourse) {
+        skipped++;
+        continue;
+      }
+
+      const existingEval = dbCourse.evaluations[0];
+      const existingChecklist =
+        existingEval?.checklist && typeof existingEval.checklist === 'object' && !Array.isArray(existingEval.checklist)
+          ? (existingEval.checklist as Record<string, unknown>)
+          : {};
+
+      // Merge: actualiza solo el campo ingresos, conserva el resto del checklist
+      const updatedChecklist: Record<string, unknown> = { ...existingChecklist, ingresos: ingresosValue };
+
+      const executionPolicy = (dbCourse.period?.executionPolicy ?? 'APPLIES') as 'APPLIES' | 'AUTO_PASS';
+      const { score: newScore, notes } = scoreEjecucion(updatedChecklist as Record<string, string | number | boolean | null | undefined>, {
+        executionPolicy,
+        bannerStartDate: dbCourse.bannerStartDate ?? null,
+        bannerEndDate: dbCourse.bannerEndDate ?? null,
+      });
+
+      const missingItems: string[] = [];
+      if (!updatedChecklist['acuerdo']) missingItems.push('Acuerdo pedagogico');
+      if (!updatedChecklist['grabaciones']) missingItems.push('Grabaciones');
+      if (ingresosValue < 100) missingItems.push(`Ingresos docente (${ingresosValue.toFixed(1)}%)`);
+      if (!updatedChecklist['calificacion']) missingItems.push('Calificaciones');
+      if (!updatedChecklist['asistencia']) missingItems.push('Asistencia');
+      const observations = missingItems.length
+        ? `Pendiente: ${missingItems.join(', ')}`
+        : notes[0] ?? 'Cumple ejecucion.';
+
+      await this.prisma.evaluation.upsert({
+        where: { courseId_phase: { courseId: dbCourse.id, phase: 'EJECUCION' } },
+        create: {
+          courseId: dbCourse.id,
+          phase: 'EJECUCION',
+          checklist: updatedChecklist as Prisma.InputJsonValue,
+          score: newScore,
+          observations,
+        },
+        update: {
+          checklist: updatedChecklist as Prisma.InputJsonValue,
+          score: newScore,
+          observations,
+        },
+      });
+
+      details.push({
+        nrc: course.nrc,
+        periodCode: course.periodCode,
+        status: course.status,
+        ingresosScore: Number(((ingresosValue / 100) * 10).toFixed(2)),
+        newEjecucionScore: newScore,
+      });
+      updated++;
+    }
+
+    return {
+      ok: true,
+      summary: {
+        total: actionable.length,
+        updated,
+        skipped,
+      },
+      details,
     };
   }
 }

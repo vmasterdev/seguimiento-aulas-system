@@ -6,7 +6,7 @@ import type { ActionResponse, CourseRecord, OpsData } from './lib/types';
 type ViewKey = 'overview' | 'courses' | 'integrations' | 'files';
 type TeacherFilter = 'ALL' | 'WITH_TEACHER' | 'WITHOUT_TEACHER';
 type StatusFilter = 'ALL' | 'OK' | 'PENDING' | 'ERROR';
-type BannerMode = 'lookup' | 'batch' | 'retry-errors' | 'export';
+type BannerMode = 'lookup' | 'batch' | 'retry-errors' | 'export' | 'enrollment';
 type SidecarCommand = 'classify' | 'revalidate' | 'backup' | 'gui';
 
 const ADVANCED_MODULES = [
@@ -100,6 +100,7 @@ const EMPTY_OPS_DATA: OpsData = {
       current: null,
       lastRun: null,
       logTail: '',
+      liveActivity: null,
     },
     exportSummary: {
       latestFile: null,

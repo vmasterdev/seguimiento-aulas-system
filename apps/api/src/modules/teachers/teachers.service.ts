@@ -1,10 +1,12 @@
 import { BadRequestException, Inject, Injectable } from '@nestjs/common';
+import { Prisma } from '@prisma/client';
 import { parse } from 'csv-parse/sync';
 import { z } from 'zod';
 import { normalizeHeader, normalizeTeacherId } from '@seguimiento/shared';
 import { PrismaService } from '../prisma.service';
 import { parseWithSchema } from '../common/zod.util';
 import { resolveProgramValue, resolveTeacherProgramOverride } from '../common/program.util';
+import { readBannerReview, readBannerReviewStatus } from '../common/banner-review.util';
 
 const TeachersQuerySchema = z.object({
   q: z.string().trim().optional(),
@@ -57,6 +59,11 @@ function pickValue(row: Record<string, string>, candidates: string[]): string {
     if (fuzzy && row[fuzzy]) return row[fuzzy];
   }
   return '';
+}
+
+function asRecord(value: unknown): Record<string, unknown> {
+  if (!value || typeof value !== 'object' || Array.isArray(value)) return {};
+  return value as Record<string, unknown>;
 }
 
 @Injectable()
@@ -303,6 +310,124 @@ export class TeachersService {
       updated,
       skipped,
       errors,
+    };
+  }
+
+  async consolidateBannerIdsFromResolvedCourses() {
+    const courses = await this.prisma.course.findMany({
+      where: {
+        teacherId: { not: null },
+      },
+      select: {
+        id: true,
+        nrc: true,
+        rawJson: true,
+        teacher: {
+          select: {
+            id: true,
+            fullName: true,
+            extraJson: true,
+          },
+        },
+      },
+      orderBy: [{ updatedAt: 'desc' }],
+    });
+
+    const byTeacher = new Map<
+      string,
+      {
+        teacherId: string;
+        teacherName: string;
+        teacherExtraJson: Record<string, unknown>;
+        bannerIds: Set<string>;
+        courseRefs: string[];
+      }
+    >();
+
+    let skippedWithoutLinkedTeacher = 0;
+    let skippedWithoutBannerId = 0;
+
+    for (const course of courses) {
+      const bannerStatus = readBannerReviewStatus(course.rawJson);
+      if (bannerStatus !== 'ENCONTRADO') continue;
+      if (!course.teacher) {
+        skippedWithoutLinkedTeacher += 1;
+        continue;
+      }
+
+      const bannerReview = readBannerReview(course.rawJson);
+      const bannerTeacherId = normalizeTeacherId(bannerReview?.teacherId ?? '');
+      if (!bannerTeacherId) {
+        skippedWithoutBannerId += 1;
+        continue;
+      }
+
+      const bucket = byTeacher.get(course.teacher.id) ?? {
+        teacherId: course.teacher.id,
+        teacherName: course.teacher.fullName,
+        teacherExtraJson: asRecord(course.teacher.extraJson),
+        bannerIds: new Set<string>(),
+        courseRefs: [],
+      };
+
+      bucket.bannerIds.add(bannerTeacherId);
+      bucket.courseRefs.push(`${course.nrc}`);
+      byTeacher.set(course.teacher.id, bucket);
+    }
+
+    let updatedTeachers = 0;
+    let alreadyConsistent = 0;
+    let conflicts = 0;
+    const conflictSamples: Array<{ teacherId: string; fullName: string; bannerIds: string[] }> = [];
+
+    for (const item of byTeacher.values()) {
+      const ids = [...item.bannerIds];
+      if (!ids.length) continue;
+      if (ids.length > 1) {
+        conflicts += 1;
+        if (conflictSamples.length < 10) {
+          conflictSamples.push({
+            teacherId: item.teacherId,
+            fullName: item.teacherName,
+            bannerIds: ids,
+          });
+        }
+        continue;
+      }
+
+      const bannerPersonId = ids[0];
+      const existingBannerPersonId = normalizeTeacherId(item.teacherExtraJson.bannerPersonId ?? '');
+      if (existingBannerPersonId === bannerPersonId) {
+        alreadyConsistent += 1;
+        continue;
+      }
+
+      const nextExtraJson: Record<string, unknown> = {
+        ...item.teacherExtraJson,
+        bannerPersonId,
+        bannerPersonIdSource: 'BANNER_REVIEW',
+        bannerPersonIdUpdatedAt: new Date().toISOString(),
+      };
+
+      await this.prisma.teacher.update({
+        where: { id: item.teacherId },
+        data: {
+          extraJson: nextExtraJson as Prisma.InputJsonValue,
+        },
+      });
+      updatedTeachers += 1;
+    }
+
+    return {
+      ok: true,
+      reviewedCourses: courses.length,
+      candidateTeachers: byTeacher.size,
+      updatedTeachers,
+      alreadyConsistent,
+      conflicts,
+      skippedWithoutLinkedTeacher,
+      skippedWithoutBannerId,
+      conflictSamples,
     };
   }
 }

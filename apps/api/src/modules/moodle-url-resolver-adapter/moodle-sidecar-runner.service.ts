@@ -134,6 +134,7 @@ export class MoodleSidecarRunnerService {
       if (options.headless) args.push('--headless');
       if (options.loginWaitSeconds) args.push('--login-wait-seconds', String(options.loginWaitSeconds));
       if (options.keepOpen) args.push('--keep-open');
+      if (options.workers && options.workers > 1) args.push('--workers', String(options.workers));
     }
 
     if (nestedPythonCommand) {
@@ -327,7 +328,7 @@ export class MoodleSidecarRunnerService {
 
   async startActivityFromDatabase(
     input: PrepareExtractionBatchInput &
-      Pick<StartSidecarRunOptions, 'browser' | 'python' | 'headless' | 'loginWaitSeconds' | 'keepOpen'>,
+      Pick<StartSidecarRunOptions, 'browser' | 'python' | 'headless' | 'loginWaitSeconds' | 'keepOpen' | 'workers'>,
   ) {
     if (this.current) {
       throw new ConflictException('Ya existe una ejecucion sidecar en curso. Debes esperar o cancelarla.');
@@ -347,6 +348,7 @@ export class MoodleSidecarRunnerService {
       headless: input.headless,
       loginWaitSeconds: input.loginWaitSeconds,
       keepOpen: input.keepOpen,
+      workers: input.workers,
     });
 
     return {

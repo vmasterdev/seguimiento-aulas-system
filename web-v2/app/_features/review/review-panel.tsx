@@ -1,8 +1,15 @@
 'use client';
 
 import { useEffect, useLayoutEffect, useMemo, useState } from 'react';
+import {
+  buildCourseScheduleInfo,
+  buildExecutionExpectations,
+  formatCourseWindowLabel,
+  scoreAlistamiento,
+  scoreEjecucion,
+} from '@seguimiento/shared';
 
-type ChecklistState = Record<string, boolean>;
+type ChecklistState = Record<string, boolean | number>;
 
 type ReviewItem = {
   sampleGroupId: string;
@@ -16,6 +23,8 @@ type ReviewItem = {
     id: string;
     nrc: string;
     subjectName: string | null;
+    bannerStartDate: string | null;
+    bannerEndDate: string | null;
     enrolledCount: number | null;
     moodleStatus: string | null;
     detectedTemplate: string | null;
@@ -133,6 +142,10 @@ function toBool(value: unknown): boolean {
 function normalizeChecklistAliases(checklist: ChecklistState, template: string): ChecklistState {
   const next: ChecklistState = { ...checklist };
 
+  // ingresos puede llegar como número (complianceRate de apply-teacher-access).
+  // Se preserva el valor numérico para que el puntaje proporcional se mantenga al guardar.
+  // NO convertir a boolean aquí — scoreEjecucion ya maneja ambos tipos.
+
   const asistencia = toBool(next.asistencia) || toBool(next.asis);
   if ('asistencia' in next || 'asis' in next) {
     next.asistencia = asistencia;
@@ -165,67 +178,17 @@ function normalizeChecklistAliases(checklist: ChecklistState, template: string):
   return next;
 }
 
-function calculateAlistamientoScore(template: string, checklist: ChecklistState): number {
-  const normalizedTemplate = template.toUpperCase();
-
-  if (normalizedTemplate === 'VACIO') return 0;
-
-  if (normalizedTemplate === 'INNOVAME' || normalizedTemplate === 'D4') {
-    const presentacionOk = toBool(checklist.presentacion) || (toBool(checklist.fp) && toBool(checklist.fn));
-    const score =
-      (toBool(checklist.plantilla) ? 20 : 0) +
-      (toBool(checklist.asistencia) || toBool(checklist.asis) ? 10 : 0) +
-      (presentacionOk ? 10 : 0) +
-      (toBool(checklist.actualizacion_actividades) || toBool(checklist.aa) ? 10 : 0);
-    return score;
-  }
-
-  if (normalizedTemplate === 'CRIBA') {
-    const base =
-      (toBool(checklist.plantilla) ? 20 : 0) +
-      (toBool(checklist.fp) ? 5 : 0) +
-      (toBool(checklist.fn) ? 5 : 0) +
-      (toBool(checklist.asistencia) || toBool(checklist.asis) ? 10 : 0);
-    const unit = 10 / CRIBA_ITEMS.length;
-    const cribaScore = CRIBA_ITEMS.reduce((acc, [key]) => acc + (toBool(checklist[key]) ? unit : 0), 0);
-    return Number((base + cribaScore).toFixed(2));
-  }
-
-  return 0;
-}
-
-function calculateEjecucionScore(checklist: ChecklistState, executionPolicy: 'APPLIES' | 'AUTO_PASS'): number {
-  if (executionPolicy === 'AUTO_PASS') return 50;
-
-  const core =
-    (toBool(checklist.acuerdo) ? 10 : 0) +
-    (toBool(checklist.grabaciones) ? 10 : 0) +
-    (toBool(checklist.ingresos) ? 10 : 0) +
-    (toBool(checklist.calificacion) ? 10 : 0) +
-    (toBool(checklist.asistencia) ? 5 : 0);
-
-  const forumWeights: Record<string, number> = {
-    fp: 1.25,
-    fd: 1.25,
-    fn: 0.5,
-    ft: 1.25,
-  };
-
-  const achievedForumWeight = Object.entries(forumWeights).reduce(
-    (acc, [key, value]) => acc + (toBool(checklist[`foro_${key}`]) ? value : 0),
-    0,
-  );
-  const totalForumWeight = Object.values(forumWeights).reduce((acc, item) => acc + item, 0);
-  const forumScore = totalForumWeight === 0 ? 0 : (achievedForumWeight / totalForumWeight) * 5;
-
-  return Number((core + forumScore).toFixed(2));
-}
-
 function normalizeChecklist(raw: unknown): ChecklistState {
   if (!raw || typeof raw !== 'object' || Array.isArray(raw)) return {};
   const source = raw as Record<string, unknown>;
   return Object.entries(source).reduce<ChecklistState>((acc, [key, value]) => {
-    acc[key] = toBool(value);
+    // ingresos puede ser número (complianceRate de apply-teacher-access).
+    // Se preserva para mantener el puntaje proporcional al guardar.
+    if (key === 'ingresos' && typeof value === 'number') {
+      acc[key] = value;
+    } else {
+      acc[key] = toBool(value);
+    }
     return acc;
   }, {});
 }
@@ -233,6 +196,157 @@ function normalizeChecklist(raw: unknown): ChecklistState {
 function resolveItemTemplate(item: ReviewItem | null): string {
   if (!item) return 'UNKNOWN';
   return (item.selectedCourse.detectedTemplate ?? item.template ?? 'UNKNOWN').toUpperCase();
+}
+
+function formatCalendarStateLabel(state: 'UNKNOWN' | 'UPCOMING' | 'ACTIVE' | 'ENDED'): string | null {
+  if (state === 'UPCOMING') return 'Por iniciar';
+  if (state === 'ACTIVE') return 'Activo';
+  if (state === 'ENDED') return 'Finalizado';
+  return null;
+}
+
+type CalendarFilter = 'ALL' | 'ACTIVE' | 'SHORT' | 'URGENTE';
+
+type CalendarStats = { active: number; short: number; urgente: number; upcoming: number; unknown: number };
+
+function CalendarPriorityPanel({
+  stats,
+  filter,
+  sortByPriority,
+  visibleCount,
+  totalCount,
+  onFilterChange,
+  onSortToggle,
+}: {
+  stats: CalendarStats;
+  filter: CalendarFilter;
+  sortByPriority: boolean;
+  visibleCount: number;
+  totalCount: number;
+  onFilterChange: (f: CalendarFilter) => void;
+  onSortToggle: () => void;
+}) {
+  const FILTER_CONFIG: { value: CalendarFilter; label: string; count: number; color: string }[] = [
+    { value: 'ALL', label: 'Todos', count: totalCount, color: '#1f5f99' },
+    { value: 'ACTIVE', label: 'Activos hoy', count: stats.active, color: '#1b7a3e' },
+    { value: 'SHORT', label: 'Cortos \u226428d', count: stats.short, color: '#b36200' },
+    { value: 'URGENTE', label: 'Urgentes \u22647d', count: stats.urgente, color: '#c0392b' },
+  ];
+
+  return (
+    <div
+      style={{
+        border: '1px solid #d0d7e3',
+        borderRadius: 6,
+        padding: '10px 14px',
+        marginTop: 10,
+        background: '#f8fafc',
+      }}
+    >
+      <div style={{ fontSize: 11, fontWeight: 600, color: '#555', marginBottom: 8, textTransform: 'uppercase', letterSpacing: '0.05em' }}>
+        Vista calendario
+      </div>
+
+      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginBottom: 8 }}>
+        {FILTER_CONFIG.map(({ value, label, count, color }) => {
+          const active = filter === value;
+          return (
+            <button
+              key={value}
+              type="button"
+              style={{
+                fontSize: 12,
+                padding: '3px 10px',
+                borderRadius: 4,
+                border: `1px solid ${active ? 'transparent' : '#c8d0dc'}`,
+                background: active ? color : '#fff',
+                color: active ? '#fff' : '#333',
+                fontWeight: active ? 700 : 400,
+                cursor: 'pointer',
+              }}
+              onClick={() => onFilterChange(value)}
+            >
+              {label}{count > 0 ? ` · ${count}` : ''}
+            </button>
+          );
+        })}
+
+        <button
+          type="button"
+          style={{
+            fontSize: 12,
+            padding: '3px 10px',
+            borderRadius: 4,
+            border: `1px solid ${sortByPriority ? 'transparent' : '#c8d0dc'}`,
+            background: sortByPriority ? '#5b2d8e' : '#fff',
+            color: sortByPriority ? '#fff' : '#333',
+            fontWeight: sortByPriority ? 700 : 400,
+            cursor: 'pointer',
+            marginLeft: 4,
+          }}
+          onClick={onSortToggle}
+        >
+          {sortByPriority ? '↑ Prioridad activa' : '↑ Ordenar por prioridad'}
+        </button>
+      </div>
+
+      {(filter !== 'ALL' || sortByPriority) && (
+        <div style={{ fontSize: 11, color: '#666' }}>
+          Mostrando {visibleCount} de {totalCount} NRC
+          {stats.upcoming > 0 && <span style={{ marginLeft: 8 }}>· Por iniciar: {stats.upcoming}</span>}
+          {stats.unknown > 0 && <span style={{ marginLeft: 8 }}>· Sin fechas: {stats.unknown}</span>}
+        </div>
+      )}
+    </div>
+  );
+}
+
+function applyCalendarFilterSort(
+  items: ReviewItem[],
+  filter: CalendarFilter,
+  sortPriority: boolean,
+): ReviewItem[] {
+  const today = new Date();
+  const todayMs = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+
+  let result = items;
+
+  if (filter !== 'ALL') {
+    result = result.filter((item) => {
+      const info = buildCourseScheduleInfo({
+        startDate: item.selectedCourse.bannerStartDate,
+        endDate: item.selectedCourse.bannerEndDate,
+      });
+      if (filter === 'ACTIVE') return info.calendarState === 'ACTIVE';
+      if (filter === 'SHORT') return info.isShortCourse;
+      if (filter === 'URGENTE') {
+        if (!info.endIsoDate || info.calendarState !== 'ACTIVE') return false;
+        const endMs = new Date(info.endIsoDate + 'T00:00:00Z').getTime();
+        return Math.ceil((endMs - todayMs) / 86400000) <= 7;
+      }
+      return true;
+    });
+  }
+
+  if (sortPriority) {
+    result = [...result].sort((a, b) => {
+      const getScore = (item: ReviewItem): number => {
+        const info = buildCourseScheduleInfo({
+          startDate: item.selectedCourse.bannerStartDate,
+          endDate: item.selectedCourse.bannerEndDate,
+        });
+        const donePenalty = item.done ? 10000 : 0;
+        if (info.calendarState !== 'ACTIVE') return donePenalty + 5000;
+        if (!info.endIsoDate) return donePenalty + 4000;
+        const endMs = new Date(info.endIsoDate + 'T00:00:00Z').getTime();
+        const remaining = Math.ceil((endMs - todayMs) / 86400000);
+        return donePenalty + Math.max(0, remaining);
+      };
+      return getScore(a) - getScore(b);
+    });
+  }
+
+  return result;
 }
 
 function buildChecklistDefaults(phase: 'ALISTAMIENTO' | 'EJECUCION', template: string): ChecklistState {
@@ -244,9 +358,7 @@ function buildChecklistDefaults(phase: 'ALISTAMIENTO' | 'EJECUCION', template: s
       calificacion: false,
       asistencia: false,
       foro_fp: false,
-      foro_fd: false,
       foro_fn: false,
-      foro_ft: false,
     };
   }
 
@@ -305,6 +417,9 @@ export function ReviewPanel({
   const [moodleUrlTemplate, setMoodleUrlTemplate] = useState(initialMoodleUrlTemplate);
   const [editableTemplate, setEditableTemplate] = useState<string>('UNKNOWN');
   const [nrcSearch, setNrcSearch] = useState('');
+  const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('ALL');
+  const [sortByPriority, setSortByPriority] = useState(false);
+  const [nrcTableOpen, setNrcTableOpen] = useState(true);
 
   useLayoutEffect(() => {
     if (compact) {
@@ -324,10 +439,41 @@ export function ReviewPanel({
     }
   }, [moodleUrlTemplate]);
 
+  const processedItems = useMemo(
+    () => applyCalendarFilterSort(queue?.items ?? [], calendarFilter, sortByPriority),
+    [queue, calendarFilter, sortByPriority],
+  );
+
+  const calendarStats = useMemo(() => {
+    const items = queue?.items ?? [];
+    const today = new Date();
+    const todayMs = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+    let active = 0, short = 0, urgente = 0, upcoming = 0, unknown = 0;
+    for (const item of items) {
+      const info = buildCourseScheduleInfo({
+        startDate: item.selectedCourse.bannerStartDate,
+        endDate: item.selectedCourse.bannerEndDate,
+      });
+      if (info.calendarState === 'ACTIVE') {
+        active++;
+        if (info.isShortCourse) short++;
+        if (info.endIsoDate) {
+          const endMs = new Date(info.endIsoDate + 'T00:00:00Z').getTime();
+          if (Math.ceil((endMs - todayMs) / 86400000) <= 7) urgente++;
+        }
+      } else if (info.calendarState === 'UPCOMING') {
+        upcoming++;
+      } else if (info.calendarState === 'UNKNOWN') {
+        unknown++;
+      }
+    }
+    return { active, short, urgente, upcoming, unknown };
+  }, [queue]);
+
   const current = useMemo(() => {
-    if (!queue?.items?.length) return null;
-    return queue.items[index] ?? null;
-  }, [queue, index]);
+    if (!processedItems.length) return null;
+    return processedItems[index] ?? null;
+  }, [processedItems, index]);
 
   const currentTemplate = useMemo(() => resolveItemTemplate(current), [current]);
 
@@ -349,12 +495,39 @@ export function ReviewPanel({
     [checklist, effectiveTemplate],
   );
 
+  const currentScheduleInfo = useMemo(
+    () =>
+      buildCourseScheduleInfo({
+        startDate: current?.selectedCourse.bannerStartDate,
+        endDate: current?.selectedCourse.bannerEndDate,
+      }),
+    [current?.selectedCourse.bannerEndDate, current?.selectedCourse.bannerStartDate],
+  );
+
+  const executionExpectations = useMemo(
+    () => buildExecutionExpectations(currentScheduleInfo),
+    [currentScheduleInfo],
+  );
+
+  const daysRemaining = useMemo(() => {
+    if (!currentScheduleInfo.endIsoDate) return null;
+    if (currentScheduleInfo.calendarState === 'ENDED') return 0;
+    const today = new Date();
+    const todayMs = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+    const endMs = new Date(currentScheduleInfo.endIsoDate + 'T00:00:00Z').getTime();
+    return Math.ceil((endMs - todayMs) / 86400000);
+  }, [currentScheduleInfo.endIsoDate, currentScheduleInfo.calendarState]);
+
   const liveScore = useMemo(() => {
     if (!current) return 0;
     if (phase === 'EJECUCION') {
-      return calculateEjecucionScore(normalizedChecklist, queue?.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES');
+      return scoreEjecucion(normalizedChecklist, {
+        executionPolicy: queue?.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES',
+        bannerStartDate: current.selectedCourse.bannerStartDate,
+        bannerEndDate: current.selectedCourse.bannerEndDate,
+      }).score;
     }
-    return calculateAlistamientoScore(effectiveTemplate, normalizedChecklist);
+    return scoreAlistamiento(effectiveTemplate, normalizedChecklist).score;
   }, [current, effectiveTemplate, normalizedChecklist, phase, queue?.executionPolicy]);
 
   const savedScore = current?.evaluation?.score ?? null;
@@ -391,18 +564,22 @@ export function ReviewPanel({
 
   function selectItemByIndex(
     nextIndex: number,
-    sourceQueue: ReviewQueueResponse | null = queue,
+    sourceQueueOrItems: ReviewQueueResponse | ReviewItem[] | null = null,
     draftSource: Record<string, ChecklistState> = draftChecklistByCourseId,
   ) {
-    if (!sourceQueue?.items.length) {
+    const items: ReviewItem[] = Array.isArray(sourceQueueOrItems)
+      ? sourceQueueOrItems
+      : (sourceQueueOrItems?.items ?? processedItems);
+
+    if (!items.length) {
       setIndex(0);
       setChecklist({});
       setEditableTemplate('UNKNOWN');
       return;
     }
 
-    const boundedIndex = Math.min(Math.max(0, nextIndex), sourceQueue.items.length - 1);
-    const item = sourceQueue.items[boundedIndex];
+    const boundedIndex = Math.min(Math.max(0, nextIndex), items.length - 1);
+    const item = items[boundedIndex];
     const template = resolveItemTemplate(item);
     const nextChecklist = resolveChecklistForItem(item, template, draftSource);
 
@@ -544,7 +721,8 @@ export function ReviewPanel({
       setQueue(data);
       setNrcSearch('');
 
-      const nextPending = data.items.findIndex((item) => !item.done);
+      const localItems = applyCalendarFilterSort(data.items, calendarFilter, sortByPriority);
+      const nextPending = localItems.findIndex((item) => !item.done);
       const targetIndex = nextPending >= 0 ? nextPending : 0;
       const initialDrafts = data.items.reduce<Record<string, ChecklistState>>((acc, item) => {
         const parsed = normalizeChecklist(item.evaluation?.checklist);
@@ -555,7 +733,7 @@ export function ReviewPanel({
       }, {});
 
       setDraftChecklistByCourseId(initialDrafts);
-      selectItemByIndex(targetIndex, data, initialDrafts);
+      selectItemByIndex(targetIndex, localItems, initialDrafts);
       return data;
     } catch {
       setMessage('No fue posible cargar la cola de revision.');
@@ -690,36 +868,13 @@ export function ReviewPanel({
       const selectedCourseId = current.selectedCourse.id;
       const refreshed = await loadQueue();
 
+      // loadQueue ya navega internamente al siguiente pendiente (goNext)
+      // o re-selecciona el item actual (!goNext).
       if (!goNext && refreshed) {
-        const sameIndex = refreshed.items.findIndex((item) => item.selectedCourse.id === selectedCourseId);
-        if (sameIndex >= 0) {
-          selectItemByIndex(sameIndex, refreshed, {});
-        }
-      }
-
-      if (goNext && openNextInMoodle && refreshed?.items?.length) {
-        const nextPendingIndex = refreshed.items.findIndex((item) => !item.done);
-        if (nextPendingIndex >= 0) {
-          const nextCourse = refreshed.items[nextPendingIndex].selectedCourse;
-          const nextUrl = (nextCourse.moodleCourseUrl ?? '').trim() || buildMoodleUrl(nextCourse.nrc);
-          if (!nextUrl) {
-            setMessage('No hay URL para el siguiente NRC. Verifica la configuración de URL Moodle.');
-            if (reservedTab && !reservedTab.closed) {
-              try {
-                reservedTab.close();
-              } catch {
-                // ignore
-              }
-            }
-            return;
-          }
-          openNrcInMoodle(nextCourse.nrc, nextCourse.moodleCourseUrl, reservedTab);
-        } else if (reservedTab && !reservedTab.closed) {
-          try {
-            reservedTab.close();
-          } catch {
-            // ignore
-          }
+        const refreshedProcessed = applyCalendarFilterSort(refreshed.items, calendarFilter, sortByPriority);
+        const newIndex = refreshedProcessed.findIndex((item) => item.selectedCourse.id === selectedCourseId);
+        if (newIndex >= 0) {
+          selectItemByIndex(newIndex, refreshedProcessed, {});
         }
       }
     } catch {
@@ -776,28 +931,33 @@ export function ReviewPanel({
 
     if (phase === 'EJECUCION') {
       return (
-        <div className="form-grid">
-          {[
-            ['acuerdo', 'Acuerdo pedagogico'],
-            ['grabaciones', 'Grabaciones'],
-            ['ingresos', 'Ingresos (3 por semana)'],
-            ['calificacion', 'Calificaciones'],
-            ['asistencia', 'Asistencia'],
-            ['foro_fp', 'Foro presentacion'],
-            ['foro_fd', 'Foro dialogo'],
-            ['foro_fn', 'Foro novedades'],
-            ['foro_ft', 'Foro tematico'],
-          ].map(([key, label]) => (
-            <label className="checkbox" key={key}>
-              <input
-                type="checkbox"
-                checked={!!checklist[key]}
-                onChange={(event) => setChecked(key, event.target.checked)}
-              />
-              <span>{label}</span>
-            </label>
-          ))}
-        </div>
+        <>
+          {executionExpectations.reviewHint ? (
+            <p className="muted" style={{ marginBottom: 10 }}>
+              {executionExpectations.reviewHint} {executionExpectations.shortCourseHint}
+            </p>
+          ) : null}
+          <div className="form-grid">
+            {[
+              ['acuerdo', 'Acuerdo pedagogico'],
+              ['grabaciones', 'Grabaciones'],
+              ['ingresos', executionExpectations.ingresosLabel],
+              ['calificacion', 'Calificaciones'],
+              ['asistencia', 'Asistencia'],
+              ['foro_fp', 'Foro presentacion'],
+              ['foro_fn', 'Foro novedades'],
+            ].map(([key, label]) => (
+              <label className="checkbox" key={key}>
+                <input
+                  type="checkbox"
+                  checked={!!checklist[key]}
+                  onChange={(event) => setChecked(key, event.target.checked)}
+                />
+                <span>{label}</span>
+              </label>
+            ))}
+          </div>
+        </>
       );
     }
 
@@ -912,21 +1072,11 @@ export function ReviewPanel({
           {loading ? 'Cargando...' : 'Cargar cola'}
         </button>
         {!compact ? (
-          <>
-            <button onClick={openFloatingTab} type="button">
-              Abrir flotante (popup)
-            </button>
-            <button onClick={openFloatingNarrowWindow} type="button">
-              Abrir flotante angosto
-            </button>
-          </>
+          <button onClick={openFloatingTab} type="button">
+            Abrir flotante (popup)
+          </button>
         ) : null}
       </div>
-      {!compact ? (
-        <div className="muted" style={{ marginTop: 6 }}>
-          Puedes abrir el checklist en popup normal o en popup angosto, segun tu flujo de revision.
-        </div>
-      ) : null}
 
       <div className="controls" style={{ marginTop: 8 }}>
         <label style={{ minWidth: 360 }}>
@@ -961,6 +1111,16 @@ export function ReviewPanel({
             <span className="badge">Falta: {queue.progress.pendingPercent}%</span>
           </div>
 
+          <CalendarPriorityPanel
+            stats={calendarStats}
+            filter={calendarFilter}
+            sortByPriority={sortByPriority}
+            visibleCount={processedItems.length}
+            totalCount={queue.items.length}
+            onFilterChange={(f) => { setCalendarFilter(f); setIndex(0); }}
+            onSortToggle={() => { setSortByPriority((prev) => !prev); setIndex(0); }}
+          />
+
           <div className="controls" style={{ marginTop: 8 }}>
             <label style={{ minWidth: 240 }}>
               Buscar NRC guardado
@@ -972,47 +1132,58 @@ export function ReviewPanel({
             </label>
           </div>
 
-          <table style={{ marginTop: 8 }}>
-            <thead>
-              <tr>
-                <th>NRC</th>
-                <th>Calificacion</th>
-                <th>Observaciones</th>
-                <th>Accion</th>
-              </tr>
-            </thead>
-            <tbody>
-              {filteredSavedNrcItems.length ? (
-                filteredSavedNrcItems.map((item) => (
-                  <tr key={item.sampleGroupId}>
-                    <td>{item.selectedCourse.nrc}</td>
-                    <td>{item.evaluation?.score ?? 0}/50</td>
-                    <td>{item.evaluation?.observations?.trim() || '-'}</td>
-                    <td>
-                      <button
-                        type="button"
-                        onClick={() => {
-                          if (!queue?.items.length) return;
-                          const targetIndex = queue.items.findIndex((qItem) => qItem.sampleGroupId === item.sampleGroupId);
-                          if (targetIndex >= 0) {
-                            selectItemByIndex(targetIndex);
-                          }
-                        }}
-                      >
-                        Ver
-                      </button>
-                    </td>
+          <div style={{ marginTop: 8 }}>
+            <button
+              type="button"
+              onClick={() => setNrcTableOpen((prev) => !prev)}
+              style={{ marginBottom: 4, fontSize: 12 }}
+            >
+              {nrcTableOpen ? '▲ Ocultar lista NRC' : '▼ Ver lista NRC'}
+            </button>
+            {nrcTableOpen && (
+              <table>
+                <thead>
+                  <tr>
+                    <th>NRC</th>
+                    <th>Calificacion</th>
+                    <th>Observaciones</th>
+                    <th>Accion</th>
                   </tr>
-                ))
-              ) : (
-                <tr>
-                  <td colSpan={4} className="muted">
-                    No hay NRC guardados para ese filtro.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
+                </thead>
+                <tbody>
+                  {filteredSavedNrcItems.length ? (
+                    filteredSavedNrcItems.map((item) => (
+                      <tr key={item.sampleGroupId}>
+                        <td>{item.selectedCourse.nrc}</td>
+                        <td>{item.evaluation?.score ?? 0}/50</td>
+                        <td>{item.evaluation?.observations?.trim() || '-'}</td>
+                        <td>
+                          <button
+                            type="button"
+                            onClick={() => {
+                              if (!queue?.items.length) return;
+                              const targetIndex = queue.items.findIndex((qItem) => qItem.sampleGroupId === item.sampleGroupId);
+                              if (targetIndex >= 0) {
+                                selectItemByIndex(targetIndex);
+                              }
+                            }}
+                          >
+                            Ver
+                          </button>
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={4} className="muted">
+                        No hay NRC guardados para ese filtro.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            )}
+          </div>
         </div>
       ) : null}
 
@@ -1023,7 +1194,30 @@ export function ReviewPanel({
           <div className="review-header">
             <div>
               <div className="kpi-label">NRC seleccionado</div>
-              <div className="kpi-value-sm">{current.selectedCourse.nrc}</div>
+              <div className="kpi-value-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+                {current.selectedCourse.nrc}
+                {currentScheduleInfo.calendarState === 'ACTIVE' && daysRemaining !== null && daysRemaining <= 7 && (
+                  <span className="badge" style={{ background: '#c0392b', color: '#fff', fontSize: 11 }}>
+                    URGENTE {daysRemaining}d
+                  </span>
+                )}
+                {currentScheduleInfo.calendarState === 'ACTIVE' && currentScheduleInfo.isShortCourse && (daysRemaining === null || daysRemaining > 7) && (
+                  <span className="badge" style={{ background: '#b36200', color: '#fff', fontSize: 11 }}>
+                    CORTO
+                  </span>
+                )}
+                {currentScheduleInfo.calendarState === 'ACTIVE' && !currentScheduleInfo.isShortCourse && (daysRemaining === null || daysRemaining > 7) && (
+                  <span className="badge" style={{ background: '#1b7a3e', color: '#fff', fontSize: 11 }}>
+                    ACTIVO
+                  </span>
+                )}
+                {currentScheduleInfo.calendarState === 'UPCOMING' && (
+                  <span className="badge" style={{ fontSize: 11 }}>POR INICIAR</span>
+                )}
+                {currentScheduleInfo.calendarState === 'ENDED' && (
+                  <span className="badge" style={{ background: '#555', color: '#fff', fontSize: 11 }}>FINALIZADO</span>
+                )}
+              </div>
             </div>
             <div>
               <div className="kpi-label">Docente</div>
@@ -1070,6 +1264,39 @@ export function ReviewPanel({
           <div className="muted">
             {current.selectedCourse.subjectName ?? '-'} | Estado Moodle: {current.selectedCourse.moodleStatus ?? 'N/A'}
             {' | '}Inscritos: <span className="code">{current.selectedCourse.enrolledCount ?? 'N/D'}</span>
+            {formatCourseWindowLabel(currentScheduleInfo) ? (
+              <>
+                {' '}
+                | Ventana Banner: <span className="code">{formatCourseWindowLabel(currentScheduleInfo)}</span>
+              </>
+            ) : null}
+            {formatCalendarStateLabel(currentScheduleInfo.calendarState) ? (
+              <>
+                {' '}
+                | Estado calendario: <span className="code">{formatCalendarStateLabel(currentScheduleInfo.calendarState)}</span>
+              </>
+            ) : null}
+            {typeof currentScheduleInfo.progressPercent === 'number' ? (
+              <>
+                {' '}
+                | Avance calendario: <span className="code">{currentScheduleInfo.progressPercent}%</span>
+              </>
+            ) : null}
+            {currentScheduleInfo.isShortCourse ? (
+              <>
+                {' '}
+                | <span className="badge" style={{ background: '#b36200', color: '#fff' }}>Curso corto</span>
+              </>
+            ) : null}
+            {daysRemaining !== null && currentScheduleInfo.calendarState === 'ACTIVE' ? (
+              <>
+                {' '}
+                | Dias restantes:{' '}
+                <span className="code" style={{ color: daysRemaining <= 7 ? '#c0392b' : daysRemaining <= 14 ? '#b36200' : undefined, fontWeight: daysRemaining <= 7 ? 700 : undefined }}>
+                  {daysRemaining}
+                </span>
+              </>
+            ) : null}
             {current.selectedCourse.moodleCourseUrl ? (
               <>
                 {' '}
@@ -1111,47 +1338,36 @@ export function ReviewPanel({
 
           <div style={{ marginTop: 12 }}>{renderChecklist()}</div>
 
-          <div className="controls" style={{ marginTop: 14 }}>
+          <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 340 }}>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <button
+                style={{ flex: 1 }}
+                onClick={() => {
+                  selectItemByIndex(Math.max(0, index - 1), processedItems);
+                }}
+                disabled={index <= 0}
+              >
+                Anterior
+              </button>
+              <button
+                style={{ flex: 1 }}
+                onClick={() => {
+                  if (!processedItems.length) return;
+                  selectItemByIndex(Math.min(processedItems.length - 1, index + 1), processedItems);
+                }}
+                disabled={!processedItems.length || index >= processedItems.length - 1}
+              >
+                Siguiente
+              </button>
+            </div>
             <button
-              onClick={() => {
-                const previous = Math.max(0, index - 1);
-                selectItemByIndex(previous);
-                const previousItem = queue?.items[previous];
-                if (previousItem) {
-                  openNrcInMoodle(previousItem.selectedCourse.nrc, previousItem.selectedCourse.moodleCourseUrl);
-                }
-              }}
-              disabled={index <= 0}
-            >
-              Anterior
-            </button>
-            <button
-              onClick={() => {
-                if (!queue?.items.length) return;
-                const next = Math.min(queue.items.length - 1, index + 1);
-                selectItemByIndex(next);
-                const nextItem = queue.items[next];
-                if (nextItem) {
-                  openNrcInMoodle(nextItem.selectedCourse.nrc, nextItem.selectedCourse.moodleCourseUrl);
-                }
-              }}
-              disabled={!queue?.items.length || index >= queue.items.length - 1}
-            >
-              Siguiente
-            </button>
-            <button onClick={() => saveCurrent(false)} disabled={saving}>
-              {saving ? 'Guardando...' : 'Guardar'}
-            </button>
-            <button onClick={() => saveCurrent(true)} disabled={saving}>
-              {saving ? 'Guardando...' : 'Guardar y replicar al grupo'}
-            </button>
-            <button
-              onClick={() => {
-                openNrcInMoodle(current.selectedCourse.nrc, current.selectedCourse.moodleCourseUrl);
-              }}
+              onClick={() => openNrcInMoodle(current.selectedCourse.nrc, current.selectedCourse.moodleCourseUrl)}
               type="button"
             >
               Abrir NRC en Moodle
+            </button>
+            <button onClick={() => saveCurrent(false)} disabled={saving}>
+              {saving ? 'Guardando...' : 'Guardar'}
             </button>
             <button
               className="btn-next-action"
@@ -1163,8 +1379,11 @@ export function ReviewPanel({
                 boxShadow: '0 0 0 2px rgba(27,154,89,0.35) inset',
               }}
               onClick={() => {
-                const reservedTab = window.open('about:blank', '_blank');
-                void saveCurrent(true, true, reservedTab);
+                const nextPending = processedItems.find((item, i) => i !== index && !item.done);
+                if (nextPending) {
+                  openNrcInMoodle(nextPending.selectedCourse.nrc, nextPending.selectedCourse.moodleCourseUrl);
+                }
+                void saveCurrent(true, false);
               }}
               disabled={saving}
             >

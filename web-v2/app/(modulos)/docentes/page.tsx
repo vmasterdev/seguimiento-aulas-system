@@ -9,7 +9,7 @@ export default function TeachersPage() {
     <SinglePanelPageShell
       active="docentes"
       title="Docentes"
-      description="Consulta y mantenimiento de la base de docentes (manual o en lote CSV)."
+      description="Consulta y mantenimiento de la base de docentes, con actualizacion del maestro Excel de docentes y coordinadores."
     >
       <TeachersManagementPanel apiBase={CLIENT_API_BASE} />
     </SinglePanelPageShell>

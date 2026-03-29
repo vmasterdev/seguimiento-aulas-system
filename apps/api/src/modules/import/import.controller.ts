@@ -2,10 +2,14 @@ import { BadRequestException, Body, Controller, Inject, Post, UploadedFiles, Use
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { ImportService } from './import.service';
+import { MoodleAnalyticsService } from '../moodle-analytics/moodle-analytics.service';
 
 @Controller('/import')
 export class ImportController {
-  constructor(@Inject(ImportService) private readonly importService: ImportService) {}
+  constructor(
+    @Inject(ImportService) private readonly importService: ImportService,
+    @Inject(MoodleAnalyticsService) private readonly analyticsService: MoodleAnalyticsService,
+  ) {}
 
   @Post('/csv')
   @UseInterceptors(
@@ -20,6 +24,15 @@ export class ImportController {
   ) {
     if (!files || files.length === 0) {
       throw new BadRequestException('Debes adjuntar al menos un archivo CSV en multipart/form-data.');
+    }
+
+    const invalidFiles = files.filter((file) => !file.originalname.toLowerCase().endsWith('.csv'));
+    if (invalidFiles.length) {
+      throw new BadRequestException(
+        `Todos los archivos RPACA deben ser .csv. Archivos invalidos: ${invalidFiles
+          .map((file) => file.originalname)
+          .join(', ')}`,
+      );
     }
 
     return this.importService.importCsvFiles(files, body);
@@ -44,5 +57,22 @@ export class ImportController {
       files.find((file) => file.originalname.toLowerCase().endsWith('.xlsx')) ?? files[0];
 
     return this.importService.importTeachersWorkbook(workbook, body);
+  }
+
+  @Post('/moodle-log-folder')
+  async importMoodleLogFolder(@Body() body: unknown) {
+    return this.importService.importMoodleLogsFromFolder(body);
+  }
+
+  @Post('/banner-dates-folder')
+  async importBannerDatesFolder(@Body() body: unknown) {
+    const result = await this.importService.importBannerDatesFromFolder(body);
+    if (result.updated > 0) {
+      // Recalcular ingresos para los periodos afectados
+      for (const periodCode of result.periodCodes) {
+        await this.analyticsService.applyTeacherAccessToChecklists({ periodCodes: periodCode });
+      }
+    }
+    return result;
   }
 }

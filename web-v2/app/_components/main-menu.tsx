@@ -8,6 +8,7 @@ export type MainMenuSection =
   | 'rpaca'
   | 'docentes'
   | 'review'
+  | 'nrc-prioridad'
   | 'nrc-globales'
   | 'nrc-trazabilidad'
   | 'correos'
@@ -95,6 +96,16 @@ const ICON_CHART = (
   </svg>
 );
 
+const ICON_CALENDAR = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
+    <line x1="16" y1="2" x2="16" y2="6" />
+    <line x1="8" y1="2" x2="8" y2="6" />
+    <line x1="3" y1="10" x2="21" y2="10" />
+    <circle cx="12" cy="16" r="2" fill="currentColor" stroke="none" />
+  </svg>
+);
+
 type NavItem = {
   href: string;
   label: string;
@@ -108,6 +119,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/rpaca', label: 'Carga RPACA', section: 'rpaca', icon: ICON_UPLOAD, group: 'data' },
   { href: '/docentes', label: 'Docentes', section: 'docentes', icon: ICON_USERS, group: 'data' },
   { href: '/review', label: 'Revision NRC', section: 'review', icon: ICON_CLIPBOARD, group: 'data' },
+  { href: '/nrc-prioridad', label: 'Prioridad NRC', section: 'nrc-prioridad', icon: ICON_CALENDAR, group: 'data' },
   { href: '/nrc-globales', label: 'NRC Globales', section: 'nrc-globales', icon: ICON_GLOBE, group: 'data' },
   { href: '/nrc-trazabilidad', label: 'Trazabilidad', section: 'nrc-trazabilidad', icon: ICON_BRANCH, group: 'data' },
   { href: '/correos', label: 'Correos', section: 'correos', icon: ICON_MAIL, group: 'data' },
