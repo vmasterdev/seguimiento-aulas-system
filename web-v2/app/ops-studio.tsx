@@ -354,53 +354,57 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
     }
   }
 
-  const topTypeCounts = formatListMap(data.sidecar.summary.typeCounts).slice(0, 6);
   const topBannerStatuses = formatListMap(data.banner.exportSummary.statusCounts).slice(0, 6);
   const selectedMoodleUrl =
     selectedCourse?.integrations.urlValidation?.moodleUrl ?? selectedCourse?.moodleCheck?.moodleCourseUrl ?? null;
 
+  const today = new Date().toLocaleDateString('es-CO', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
+
   return (
     <div className="shell">
-      <section className="hero">
+      {/* ── Hero compacto ── */}
+      <section className="hero hero-compact">
         <div className="hero-copy">
-          <span className="eyebrow">Nueva version paralela</span>
-          <h1>Ops Studio V2</h1>
-          <p>
-            Centro operativo visual para monitorear cursos, trazabilidad, Banner docente y el sidecar de Moodle desde
-            una sola interfaz.
-          </p>
+          <h1>Ops Studio</h1>
           <div className="hero-meta">
             <span className={`chip ${data.apiReachable ? 'chip-ok' : 'chip-alert'}`}>
+              <span className={`status-dot ${data.apiReachable ? 'dot-ok' : 'dot-error'}`} />
               API {data.apiReachable ? 'conectada' : 'sin conexion'}
             </span>
-            <span className="chip">Actualizado: {formatDate(data.generatedAt)}</span>
-            <span className="chip">API base: {data.apiBase}</span>
+            <span className="chip">{today}</span>
           </div>
         </div>
-
         <div className="hero-actions">
           <button className="primary-button" onClick={() => void refreshData()} disabled={loading}>
-            {loading ? 'Actualizando...' : 'Refrescar tablero'}
+            {loading ? 'Actualizando...' : 'Refrescar'}
           </button>
-          <div className="button-row">
-            <a className="secondary-button" href="/correos">
-              Abrir Correos
-            </a>
-            <a className="ghost-button" href="/automatizacion-banner">
-              Banner avanzado
-            </a>
-          </div>
           <label className="toggle">
             <input type="checkbox" checked={autoRefresh} onChange={(event) => setAutoRefresh(event.target.checked)} />
-            <span>Auto refresh 15s</span>
+            <span>Auto 15s</span>
           </label>
-          <div className="path-stack">
-            <span>{data.projectRoot}</span>
-            <span>{data.bannerProjectRoot}</span>
-          </div>
         </div>
       </section>
 
+      {/* ── Flashes ── */}
+      {loading && !data.generatedAt ? <div className="flash">Cargando tablero operativo...</div> : null}
+      {message ? <div className="flash">{message}</div> : null}
+      {!data.apiReachable ? (
+        <div className="flash flash-warning">
+          API en 3001 no responde. Acciones de cursos, cola y sidecar no disponibles.
+        </div>
+      ) : null}
+
+      {/* ── Stats grid: max 6 cards ── */}
+      <section className="stats-grid">
+        <StatCard label="Cursos" value={data.stats?.courses ?? data.courses.total} tone="teal" hint={`${data.derived.withoutTeacher} sin docente`} />
+        <StatCard label="Docentes" value={data.derived.withTeacher} hint="con asignacion" />
+        <StatCard label="Moodle OK" value={data.derived.moodleOk} hint={`${data.derived.moodlePending} pendientes`} />
+        <StatCard label="URLs Moodle" value={data.derived.withMoodleUrl} hint={`${data.sidecar.urlValidation.rowCount} validadas`} />
+        <StatCard label="Banner" value={data.derived.bannerFound} hint={`${data.derived.bannerWithoutTeacher} sin docente`} tone={data.derived.bannerWithoutTeacher > 0 ? 'amber' : 'default'} />
+        <StatCard label="Cola activa" value={data.queue?.queue.active ?? 0} hint={`${data.queue?.queue.waiting ?? 0} en espera`} tone={(data.queue?.queue.active ?? 0) > 0 ? 'teal' : 'default'} />
+      </section>
+
+      {/* ── View switcher pills ── */}
       <section className="view-switcher">
         {([
           ['overview', 'Resumen'],
@@ -418,45 +422,33 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
         ))}
       </section>
 
-      {loading && !data.generatedAt ? <div className="flash">Cargando tablero operativo...</div> : null}
-      {message ? <div className="flash">{message}</div> : null}
-      {!data.apiReachable ? (
-        <div className="flash flash-warning">
-          La API en `3001` no esta respondiendo. El dashboard sigue mostrando archivos, Banner y estado local, pero las
-          acciones contra cursos/cola/sidecar no podran ejecutarse hasta levantar la API.
-        </div>
-      ) : null}
-
-      <section className="stats-grid">
-        <StatCard label="Cursos" value={data.stats?.courses ?? data.courses.total} tone="teal" />
-        <StatCard label="Docentes enlazados" value={data.derived.withTeacher} hint={`${data.derived.withoutTeacher} sin docente`} />
-        <StatCard label="Moodle OK" value={data.derived.moodleOk} hint={`${data.derived.moodlePending} pendientes`} />
-        <StatCard label="URLs Moodle" value={data.derived.withMoodleUrl} hint={`${data.sidecar.urlValidation.rowCount} filas validadas`} />
-        <StatCard label="Banner encontrados" value={data.derived.bannerFound} hint={`${data.derived.bannerWithoutTeacher} sin docente`} />
-        <StatCard label="Outbox draft" value={data.outbox.total} tone="amber" />
-        <StatCard label="Aulas vacias" value={data.sidecar.summary.emptyClassrooms} tone="red" />
-        <StatCard label="Workers cola" value={data.queue?.queue.active ?? 0} hint={`waiting ${data.queue?.queue.waiting ?? 0}`} />
-      </section>
-
+      {/* ════════════════════════════════
+          OVERVIEW
+      ════════════════════════════════ */}
       {activeView === 'overview' ? (
         <section className="dashboard-grid">
-          <article className="panel panel-span-2">
+
+          {/* Columna izquierda: acciones operativas como disclosures */}
+          <article className="panel">
             <div className="panel-heading">
-              <h2>Ruta operativa</h2>
-              <span className="panel-note">Acciones rapidas sobre la plataforma actual</span>
+              <h2>Operaciones</h2>
+              <span className="panel-note">Acciones sobre cola, sidecar y Banner</span>
             </div>
-            <div className="action-grid">
-              <div className="action-card">
-                <h3>Cola Moodle</h3>
-                <label>
-                  Periodo
-                  <input value={queuePeriodCode} onChange={(event) => setQueuePeriodCode(event.target.value)} />
-                </label>
-                <label>
-                  Limite
-                  <input value={queueLimit} onChange={(event) => setQueueLimit(event.target.value)} />
-                </label>
-                <div className="button-row">
+
+            <details className="disclosure">
+              <summary>Cola Moodle</summary>
+              <div className="disclosure-body">
+                <div className="form-row">
+                  <label>
+                    Periodo
+                    <input value={queuePeriodCode} onChange={(event) => setQueuePeriodCode(event.target.value)} />
+                  </label>
+                  <label>
+                    Limite
+                    <input value={queueLimit} onChange={(event) => setQueueLimit(event.target.value)} />
+                  </label>
+                </div>
+                <div className="toolbar">
                   <button
                     onClick={() =>
                       void runAction('queue.enqueue', {
@@ -467,7 +459,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== '' || !data.apiReachable}
                   >
-                    Encolar
+                    Encolar pendientes
                   </button>
                   <button
                     className="secondary-button"
@@ -479,7 +471,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== '' || !data.apiReachable}
                   >
-                    Reintentar
+                    Reintentar errores
                   </button>
                   <button
                     className="ghost-button"
@@ -491,32 +483,52 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== '' || !data.apiReachable}
                   >
-                    Muestreo
+                    Generar muestreo
                   </button>
                 </div>
               </div>
+            </details>
 
-              <div className="action-card">
-                <h3>Sidecar Moodle</h3>
-                <div className="stacked-metrics">
-                  <span className="chip">Ultimo archivo: {data.sidecar.summary.rowCount} filas</span>
-                  <span className="chip">Promedio participantes: {data.sidecar.summary.participantAverage ?? '-'}</span>
-                  <span className="chip">Con URL: {data.sidecar.urlValidation.withUrlCount}</span>
+            <details className="disclosure">
+              <summary>Sidecar Moodle</summary>
+              <div className="disclosure-body">
+                <div className="form-row">
+                  <label>
+                    Comando
+                    <select value={sidecarCommand} onChange={(event) => setSidecarCommand(event.target.value as SidecarCommand)}>
+                      <option value="classify">classify</option>
+                      <option value="revalidate">revalidate</option>
+                      <option value="backup">backup</option>
+                      <option value="gui">gui</option>
+                    </select>
+                  </label>
+                  <label>
+                    Workers
+                    <input value={sidecarWorkers} onChange={(event) => setSidecarWorkers(event.target.value)} />
+                  </label>
+                  <label>
+                    Browser
+                    <select value={sidecarBrowser} onChange={(event) => setSidecarBrowser(event.target.value)}>
+                      <option value="chrome">chrome</option>
+                      <option value="edge">edge</option>
+                    </select>
+                  </label>
                 </div>
-                <div className="button-row">
+                <div className="toolbar">
                   <button
                     onClick={() =>
                       void runAction('sidecar.start', {
-                        command: 'classify',
+                        command: sidecarCommand,
                         workers: Number(sidecarWorkers) || 3,
                         browser: sidecarBrowser,
                         inputDir: sidecarInputDir,
                         output: sidecarOutput,
+                        mode: sidecarMode,
                       })
                     }
                     disabled={busyAction !== '' || !data.apiReachable}
                   >
-                    Clasificar ahora
+                    Iniciar sidecar
                   </button>
                   <button
                     className="secondary-button"
@@ -529,22 +541,33 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== '' || !data.apiReachable}
                   >
-                    Importar al sistema
+                    Importar resultados
+                  </button>
+                  <button
+                    className="ghost-button"
+                    onClick={() => void runAction('sidecar.cancel', {})}
+                    disabled={busyAction !== '' || !data.apiReachable}
+                  >
+                    Cancelar
                   </button>
                 </div>
               </div>
+            </details>
 
-              <div className="action-card">
-                <h3>Banner docente</h3>
-                <div className="stacked-metrics">
-                  <span className="chip">Export actual: {data.banner.exportSummary.rowCount} filas</span>
-                  {topBannerStatuses.map(([label, value]) => (
-                    <span className="chip" key={label}>
-                      {label}: {value}
-                    </span>
-                  ))}
+            <details className="disclosure">
+              <summary>Banner docente</summary>
+              <div className="disclosure-body">
+                <div className="form-row">
+                  <label>
+                    NRC
+                    <input value={bannerNrc} onChange={(event) => setBannerNrc(event.target.value)} />
+                  </label>
+                  <label>
+                    Periodo
+                    <input value={bannerPeriod} onChange={(event) => setBannerPeriod(event.target.value)} />
+                  </label>
                 </div>
-                <div className="button-row">
+                <div className="toolbar">
                   <button
                     onClick={() =>
                       void runAction('banner.start', {
@@ -556,7 +579,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== ''}
                   >
-                    Lookup Banner
+                    Lookup NRC
                   </button>
                   <button
                     className="secondary-button"
@@ -572,17 +595,38 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== ''}
                   >
-                    Lote Banner
+                    Lote
+                  </button>
+                  <button
+                    className="ghost-button"
+                    onClick={() => void runAction('banner.cancel', {})}
+                    disabled={busyAction !== ''}
+                  >
+                    Cancelar
                   </button>
                 </div>
               </div>
-            </div>
+            </details>
+
+            <details className="disclosure">
+              <summary>Modulos avanzados</summary>
+              <div className="disclosure-body">
+                <div className="toolbar toolbar-wrap">
+                  {ADVANCED_MODULES.map((item) => (
+                    <a key={item.href} className="secondary-button" href={item.href}>
+                      {item.title}
+                    </a>
+                  ))}
+                </div>
+              </div>
+            </details>
           </article>
 
+          {/* Columna derecha: atencion prioritaria + metricas sidecar */}
           <article className="panel">
             <div className="panel-heading">
               <h2>Atencion prioritaria</h2>
-              <span className="panel-note">Cruzado entre cursos, Banner y sidecar</span>
+              <span className="panel-note">{data.derived.attention.length} alertas activas</span>
             </div>
             <div className="issue-list">
               {data.derived.attention.length ? (
@@ -601,104 +645,86 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                   </button>
                 ))
               ) : (
-                <div className="empty-state">No hay alertas destacadas en este corte.</div>
+                <div className="empty-state">Sin alertas en este corte.</div>
               )}
             </div>
           </article>
 
-          <article className="panel panel-span-2">
-            <div className="panel-heading">
-              <h2>Modulos avanzados</h2>
-              <span className="panel-note">Acceso directo a los modulos completos de esta misma version</span>
-            </div>
-            <div className="action-grid">
-              {ADVANCED_MODULES.map((item) => (
-                <div className="action-card" key={item.href}>
-                  <h3>{item.title}</h3>
-                  <p className="panel-note">{item.description}</p>
-                  <div className="button-row">
-                    <a className="secondary-button" href={item.href}>
-                      Abrir modulo
-                    </a>
-                  </div>
-                </div>
-              ))}
-            </div>
-          </article>
-
+          {/* Fila inferior: sidecar preview + outbox */}
           <article className="panel">
             <div className="panel-heading">
-              <h2>Moodle sidecar</h2>
-              <span className="panel-note">Tipos detectados y rendimiento</span>
+              <h2>Sidecar — muestra reciente</h2>
+              <span className="panel-note">{data.sidecar.summary.rowCount} filas · prom. {data.sidecar.summary.participantAverage ?? '-'} participantes</span>
             </div>
-            <div className="badge-wall">
-              {topTypeCounts.map(([label, value]) => (
-                <span className="badge" key={label}>
-                  {label}: {value}
-                </span>
-              ))}
-            </div>
-            <table className="compact-table">
-              <thead>
-                <tr>
-                  <th>NRC</th>
-                  <th>Tipo</th>
-                  <th>Participantes</th>
-                  <th>Curso</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.sidecar.summary.preview.slice(0, 8).map((item) => (
-                  <tr key={`${item.nrc}-${item.moodleCourseId ?? item.moodleCourseName ?? 'x'}`}>
-                    <td>{item.nrc}</td>
-                    <td>{item.type ?? '-'}</td>
-                    <td>{item.participants ?? '-'}</td>
-                    <td>{item.moodleCourseName ?? '-'}</td>
+            <div className="table-wrap">
+              <table className="compact-table">
+                <thead>
+                  <tr>
+                    <th>NRC</th>
+                    <th>Tipo</th>
+                    <th>Usuarios</th>
+                    <th>Curso Moodle</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.sidecar.summary.preview.slice(0, 8).map((item) => (
+                    <tr key={`${item.nrc}-${item.moodleCourseId ?? item.moodleCourseName ?? 'x'}`}>
+                      <td>{item.nrc}</td>
+                      <td>{item.type ?? '-'}</td>
+                      <td>{item.participants ?? '-'}</td>
+                      <td>{item.moodleCourseName ?? '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </article>
 
           <article className="panel">
             <div className="panel-heading">
               <h2>Outbox borrador</h2>
-              <span className="panel-note">Mensajes listos para revision</span>
+              <span className="panel-note">{data.outbox.total} mensajes pendientes</span>
             </div>
-            <table className="compact-table">
-              <thead>
-                <tr>
-                  <th>Destinatario</th>
-                  <th>Asunto</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.outbox.items.length ? (
-                  data.outbox.items.slice(0, 8).map((item, index) => (
-                    <tr key={`${item.subject}-${index}`}>
-                      <td>{item.teacher?.fullName ?? item.coordinator?.fullName ?? item.recipientName ?? '-'}</td>
-                      <td>{item.subject}</td>
-                      <td>{item.status}</td>
-                    </tr>
-                  ))
-                ) : (
+            <div className="table-wrap">
+              <table className="compact-table">
+                <thead>
                   <tr>
-                    <td colSpan={3}>Sin registros.</td>
+                    <th>Destinatario</th>
+                    <th>Asunto</th>
+                    <th>Estado</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.outbox.items.length ? (
+                    data.outbox.items.slice(0, 8).map((item, index) => (
+                      <tr key={`${item.subject}-${index}`}>
+                        <td>{item.teacher?.fullName ?? item.coordinator?.fullName ?? item.recipientName ?? '-'}</td>
+                        <td>{item.subject}</td>
+                        <td>{item.status}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={3}>Sin registros.</td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </article>
+
         </section>
       ) : null}
 
+      {/* ════════════════════════════════
+          COURSES
+      ════════════════════════════════ */}
       {activeView === 'courses' ? (
         <section className="courses-layout">
           <article className="panel">
             <div className="panel-heading">
               <h2>Explorador de cursos</h2>
-              <span className="panel-note">{filteredCourses.length} resultados visibles</span>
+              <span className="panel-note">{filteredCourses.length} resultados</span>
             </div>
             <div className="filters">
               <label>
@@ -706,7 +732,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                 <input
                   value={courseSearch}
                   onChange={(event) => setCourseSearch(event.target.value)}
-                  placeholder="NRC, docente, URL, tipo, asignatura..."
+                  placeholder="NRC, docente, URL, tipo..."
                 />
               </label>
               <label>
@@ -732,14 +758,14 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                 <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}>
                   <option value="ALL">Todos</option>
                   <option value="OK">OK</option>
-                  <option value="PENDING">Pendiente / revisar</option>
-                  <option value="ERROR">Error / descarte</option>
+                  <option value="PENDING">Pendiente</option>
+                  <option value="ERROR">Error</option>
                 </select>
               </label>
             </div>
 
             <div className="table-wrap">
-              <table className="data-table">
+              <table className="compact-table">
                 <thead>
                   <tr>
                     <th>NRC</th>
@@ -748,6 +774,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     <th>Moodle</th>
                     <th>Sidecar</th>
                     <th>URL</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -765,20 +792,26 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                         {course.subjectName ?? '-'}
                         <div className="mini">{course.programName ?? course.programCode ?? '-'}</div>
                       </td>
-                      <td>{course.teacher?.fullName ?? 'Sin docente'}</td>
+                      <td>{course.teacher?.fullName ?? <span className="chip chip-warn">Sin docente</span>}</td>
                       <td>
-                        {course.moodleCheck?.status ?? 'SIN_CHECK'}
-                        <div className="mini">{course.moodleCheck?.detectedTemplate ?? '-'}</div>
+                        <span className={`chip ${course.moodleCheck?.status === 'OK' ? 'chip-ok' : course.moodleCheck?.status ? 'chip-warn' : 'chip-alert'}`}>
+                          {course.moodleCheck?.status ?? 'SIN_CHECK'}
+                        </span>
+                      </td>
+                      <td>{course.integrations.moodleSidecar?.type ?? '-'}</td>
+                      <td>
+                        <span className={`chip ${course.integrations.urlValidation?.moodleUrl ? 'chip-ok' : 'chip-alert'}`}>
+                          {course.integrations.urlValidation?.moodleUrl ? 'OK' : 'Pendiente'}
+                        </span>
                       </td>
                       <td>
-                        {course.integrations.moodleSidecar?.type ?? '-'}
-                        <div className="mini">
-                          {course.integrations.moodleSidecar?.participants != null
-                            ? `${course.integrations.moodleSidecar.participants} usuarios`
-                            : 'sin dato'}
-                        </div>
+                        <button
+                          className="ghost-button"
+                          onClick={(e) => { e.stopPropagation(); setSelectedCourseId(course.id); }}
+                        >
+                          Ver
+                        </button>
                       </td>
-                      <td>{course.integrations.urlValidation?.moodleUrl ? 'Disponible' : 'Pendiente'}</td>
                     </tr>
                   ))}
                 </tbody>
@@ -789,7 +822,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
           <aside className="panel course-detail">
             <div className="panel-heading">
               <h2>Ficha integrada</h2>
-              <span className="panel-note">API + Banner + sidecar + archivos</span>
+              <span className="panel-note">API + Banner + sidecar</span>
             </div>
             {selectedCourse ? (
               <div className="detail-stack">
@@ -830,8 +863,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                   <h4>Integracion Moodle</h4>
                   <div className="detail-lines">
                     <div>Template: {selectedCourse.moodleCheck?.detectedTemplate ?? '-'}</div>
-                    <div>Mod. resuelta: {selectedCourse.moodleCheck?.resolvedModality ?? selectedCourse.integrations.urlValidation?.modality ?? '-'}</div>
-                    <div>Query usada: {selectedCourse.integrations.moodleSidecar?.queryUsed ?? selectedCourse.moodleCheck?.searchQuery ?? '-'}</div>
+                    <div>Modalidad: {selectedCourse.moodleCheck?.resolvedModality ?? selectedCourse.integrations.urlValidation?.modality ?? '-'}</div>
                     <div>Course ID: {selectedCourse.integrations.moodleSidecar?.moodleCourseId ?? selectedCourse.moodleCheck?.moodleCourseId ?? '-'}</div>
                     <div>Usuarios detectados: {selectedCourse.integrations.moodleSidecar?.participantsDetected ?? '-'}</div>
                   </div>
@@ -848,8 +880,8 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                   <h4>Integracion Banner</h4>
                   <div className="detail-lines">
                     <div>Teacher ID: {selectedCourse.integrations.bannerExport?.teacherId ?? selectedCourse.teacherId ?? '-'}</div>
-                    <div>Teacher name: {selectedCourse.integrations.bannerExport?.teacherName ?? selectedCourse.teacher?.fullName ?? '-'}</div>
-                    <div>Checked at: {formatDate(selectedCourse.integrations.bannerExport?.checkedAt)}</div>
+                    <div>Nombre: {selectedCourse.integrations.bannerExport?.teacherName ?? selectedCourse.teacher?.fullName ?? '-'}</div>
+                    <div>Verificado: {formatDate(selectedCourse.integrations.bannerExport?.checkedAt)}</div>
                     <div>Error: {selectedCourse.integrations.bannerExport?.errorMessage ?? '-'}</div>
                   </div>
                 </div>
@@ -873,280 +905,78 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
         </section>
       ) : null}
 
+      {/* ════════════════════════════════
+          INTEGRATIONS
+      ════════════════════════════════ */}
       {activeView === 'integrations' ? (
         <section className="dashboard-grid">
-          <article className="panel panel-span-2">
+
+          {/* Estado de integraciones: chips de estado */}
+          <article className="panel">
             <div className="panel-heading">
-              <h2>Control Sidecar Moodle</h2>
-              <span className="panel-note">Ejecucion, importacion y log en vivo</span>
+              <h2>Estado de integraciones</h2>
+              <span className="panel-note">Resumen de conectividad y procesos</span>
             </div>
-
-            <div className="form-grid">
-              <label>
-                Comando
-                <select value={sidecarCommand} onChange={(event) => setSidecarCommand(event.target.value as SidecarCommand)}>
-                  <option value="classify">classify</option>
-                  <option value="revalidate">revalidate</option>
-                  <option value="backup">backup</option>
-                  <option value="gui">gui</option>
-                </select>
-              </label>
-              <label>
-                Workers
-                <input value={sidecarWorkers} onChange={(event) => setSidecarWorkers(event.target.value)} />
-              </label>
-              <label>
-                Browser
-                <select value={sidecarBrowser} onChange={(event) => setSidecarBrowser(event.target.value)}>
-                  <option value="edge">edge</option>
-                  <option value="chrome">chrome</option>
-                </select>
-              </label>
-              <label>
-                Modo revalidate
-                <select value={sidecarMode} onChange={(event) => setSidecarMode(event.target.value)}>
-                  <option value="ambos">ambos</option>
-                  <option value="sin_matricula">sin_matricula</option>
-                  <option value="aulas_vacias">aulas_vacias</option>
-                </select>
-              </label>
-              <label className="wide">
-                input-dir
-                <input value={sidecarInputDir} onChange={(event) => setSidecarInputDir(event.target.value)} />
-              </label>
-              <label className="wide">
-                output
-                <input value={sidecarOutput} onChange={(event) => setSidecarOutput(event.target.value)} />
-              </label>
-            </div>
-
-            <div className="button-row">
-              <button
-                onClick={() =>
-                  void runAction('sidecar.start', {
-                    command: sidecarCommand,
-                    workers: Number(sidecarWorkers) || 3,
-                    browser: sidecarBrowser,
-                    inputDir: sidecarInputDir || undefined,
-                    output: sidecarOutput || undefined,
-                    mode: sidecarMode,
-                  })
-                }
-                disabled={busyAction !== '' || !data.apiReachable}
-              >
-                Iniciar sidecar
-              </button>
-              <button
-                className="secondary-button"
-                onClick={() => void runAction('sidecar.cancel', {})}
-                disabled={busyAction !== '' || !data.apiReachable}
-              >
-                Cancelar sidecar
-              </button>
-              <button className="ghost-button" onClick={() => void refreshData()} disabled={loading}>
-                Leer estado
-              </button>
-            </div>
-
-            <div className="subpanel">
-              <div className="subpanel-header">
-                <strong>Importar resultados sidecar</strong>
-                <span>{data.sidecar.urlValidation.latestFile ?? 'Sin archivo detectado'}</span>
+            <div className="integration-status-list">
+              <div className="integration-row">
+                <span className="integration-name">API backend</span>
+                <span className={`chip ${data.apiReachable ? 'chip-ok' : 'chip-alert'}`}>
+                  {data.apiReachable ? 'Conectada' : 'Sin conexion'}
+                </span>
               </div>
-              <div className="form-grid">
-                <label className="wide">
-                  inputPath
-                  <input value={sidecarImportPath} onChange={(event) => setSidecarImportPath(event.target.value)} />
-                </label>
-                <label>
-                  sourceLabel
-                  <input value={sidecarImportSource} onChange={(event) => setSidecarImportSource(event.target.value)} />
-                </label>
-                <label className="checkbox-line">
-                  <input
-                    type="checkbox"
-                    checked={sidecarImportDryRun}
-                    onChange={(event) => setSidecarImportDryRun(event.target.checked)}
-                  />
-                  <span>dry run</span>
-                </label>
+              <div className="integration-row">
+                <span className="integration-name">Banner runner</span>
+                <span className={`chip ${data.banner.runner.running ? 'chip-warn' : 'chip-ok'}`}>
+                  {data.banner.runner.running ? 'En ejecucion' : 'Inactivo'}
+                </span>
               </div>
-              <div className="button-row">
-                <button
-                  onClick={() =>
-                    void runAction('sidecar.import', {
-                      inputPath: sidecarImportPath || undefined,
-                      dryRun: sidecarImportDryRun,
-                      sourceLabel: sidecarImportSource,
-                    })
-                  }
-                  disabled={busyAction !== '' || !data.apiReachable}
-                >
-                  Importar a la base actual
-                </button>
+              <div className="integration-row">
+                <span className="integration-name">Sidecar Moodle</span>
+                <span className={`chip ${(data.sidecar.runner as { running?: boolean } | null)?.running ? 'chip-warn' : 'chip-ok'}`}>
+                  {(data.sidecar.runner as { running?: boolean } | null)?.running ? 'En ejecucion' : 'Inactivo'}
+                </span>
+              </div>
+              <div className="integration-row">
+                <span className="integration-name">Export Banner</span>
+                <span className={`chip ${data.banner.exportSummary.rowCount > 0 ? 'chip-ok' : 'chip-alert'}`}>
+                  {data.banner.exportSummary.rowCount} filas
+                </span>
+              </div>
+              <div className="integration-row">
+                <span className="integration-name">CSV Sidecar</span>
+                <span className={`chip ${data.sidecar.summary.rowCount > 0 ? 'chip-ok' : 'chip-alert'}`}>
+                  {data.sidecar.summary.rowCount} filas
+                </span>
+              </div>
+              <div className="integration-row">
+                <span className="integration-name">Aulas vacias</span>
+                <span className={`chip ${data.sidecar.summary.emptyClassrooms > 0 ? 'chip-alert' : 'chip-ok'}`}>
+                  {data.sidecar.summary.emptyClassrooms}
+                </span>
+              </div>
+              <div className="integration-row">
+                <span className="integration-name">Cola activa</span>
+                <span className={`chip ${(data.queue?.queue.active ?? 0) > 0 ? 'chip-warn' : 'chip-ok'}`}>
+                  {data.queue?.queue.active ?? 0} activos / {data.queue?.queue.waiting ?? 0} en espera
+                </span>
+              </div>
+              <div className="integration-row">
+                <span className="integration-name">Ultimo Banner</span>
+                <span className="chip">{formatDate(data.banner.runner.lastRun?.endedAt ?? data.banner.runner.current?.startedAt)}</span>
+              </div>
+              <div className="integration-row">
+                <span className="integration-name">Ultimo Sidecar</span>
+                <span className="chip">
+                  {formatDate(
+                    (data.sidecar.runner as { lastRun?: { endedAt?: string }; current?: { startedAt?: string } } | null)?.lastRun?.endedAt ??
+                    (data.sidecar.runner as { current?: { startedAt?: string } } | null)?.current?.startedAt
+                  )}
+                </span>
               </div>
             </div>
 
-            <pre className="log-block">{JSON.stringify(data.sidecar.runner ?? {}, null, 2)}</pre>
-          </article>
-
-          <article className="panel">
-            <div className="panel-heading">
-              <h2>Banner desde la web</h2>
-              <span className="panel-note">Lookup, batch, retry y export</span>
-            </div>
-            <div className="form-grid">
-              <label>
-                Accion
-                <select value={bannerMode} onChange={(event) => setBannerMode(event.target.value as BannerMode)}>
-                  <option value="lookup">lookup</option>
-                  <option value="batch">batch</option>
-                  <option value="retry-errors">retry-errors</option>
-                  <option value="export">export</option>
-                </select>
-              </label>
-              <label>
-                NRC
-                <input value={bannerNrc} onChange={(event) => setBannerNrc(event.target.value)} />
-              </label>
-              <label>
-                Periodo
-                <input value={bannerPeriod} onChange={(event) => setBannerPeriod(event.target.value)} />
-              </label>
-              <label>
-                Query name
-                <input value={bannerQueryName} onChange={(event) => setBannerQueryName(event.target.value)} />
-              </label>
-              <label className="wide">
-                Input batch
-                <input value={bannerInputPath} onChange={(event) => setBannerInputPath(event.target.value)} />
-              </label>
-              <label>
-                Workers
-                <input value={bannerWorkers} onChange={(event) => setBannerWorkers(event.target.value)} />
-              </label>
-              <label>
-                Query ID
-                <input value={bannerQueryId} onChange={(event) => setBannerQueryId(event.target.value)} />
-              </label>
-              <label>
-                Export format
-                <input value={bannerExportFormat} onChange={(event) => setBannerExportFormat(event.target.value)} />
-              </label>
-              <label className="checkbox-line">
-                <input type="checkbox" checked={bannerResume} onChange={(event) => setBannerResume(event.target.checked)} />
-                <span>resume</span>
-              </label>
-            </div>
-            <div className="button-row">
-              <button
-                onClick={() => {
-                  if (bannerMode === 'lookup') {
-                    void runAction('banner.start', {
-                      command: 'lookup',
-                      nrc: bannerNrc,
-                      period: bannerPeriod,
-                      queryName: bannerQueryName,
-                    });
-                    return;
-                  }
-                  if (bannerMode === 'batch') {
-                    void runAction('banner.start', {
-                      command: 'batch',
-                      input: bannerInputPath,
-                      period: bannerPeriod,
-                      queryName: bannerQueryName,
-                      queryId: bannerQueryId || undefined,
-                      workers: Number(bannerWorkers) || 1,
-                      resume: bannerResume,
-                    });
-                    return;
-                  }
-                  if (bannerMode === 'retry-errors') {
-                    void runAction('banner.start', {
-                      command: 'retry-errors',
-                      queryId: bannerQueryId,
-                      workers: Number(bannerWorkers) || 1,
-                    });
-                    return;
-                  }
-                  void runAction('banner.start', {
-                    command: 'export',
-                    queryId: bannerQueryId,
-                    format: bannerExportFormat,
-                  });
-                }}
-                disabled={busyAction !== ''}
-              >
-                Ejecutar Banner
-              </button>
-              <button className="secondary-button" onClick={() => void runAction('banner.cancel', {})} disabled={busyAction !== ''}>
-                Cancelar Banner
-              </button>
-            </div>
-            <pre className="log-block">{data.banner.runner.logTail || 'Sin log de Banner aun.'}</pre>
-          </article>
-
-          <article className="panel">
-            <div className="panel-heading">
-              <h2>Estado de ejecucion</h2>
-              <span className="panel-note">Procesos largos y ultimas salidas</span>
-            </div>
-            <div className="badge-wall">
-              <span className="badge">Banner running: {data.banner.runner.running ? 'SI' : 'NO'}</span>
-              <span className="badge">
-                Sidecar running: {String((data.sidecar.runner as { running?: boolean } | null)?.running ? 'SI' : 'NO')}
-              </span>
-              <span className="badge">Export Banner: {data.banner.exportSummary.rowCount} filas</span>
-              <span className="badge">CSV sidecar: {data.sidecar.summary.rowCount} filas</span>
-            </div>
-            <div className="stacked-metrics">
-              <span className="chip">Ultimo Banner: {formatDate(data.banner.runner.lastRun?.endedAt ?? data.banner.runner.current?.startedAt)}</span>
-              <span className="chip">Ultimo sidecar: {formatDate((data.sidecar.runner as { current?: { startedAt?: string }; lastRun?: { endedAt?: string } } | null)?.lastRun?.endedAt ?? (data.sidecar.runner as { current?: { startedAt?: string } } | null)?.current?.startedAt)}</span>
-            </div>
-            <pre className="log-block">{JSON.stringify(data.banner.runner.current ?? data.banner.runner.lastRun ?? {}, null, 2)}</pre>
-          </article>
-        </section>
-      ) : null}
-
-      {activeView === 'files' ? (
-        <section className="dashboard-grid">
-          <article className="panel panel-span-2">
-            <div className="panel-heading">
-              <h2>Centro de archivos</h2>
-              <span className="panel-note">Ultimas salidas del sistema y de Banner</span>
-            </div>
-            <table className="data-table">
-              <thead>
-                <tr>
-                  <th>Archivo</th>
-                  <th>Origen</th>
-                  <th>Categoria</th>
-                  <th>Tamano</th>
-                  <th>Modificado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.files.map((file) => (
-                  <tr key={file.path}>
-                    <td>
-                      {file.name}
-                      <div className="mini">{file.path}</div>
-                    </td>
-                    <td>{file.source}</td>
-                    <td>{file.category}</td>
-                    <td>{file.sizeLabel}</td>
-                    <td>{formatDate(file.modifiedAt)}</td>
-                  </tr>
-                ))}
-              </tbody>
-            </table>
-          </article>
-
-          <article className="panel">
-            <div className="panel-heading">
-              <h2>Resumen Banner</h2>
-              <span className="panel-note">{data.banner.exportSummary.latestFile ?? 'Sin export detectado'}</span>
+            <div className="panel-heading" style={{ marginTop: '1.25rem' }}>
+              <h3>Estatus Banner por categoria</h3>
             </div>
             <div className="badge-wall">
               {topBannerStatuses.map(([label, value]) => (
@@ -1155,49 +985,328 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                 </span>
               ))}
             </div>
-            <table className="compact-table">
-              <thead>
-                <tr>
-                  <th>NRC</th>
-                  <th>Docente</th>
-                  <th>Estado</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.banner.exportSummary.preview.map((item) => (
-                  <tr key={`${item.nrc}-${item.teacherId ?? item.status ?? 'x'}`}>
-                    <td>{item.nrc}</td>
-                    <td>{item.teacherName ?? '-'}</td>
-                    <td>{item.status ?? '-'}</td>
+          </article>
+
+          {/* Control Sidecar */}
+          <article className="panel">
+            <div className="panel-heading">
+              <h2>Control Sidecar</h2>
+              <span className="panel-note">Ejecucion e importacion</span>
+            </div>
+
+            <details className="disclosure" open>
+              <summary>Ejecutar sidecar</summary>
+              <div className="disclosure-body">
+                <div className="form-grid">
+                  <label>
+                    Comando
+                    <select value={sidecarCommand} onChange={(event) => setSidecarCommand(event.target.value as SidecarCommand)}>
+                      <option value="classify">classify</option>
+                      <option value="revalidate">revalidate</option>
+                      <option value="backup">backup</option>
+                      <option value="gui">gui</option>
+                    </select>
+                  </label>
+                  <label>
+                    Workers
+                    <input value={sidecarWorkers} onChange={(event) => setSidecarWorkers(event.target.value)} />
+                  </label>
+                  <label>
+                    Browser
+                    <select value={sidecarBrowser} onChange={(event) => setSidecarBrowser(event.target.value)}>
+                      <option value="chrome">chrome</option>
+                      <option value="edge">edge</option>
+                    </select>
+                  </label>
+                  <label>
+                    Modo revalidate
+                    <select value={sidecarMode} onChange={(event) => setSidecarMode(event.target.value)}>
+                      <option value="ambos">ambos</option>
+                      <option value="sin_matricula">sin_matricula</option>
+                      <option value="aulas_vacias">aulas_vacias</option>
+                    </select>
+                  </label>
+                  <label className="wide">
+                    input-dir
+                    <input value={sidecarInputDir} onChange={(event) => setSidecarInputDir(event.target.value)} />
+                  </label>
+                  <label className="wide">
+                    output
+                    <input value={sidecarOutput} onChange={(event) => setSidecarOutput(event.target.value)} />
+                  </label>
+                </div>
+                <div className="toolbar">
+                  <button
+                    onClick={() =>
+                      void runAction('sidecar.start', {
+                        command: sidecarCommand,
+                        workers: Number(sidecarWorkers) || 3,
+                        browser: sidecarBrowser,
+                        inputDir: sidecarInputDir || undefined,
+                        output: sidecarOutput || undefined,
+                        mode: sidecarMode,
+                      })
+                    }
+                    disabled={busyAction !== '' || !data.apiReachable}
+                  >
+                    Iniciar
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => void runAction('sidecar.cancel', {})}
+                    disabled={busyAction !== '' || !data.apiReachable}
+                  >
+                    Cancelar
+                  </button>
+                  <button className="ghost-button" onClick={() => void refreshData()} disabled={loading}>
+                    Leer estado
+                  </button>
+                </div>
+              </div>
+            </details>
+
+            <details className="disclosure">
+              <summary>Importar resultados sidecar</summary>
+              <div className="disclosure-body">
+                <div className="form-grid">
+                  <label className="wide">
+                    inputPath
+                    <input value={sidecarImportPath} onChange={(event) => setSidecarImportPath(event.target.value)} placeholder="Dejar vacio para usar el ultimo detectado" />
+                  </label>
+                  <label>
+                    sourceLabel
+                    <input value={sidecarImportSource} onChange={(event) => setSidecarImportSource(event.target.value)} />
+                  </label>
+                  <label className="checkbox-line">
+                    <input
+                      type="checkbox"
+                      checked={sidecarImportDryRun}
+                      onChange={(event) => setSidecarImportDryRun(event.target.checked)}
+                    />
+                    <span>dry run</span>
+                  </label>
+                </div>
+                <div className="toolbar">
+                  <button
+                    onClick={() =>
+                      void runAction('sidecar.import', {
+                        inputPath: sidecarImportPath || undefined,
+                        dryRun: sidecarImportDryRun,
+                        sourceLabel: sidecarImportSource,
+                      })
+                    }
+                    disabled={busyAction !== '' || !data.apiReachable}
+                  >
+                    Importar a la base
+                  </button>
+                </div>
+              </div>
+            </details>
+          </article>
+
+          {/* Control Banner */}
+          <article className="panel">
+            <div className="panel-heading">
+              <h2>Control Banner</h2>
+              <span className="panel-note">Lookup, batch, retry y export</span>
+            </div>
+
+            <details className="disclosure" open>
+              <summary>Ejecutar Banner</summary>
+              <div className="disclosure-body">
+                <div className="form-grid">
+                  <label>
+                    Accion
+                    <select value={bannerMode} onChange={(event) => setBannerMode(event.target.value as BannerMode)}>
+                      <option value="lookup">lookup</option>
+                      <option value="batch">batch</option>
+                      <option value="retry-errors">retry-errors</option>
+                      <option value="export">export</option>
+                    </select>
+                  </label>
+                  <label>
+                    NRC
+                    <input value={bannerNrc} onChange={(event) => setBannerNrc(event.target.value)} />
+                  </label>
+                  <label>
+                    Periodo
+                    <input value={bannerPeriod} onChange={(event) => setBannerPeriod(event.target.value)} />
+                  </label>
+                  <label>
+                    Query name
+                    <input value={bannerQueryName} onChange={(event) => setBannerQueryName(event.target.value)} />
+                  </label>
+                  <label className="wide">
+                    Input batch
+                    <input value={bannerInputPath} onChange={(event) => setBannerInputPath(event.target.value)} />
+                  </label>
+                  <label>
+                    Workers
+                    <input value={bannerWorkers} onChange={(event) => setBannerWorkers(event.target.value)} />
+                  </label>
+                  <label>
+                    Query ID
+                    <input value={bannerQueryId} onChange={(event) => setBannerQueryId(event.target.value)} />
+                  </label>
+                  <label>
+                    Export format
+                    <input value={bannerExportFormat} onChange={(event) => setBannerExportFormat(event.target.value)} />
+                  </label>
+                  <label className="checkbox-line">
+                    <input type="checkbox" checked={bannerResume} onChange={(event) => setBannerResume(event.target.checked)} />
+                    <span>resume</span>
+                  </label>
+                </div>
+                <div className="toolbar">
+                  <button
+                    onClick={() => {
+                      if (bannerMode === 'lookup') {
+                        void runAction('banner.start', { command: 'lookup', nrc: bannerNrc, period: bannerPeriod, queryName: bannerQueryName });
+                        return;
+                      }
+                      if (bannerMode === 'batch') {
+                        void runAction('banner.start', { command: 'batch', input: bannerInputPath, period: bannerPeriod, queryName: bannerQueryName, queryId: bannerQueryId || undefined, workers: Number(bannerWorkers) || 1, resume: bannerResume });
+                        return;
+                      }
+                      if (bannerMode === 'retry-errors') {
+                        void runAction('banner.start', { command: 'retry-errors', queryId: bannerQueryId, workers: Number(bannerWorkers) || 1 });
+                        return;
+                      }
+                      void runAction('banner.start', { command: 'export', queryId: bannerQueryId, format: bannerExportFormat });
+                    }}
+                    disabled={busyAction !== ''}
+                  >
+                    Ejecutar
+                  </button>
+                  <button
+                    className="secondary-button"
+                    onClick={() => void runAction('banner.cancel', {})}
+                    disabled={busyAction !== ''}
+                  >
+                    Cancelar
+                  </button>
+                </div>
+              </div>
+            </details>
+
+            <details className="disclosure">
+              <summary>Log Banner</summary>
+              <div className="disclosure-body">
+                <pre className="log-block">{data.banner.runner.logTail || 'Sin log de Banner aun.'}</pre>
+              </div>
+            </details>
+          </article>
+
+        </section>
+      ) : null}
+
+      {/* ════════════════════════════════
+          FILES
+      ════════════════════════════════ */}
+      {activeView === 'files' ? (
+        <section className="dashboard-grid">
+          <article className="panel panel-span-2">
+            <div className="panel-heading">
+              <h2>Centro de archivos</h2>
+              <span className="panel-note">Ultimas salidas del sistema</span>
+            </div>
+            <div className="table-wrap">
+              <table className="compact-table">
+                <thead>
+                  <tr>
+                    <th>Archivo</th>
+                    <th>Origen</th>
+                    <th>Categoria</th>
+                    <th>Tamano</th>
+                    <th>Modificado</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.files.map((file) => (
+                    <tr key={file.path}>
+                      <td>{file.name}</td>
+                      <td>{file.source}</td>
+                      <td>{file.category}</td>
+                      <td>{file.sizeLabel}</td>
+                      <td>{formatDate(file.modifiedAt)}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
+          </article>
+
+          <article className="panel">
+            <div className="panel-heading">
+              <h2>Resumen Banner</h2>
+              <span className="panel-note">{data.banner.exportSummary.rowCount} filas en export</span>
+            </div>
+            <div className="badge-wall">
+              {topBannerStatuses.map(([label, value]) => (
+                <span className="badge" key={label}>
+                  {label}: {value}
+                </span>
+              ))}
+            </div>
+            <div className="table-wrap">
+              <table className="compact-table">
+                <thead>
+                  <tr>
+                    <th>NRC</th>
+                    <th>Docente</th>
+                    <th>Estado</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {data.banner.exportSummary.preview.map((item) => (
+                    <tr key={`${item.nrc}-${item.teacherId ?? item.status ?? 'x'}`}>
+                      <td>{item.nrc}</td>
+                      <td>{item.teacherName ?? '-'}</td>
+                      <td>
+                        <span className={`chip ${item.status === 'ENCONTRADO' ? 'chip-ok' : item.status ? 'chip-warn' : 'chip-alert'}`}>
+                          {item.status ?? '-'}
+                        </span>
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </article>
 
           <article className="panel">
             <div className="panel-heading">
               <h2>Resumen URL Moodle</h2>
-              <span className="panel-note">{data.sidecar.urlValidation.latestFile ?? 'Sin archivo validado'}</span>
+              <span className="panel-note">{data.sidecar.urlValidation.withUrlCount} URLs resueltas</span>
             </div>
-            <table className="compact-table">
-              <thead>
-                <tr>
-                  <th>NRC</th>
-                  <th>Docente</th>
-                  <th>URL</th>
-                </tr>
-              </thead>
-              <tbody>
-                {data.sidecar.urlValidation.preview.map((item) => (
-                  <tr key={`${item.nrc}-${item.moodleUrl ?? 'x'}`}>
-                    <td>{item.nrc}</td>
-                    <td>{item.teacherName ?? '-'}</td>
-                    <td className="mini">{item.moodleUrl ?? '-'}</td>
+            <div className="table-wrap">
+              <table className="compact-table">
+                <thead>
+                  <tr>
+                    <th>NRC</th>
+                    <th>Docente</th>
+                    <th>URL</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {data.sidecar.urlValidation.preview.map((item) => (
+                    <tr key={`${item.nrc}-${item.moodleUrl ?? 'x'}`}>
+                      <td>{item.nrc}</td>
+                      <td>{item.teacherName ?? '-'}</td>
+                      <td>
+                        {item.moodleUrl ? (
+                          <a href={item.moodleUrl} target="_blank" rel="noreferrer" className="inline-link">
+                            Abrir
+                          </a>
+                        ) : (
+                          <span className="chip chip-alert">Pendiente</span>
+                        )}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </div>
           </article>
         </section>
       ) : null}

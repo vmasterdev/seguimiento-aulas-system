@@ -468,290 +468,423 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
 
   return (
     <article className="panel">
-      <h2>Gestion RPACA y faltantes de docente</h2>
 
-      <div className="subtitle">1) Cargar nuevos RPACA (incremental seguro)</div>
-      <div className="actions" style={{ marginTop: 6 }}>
-        Esta importacion ya no borra metadata operativa del curso. Puedes conservar el docente actual si RPACA llega incompleto y, si quieres, limitarte a crear NRC nuevos sin tocar los existentes.
-        <br />
-        Cuando llegue un periodo nuevo, por ejemplo <span className="code">202765</span>, el sistema lo crea en la base
-        automaticamente y los NRC quedan manejados con el prefijo correcto del periodo, por ejemplo{' '}
-        <span className="code">65-xxxxx</span>.
-      </div>
-      <div className="controls">
-        <label style={{ minWidth: 340 }}>
-          Archivos CSV RPACA
-          <input
-            type="file"
-            accept=".csv,text/csv"
-            multiple
-            onChange={(event) => setRpacaFiles(Array.from(event.target.files ?? []))}
-          />
-        </label>
-        <button type="button" onClick={() => void importRpaca()} disabled={importLoading}>
-          {importLoading ? 'Importando...' : 'Importar RPACA'}
-        </button>
-      </div>
-      <div className="controls" style={{ marginTop: 10 }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 360 }}>
-          <input
-            type="checkbox"
-            checked={preserveTeacherAssignment}
-            onChange={(event) => setPreserveTeacherAssignment(event.target.checked)}
-          />
-          Conservar docente actual si RPACA viene sin docente
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 260 }}>
-          <input type="checkbox" checked={createOnly} onChange={(event) => setCreateOnly(event.target.checked)} />
-          Solo crear NRC nuevos
-        </label>
-      </div>
-      <div className="subtitle" style={{ marginTop: 12 }}>
-        1.1) Flujo automatico despues de importar
-      </div>
-      <div className="actions" style={{ marginTop: 6 }}>
-        Si activas este flujo, al terminar RPACA el sistema lanza Banner sobre los periodos tocados, importa el
-        resultado y descarta del sistema los NRC que Banner marque como <span className="code">NO_ENCONTRADO</span>.
-        Los NRC encontrados quedan listos para pasar a la revision visual de tipo de aulas en Moodle.
-      </div>
-      <div className="controls" style={{ marginTop: 8 }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 340 }}>
-          <input
-            type="checkbox"
-            checked={runBannerAfterImport}
-            onChange={(event) => setRunBannerAfterImport(event.target.checked)}
-          />
-          Ejecutar Banner automaticamente al terminar RPACA
-        </label>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 360 }}>
-          <input
-            type="checkbox"
-            checked={deactivateBannerNotFound}
-            onChange={(event) => setDeactivateBannerNotFound(event.target.checked)}
-            disabled={!runBannerAfterImport}
-          />
-          Descartar del sistema los NRC no encontrados en Banner
-        </label>
-        <div className="actions" style={{ minWidth: 240 }}>
-          Banner corre en modo estable con <span className="code">1 worker</span>.
+      {/* ── Header ─────────────────────────────────────────────── */}
+      <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
+        <div>
+          <h1 style={{ margin: 0, fontSize: '1.25rem', fontWeight: 700 }}>Carga RPACA</h1>
+          <p style={{ margin: '4px 0 0', color: 'var(--text-muted, #6b7280)', fontSize: '0.875rem' }}>
+            Importa archivos CSV RPACA, valida contra Banner y resuelve docentes faltantes.
+          </p>
         </div>
-      </div>
-      {rpacaFiles.length ? (
-        <div className="actions">
-          Archivos seleccionados: <span className="code">{rpacaFiles.length}</span>
-        </div>
-      ) : null}
-      {importMessage ? <div className="message">{importMessage}</div> : null}
-      {importResult ? (
-        <div className="badges" style={{ marginTop: 8 }}>
-          <span className="badge">Filas: {importResult.totalRows}</span>
-          <span className="badge">NRC nuevos: {importResult.createdCourses}</span>
-          <span className="badge">NRC actualizados: {importResult.updatedCourses}</span>
-          <span className="badge">Filas omitidas: {importResult.skippedRows}</span>
-          <span className="badge">Filas con error: {importResult.failedRows ?? 0}</span>
-          <span className="badge">Existentes sin tocar: {importResult.skippedExistingCourses}</span>
-          <span className="badge">Docentes preservados: {importResult.preservedTeacherAssignments}</span>
-          <span className="badge">Periodos: {(importResult.periodsTouched ?? []).join(', ') || 'N/A'}</span>
-        </div>
-      ) : null}
-      {recentPeriodsTouched.length > 1 ? (
-        <div className="actions" style={{ marginTop: 8, flexWrap: 'wrap' }}>
-          Periodos tocados en esta carga:
-          {recentPeriodsTouched.map((period) => (
-            <button
-              key={`recent-period-${period}`}
-              type="button"
-              onClick={() => setSelectedPeriodCodes([period])}
+        <div className="toolbar" style={{ display: 'flex', alignItems: 'center', gap: 8, flexShrink: 0 }}>
+          <label style={{ fontSize: '0.8125rem', color: 'var(--text-muted, #6b7280)' }}>
+            {rpacaFiles.length ? (
+              <span className="badge" style={{ marginRight: 6 }}>{rpacaFiles.length} archivo{rpacaFiles.length > 1 ? 's' : ''}</span>
+            ) : null}
+            <input
+              type="file"
+              accept=".csv,text/csv"
+              multiple
+              style={{ display: 'none' }}
+              onChange={(event) => setRpacaFiles(Array.from(event.target.files ?? []))}
+              id="rpaca-file-input"
+            />
+            <span
+              role="button"
+              tabIndex={0}
+              onClick={() => document.getElementById('rpaca-file-input')?.click()}
+              onKeyDown={(e) => e.key === 'Enter' && document.getElementById('rpaca-file-input')?.click()}
+              style={{ cursor: 'pointer', textDecoration: 'underline', userSelect: 'none' }}
             >
-              {period}
-            </button>
-          ))}
+              Elegir CSV
+            </span>
+          </label>
+          <button
+            type="button"
+            className="btn-primary"
+            onClick={() => void importRpaca()}
+            disabled={importLoading}
+            style={{ fontWeight: 600 }}
+          >
+            {importLoading ? 'Importando...' : 'Importar CSV'}
+          </button>
         </div>
-      ) : null}
-      {importResult?.historyRelativePath ? (
-        <div className="actions" style={{ marginTop: 8 }}>
-          Historial guardado: <span className="code">{importResult.historyRelativePath}</span>
+      </div>
+
+      {/* ── Upload zone / opciones ──────────────────────────────── */}
+      <div className="panel" style={{ background: 'var(--surface-subtle, #f9fafb)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8, padding: '12px 16px', marginBottom: 16 }}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 24px', alignItems: 'center' }}>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem' }}>
+            <input
+              type="checkbox"
+              checked={preserveTeacherAssignment}
+              onChange={(event) => setPreserveTeacherAssignment(event.target.checked)}
+            />
+            Conservar docente actual si RPACA viene sin docente
+          </label>
+          <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem' }}>
+            <input type="checkbox" checked={createOnly} onChange={(event) => setCreateOnly(event.target.checked)} />
+            Solo crear NRC nuevos (no actualizar existentes)
+          </label>
         </div>
-      ) : null}
-      {pipelineSummary ? (
-        <div className="badges" style={{ marginTop: 8 }}>
-          <span className="badge">Banner consultados: {pipelineSummary.bannerBatchTotal}</span>
-          <span className="badge">Banner encontrados: {pipelineSummary.bannerFound}</span>
-          <span className="badge">Banner no encontrados: {pipelineSummary.bannerNoEncontrado}</span>
-          <span className="badge">Descartados del sistema: {pipelineSummary.systemDeactivated}</span>
-          <span className="badge">Listos para Moodle: {pipelineSummary.readyForMoodle}</span>
-        </div>
-      ) : null}
-      {pipelineSummary?.latestBannerFile ? (
-        <div className="actions" style={{ marginTop: 8 }}>
-          Ultimo archivo Banner usado: <span className="code">{pipelineSummary.latestBannerFile}</span>
-        </div>
-      ) : null}
-      {importResult?.errors?.length ? (
-        <div className="actions" style={{ marginTop: 8 }}>
-          Errores (muestra): {importResult.errors.slice(0, 5).join(' | ')}
+
+        {/* Flash de resultado de importacion */}
+        {importMessage ? (
+          <div
+            className={importMessage.startsWith('Error') ? 'flash chip-alert' : 'flash chip-ok'}
+            style={{ marginTop: 10, padding: '8px 12px', borderRadius: 6, fontSize: '0.8125rem', lineHeight: 1.5 }}
+          >
+            {importMessage}
+          </div>
+        ) : null}
+
+        {importResult?.historyRelativePath ? (
+          <div style={{ marginTop: 8, fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)' }}>
+            Historial: <span className="chip" style={{ fontFamily: 'monospace' }}>{importResult.historyRelativePath}</span>
+          </div>
+        ) : null}
+
+        {importResult?.errors?.length ? (
+          <div className="flash chip-alert" style={{ marginTop: 8, padding: '6px 10px', borderRadius: 6, fontSize: '0.8rem' }}>
+            Errores (muestra): {importResult.errors.slice(0, 5).join(' | ')}
+          </div>
+        ) : null}
+      </div>
+
+      {/* ── Stats de importacion ────────────────────────────────── */}
+      {importResult ? (
+        <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
+          <div className="stat-card" style={{ background: 'var(--surface-subtle, #f0fdf4)', border: '1px solid var(--border, #bbf7d0)', borderRadius: 8, padding: '10px 14px' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-success, #16a34a)' }}>{importResult.createdCourses}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>NRC creados</div>
+          </div>
+          <div className="stat-card" style={{ background: 'var(--surface-subtle, #eff6ff)', border: '1px solid var(--border, #bfdbfe)', borderRadius: 8, padding: '10px 14px' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-info, #2563eb)' }}>{importResult.updatedCourses}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>NRC actualizados</div>
+          </div>
+          <div className="stat-card" style={{ background: 'var(--surface-subtle, #fafafa)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8, padding: '10px 14px' }}>
+            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-muted, #6b7280)' }}>{importResult.skippedRows}</div>
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>Filas omitidas</div>
+          </div>
         </div>
       ) : null}
 
-      <div className="subtitle" style={{ marginTop: 14 }}>
-        2) Tabla de NRC pendientes por resolver en RPACA o sistema
-      </div>
-      <div className="actions" style={{ marginTop: 8, flexWrap: 'wrap' }}>
-        <span>Periodos RPACA para esta tabla:</span>
-        <button type="button" onClick={() => setSelectedPeriodCodes([])}>
-          Ver todos
-        </button>
-        <button
-          type="button"
-          onClick={() => setSelectedPeriodCodes(periodOptions.map((period) => period.code))}
-          disabled={!periodOptions.length}
-        >
-          Marcar todos
-        </button>
-        <button
-          type="button"
-          onClick={() => setSelectedPeriodCodes(periodOptions[0]?.code ? [periodOptions[0].code] : [])}
-          disabled={!periodOptions.length}
-        >
-          Solo ultimo
-        </button>
-      </div>
-      {periodOptions.length ? (
-        <div className="actions" style={{ marginTop: 8, flexWrap: 'wrap' }}>
-          {periodOptions.map((period) => {
-            const active = selectedPeriodCodes.includes(period.code);
-            return (
-              <button
-                key={`missing-period-${period.code}`}
-                type="button"
-                style={
-                  active
-                    ? {
-                        borderColor: 'var(--border-strong, #1f2937)',
-                        background: 'var(--surface-strong, #eef2ff)',
-                        fontWeight: 600,
-                      }
-                    : undefined
-                }
-                onClick={() => setSelectedPeriodCodes((current) => toggleSelection(current, period.code))}
-              >
-                {period.code}
-              </button>
-            );
-          })}
+      <div className="divider" style={{ height: 1, background: 'var(--border, #e5e7eb)', margin: '4px 0 18px' }} />
+
+      {/* ── Pipeline Banner (colapsable) ────────────────────────── */}
+      <details className="disclosure" style={{ marginBottom: 16 }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.9375rem', padding: '8px 0', userSelect: 'none', display: 'flex', alignItems: 'center', gap: 8 }}>
+          Pipeline Banner
+          {pipelineSummary ? (
+            <span className="badge" style={{ fontWeight: 400, fontSize: '0.8rem' }}>
+              {pipelineSummary.bannerFound} encontrados / {pipelineSummary.bannerNoEncontrado} no encontrados
+            </span>
+          ) : null}
+        </summary>
+
+        <div style={{ paddingTop: 12 }}>
+          {/* Opciones del pipeline */}
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 24px', marginBottom: 12 }}>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem' }}>
+              <input
+                type="checkbox"
+                checked={runBannerAfterImport}
+                onChange={(event) => setRunBannerAfterImport(event.target.checked)}
+              />
+              Ejecutar Banner automaticamente al terminar importacion RPACA
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem' }}>
+              <input
+                type="checkbox"
+                checked={deactivateBannerNotFound}
+                onChange={(event) => setDeactivateBannerNotFound(event.target.checked)}
+                disabled={!runBannerAfterImport}
+              />
+              Descartar del sistema los NRC no encontrados en Banner
+            </label>
+          </div>
+
+          {/* Resumen del pipeline si existe */}
+          {pipelineSummary ? (
+            <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 12 }}>
+              <div className="stat-card" style={{ background: 'var(--surface-subtle, #f0fdf4)', border: '1px solid var(--border, #bbf7d0)', borderRadius: 8, padding: '10px 14px' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-success, #16a34a)' }}>{pipelineSummary.bannerFound}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>Banner encontrados</div>
+              </div>
+              <div className="stat-card" style={{ background: 'var(--surface-subtle, #fff7ed)', border: '1px solid var(--border, #fed7aa)', borderRadius: 8, padding: '10px 14px' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-warning, #ea580c)' }}>{pipelineSummary.bannerNoEncontrado}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>No encontrados</div>
+              </div>
+              <div className="stat-card" style={{ background: 'var(--surface-subtle, #fafafa)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8, padding: '10px 14px' }}>
+                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-muted, #6b7280)' }}>{pipelineSummary.systemDeactivated}</div>
+                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>Descartados del sistema</div>
+              </div>
+            </div>
+          ) : null}
+
+          {pipelineSummary?.latestBannerFile ? (
+            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)' }}>
+              Ultimo archivo Banner: <span style={{ fontFamily: 'monospace' }}>{pipelineSummary.latestBannerFile}</span>
+            </div>
+          ) : null}
+
+          {/* Selector de periodos para filtrar tabla de faltantes */}
+          {periodOptions.length ? (
+            <div style={{ marginTop: 12 }}>
+              <div style={{ fontSize: '0.8125rem', fontWeight: 600, marginBottom: 6 }}>
+                Periodos para tabla de faltantes:
+              </div>
+              <div className="toolbar" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
+                <button type="button" onClick={() => setSelectedPeriodCodes([])} style={{ fontSize: '0.8rem' }}>
+                  Todos
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPeriodCodes(periodOptions.map((p) => p.code))}
+                  disabled={!periodOptions.length}
+                  style={{ fontSize: '0.8rem' }}
+                >
+                  Marcar todos
+                </button>
+                <button
+                  type="button"
+                  onClick={() => setSelectedPeriodCodes(periodOptions[0]?.code ? [periodOptions[0].code] : [])}
+                  disabled={!periodOptions.length}
+                  style={{ fontSize: '0.8rem' }}
+                >
+                  Solo ultimo
+                </button>
+                <span className="divider" style={{ width: 1, height: 18, background: 'var(--border, #e5e7eb)', display: 'inline-block', margin: '0 4px' }} />
+                {periodOptions.map((period) => {
+                  const active = selectedPeriodCodes.includes(period.code);
+                  return (
+                    <button
+                      key={`missing-period-${period.code}`}
+                      type="button"
+                      style={{
+                        fontSize: '0.8rem',
+                        ...(active
+                          ? {
+                              borderColor: 'var(--border-strong, #1f2937)',
+                              background: 'var(--surface-strong, #eef2ff)',
+                              fontWeight: 600,
+                            }
+                          : undefined),
+                      }}
+                      onClick={() => setSelectedPeriodCodes((current) => toggleSelection(current, period.code))}
+                    >
+                      {period.code}
+                    </button>
+                  );
+                })}
+              </div>
+              {selectedPeriodCodes.length ? (
+                <div style={{ marginTop: 6, fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)' }}>
+                  Filtrando {selectedPeriodCodes.length} periodo(s): {selectedPeriodCodes.join(', ')}
+                </div>
+              ) : (
+                <div style={{ marginTop: 6, fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)' }}>
+                  Sin seleccion manual: se muestran todos los periodos cargados por RPACA.
+                </div>
+              )}
+            </div>
+          ) : null}
+
+          {recentPeriodsTouched.length > 1 ? (
+            <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', fontSize: '0.8rem' }}>
+              <span style={{ color: 'var(--text-muted, #6b7280)' }}>Periodos tocados en esta carga:</span>
+              {recentPeriodsTouched.map((period) => (
+                <button
+                  key={`recent-period-${period}`}
+                  type="button"
+                  onClick={() => setSelectedPeriodCodes([period])}
+                  style={{ fontSize: '0.8rem' }}
+                >
+                  {period}
+                </button>
+              ))}
+            </div>
+          ) : null}
         </div>
-      ) : null}
-      <div className="actions" style={{ marginTop: 8 }}>
-        {selectedPeriodCodes.length
-          ? `Filtrando ${selectedPeriodCodes.length} periodo(s): ${selectedPeriodCodes.join(', ')}`
-          : 'Sin seleccion manual: se muestran todos los periodos cargados por RPACA.'}
-      </div>
-      <div className="controls">
-        <label>
-          Momento
-          <select value={momentFilter} onChange={(event) => setMomentFilter(event.target.value)}>
-            <option value="">Todos</option>
+      </details>
+
+      <div className="divider" style={{ height: 1, background: 'var(--border, #e5e7eb)', margin: '4px 0 18px' }} />
+
+      {/* ── Docentes faltantes ──────────────────────────────────── */}
+      <section>
+        {/* Header de seccion con badge y toolbar */}
+        <div className="panel-heading" style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, marginBottom: 12 }}>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8 }}>
+            <span style={{ fontWeight: 600, fontSize: '0.9375rem' }}>Docentes faltantes</span>
+            {missingResult ? (
+              <span className="badge" style={{ fontSize: '0.8rem' }}>{missingResult.total}</span>
+            ) : null}
+          </div>
+          <div className="toolbar" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
+            <button
+              type="button"
+              onClick={() => void saveAllDrafts()}
+              disabled={missingLoading || !missingResult?.items?.length || rowsWithDraft === 0}
+              style={{ fontSize: '0.8125rem' }}
+            >
+              Guardar todos ({rowsWithDraft})
+            </button>
+            <button
+              type="button"
+              className="btn-primary"
+              onClick={() => void loadMissingTeacher()}
+              disabled={missingLoading}
+              style={{ fontWeight: 600, fontSize: '0.8125rem' }}
+            >
+              {missingLoading ? 'Cargando...' : 'Buscar'}
+            </button>
+          </div>
+        </div>
+
+        {/* Filtros inline */}
+        <div className="form-grid" style={{ display: 'flex', flexWrap: 'wrap', gap: 8, marginBottom: 10, alignItems: 'flex-end' }}>
+          <input
+            value={search}
+            onChange={(event) => setSearch(event.target.value)}
+            placeholder="Buscar NRC / asignatura..."
+            style={{ flex: '1 1 200px', minWidth: 160, fontSize: '0.875rem' }}
+          />
+          <select
+            value={momentFilter}
+            onChange={(event) => setMomentFilter(event.target.value)}
+            style={{ fontSize: '0.875rem', minWidth: 130 }}
+          >
+            <option value="">Todos los momentos</option>
             <option value="MD1">M1 (MD1 / RY1)</option>
             <option value="MD2">M2 (MD2 / RY2)</option>
             <option value="1">RYC (1)</option>
           </select>
-        </label>
-        <label style={{ minWidth: 220 }}>
-          Buscar NRC / asignatura
-          <input value={search} onChange={(event) => setSearch(event.target.value)} placeholder="15-72..." />
-        </label>
-        <label>
-          Limite
-          <input value={missingLimit} onChange={(event) => setMissingLimit(event.target.value)} placeholder="150" />
-        </label>
-        <button type="button" onClick={() => void loadMissingTeacher()} disabled={missingLoading}>
-          {missingLoading ? 'Cargando...' : 'Cargar NRC con faltantes'}
-        </button>
-        <button
-          type="button"
-          onClick={() => void saveAllDrafts()}
-          disabled={missingLoading || !missingResult?.items?.length || rowsWithDraft === 0}
-        >
-          Guardar todos ({rowsWithDraft})
-        </button>
-      </div>
-      {missingMessage ? <div className="message">{missingMessage}</div> : null}
+          <input
+            value={missingLimit}
+            onChange={(event) => setMissingLimit(event.target.value)}
+            placeholder="Limite"
+            style={{ width: 72, fontSize: '0.875rem' }}
+          />
+        </div>
 
-      {missingResult ? (
-        <>
-          <div className="actions">
-            NRC con faltantes detectados: <span className="code">{missingResult.total}</span>
+        {/* Mensaje de estado */}
+        {missingMessage ? (
+          <div
+            className={missingMessage.startsWith('No fue') ? 'flash chip-alert' : 'flash chip-ok'}
+            style={{ marginBottom: 10, padding: '7px 12px', borderRadius: 6, fontSize: '0.8125rem' }}
+          >
+            {missingMessage}
           </div>
-          <div className="actions" style={{ marginTop: 6 }}>
-            Los NRC ya resueltos por Banner no se muestran aqui. Si Banner trae docente, se prioriza sobre RPACA.
-          </div>
-          <div style={{ overflowX: 'auto', marginTop: 8 }}>
-            <table>
-              <thead>
+        ) : null}
+
+        {/* Tabla */}
+        {missingResult ? (
+          <div className="table-wrap" style={{ overflowX: 'auto', maxHeight: 440, overflowY: 'auto', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8 }}>
+            <table className="compact-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+              <thead style={{ position: 'sticky', top: 0, background: 'var(--surface-subtle, #f9fafb)', zIndex: 1 }}>
                 <tr>
-                  <th>NRC</th>
-                  <th>Periodo</th>
-                  <th>Programa</th>
-                  <th>Asignatura</th>
-                  <th>Docente priorizado</th>
-                  <th>Fuente</th>
-                  <th>Banner</th>
-                  <th>RPACA</th>
-                  <th>Motivo faltante</th>
-                  <th>ID docente manual</th>
-                  <th>Accion</th>
+                  <th style={{ padding: '8px 10px', textAlign: 'left', borderBottom: '1px solid var(--border, #e5e7eb)', whiteSpace: 'nowrap', fontWeight: 600 }}>NRC</th>
+                  <th style={{ padding: '8px 10px', textAlign: 'left', borderBottom: '1px solid var(--border, #e5e7eb)', whiteSpace: 'nowrap', fontWeight: 600 }}>Periodo</th>
+                  <th style={{ padding: '8px 10px', textAlign: 'left', borderBottom: '1px solid var(--border, #e5e7eb)', fontWeight: 600 }}>Asignatura</th>
+                  <th style={{ padding: '8px 10px', textAlign: 'left', borderBottom: '1px solid var(--border, #e5e7eb)', fontWeight: 600 }}>Docente asignado</th>
+                  <th style={{ padding: '8px 10px', textAlign: 'left', borderBottom: '1px solid var(--border, #e5e7eb)', whiteSpace: 'nowrap', fontWeight: 600 }}>Motivo</th>
+                  <th style={{ padding: '8px 10px', textAlign: 'left', borderBottom: '1px solid var(--border, #e5e7eb)', fontWeight: 600, minWidth: 140 }}>ID docente manual</th>
+                  <th style={{ padding: '8px 10px', textAlign: 'left', borderBottom: '1px solid var(--border, #e5e7eb)', fontWeight: 600 }}>Accion</th>
                 </tr>
               </thead>
               <tbody>
-                {missingResult.items.map((item) => (
-                  <tr key={item.id}>
-                    <td>{item.nrc}</td>
-                    <td>{item.periodCode}</td>
-                    <td>{item.programCode ?? item.programName ?? '-'}</td>
-                    <td>{item.subjectName ?? '-'}</td>
-                    <td>{item.preferredTeacherName ?? item.currentTeacherName ?? 'Sin docente'}</td>
-                    <td>{item.preferredSource ?? '-'}</td>
-                    <td>
-                      {item.bannerTeacherName || item.bannerTeacherId
-                        ? `${item.bannerTeacherName ?? '-'} (${item.bannerTeacherId ?? '-'})`
-                        : (item.bannerStatus ?? '-')}
+                {missingResult.items.map((item, idx) => (
+                  <tr
+                    key={item.id}
+                    style={{ background: idx % 2 === 0 ? 'transparent' : 'var(--surface-subtle, #f9fafb)' }}
+                  >
+                    <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border, #f3f4f6)', fontFamily: 'monospace', whiteSpace: 'nowrap' }}>{item.nrc}</td>
+                    <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border, #f3f4f6)', whiteSpace: 'nowrap' }}>{item.periodCode}</td>
+                    <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border, #f3f4f6)', maxWidth: 200, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.subjectName ?? item.programCode ?? item.programName ?? '-'}
                     </td>
-                    <td>
-                      {item.sourceTeacherName || item.sourceTeacherId || item.sourceDocumentId
-                        ? `${item.sourceTeacherName ?? '-'} (${item.sourceTeacherId ?? item.sourceDocumentId ?? '-'})`
-                        : '-'}
+                    <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border, #f3f4f6)', maxWidth: 160, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {item.preferredTeacherName ?? item.currentTeacherName ?? (
+                        <span style={{ color: 'var(--text-muted, #9ca3af)' }}>Sin docente</span>
+                      )}
                     </td>
-                    <td>{(item.missingReasons ?? []).join(' | ') || '-'}</td>
-                    <td>
+                    <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border, #f3f4f6)', maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                      {(item.missingReasons ?? []).join(' | ') || '-'}
+                    </td>
+                    <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border, #f3f4f6)' }}>
                       <input
                         value={teacherDrafts[item.id] ?? ''}
                         onChange={(event) =>
                           setTeacherDrafts((prev) => ({ ...prev, [item.id]: event.target.value }))
                         }
                         placeholder="ID docente"
+                        style={{ width: '100%', fontSize: '0.8125rem', padding: '4px 6px' }}
                       />
                     </td>
-                    <td>
+                    <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border, #f3f4f6)', whiteSpace: 'nowrap' }}>
                       <button
                         type="button"
                         onClick={() => void saveTeacher(item.id)}
                         disabled={!!savingMap[item.id] || !(teacherDrafts[item.id] ?? '').trim()}
+                        style={{ fontSize: '0.8rem' }}
                       >
-                        {savingMap[item.id] ? 'Guardando...' : 'Guardar ID'}
+                        {savingMap[item.id] ? 'Guardando...' : 'Guardar'}
                       </button>
                     </td>
                   </tr>
                 ))}
                 {!missingResult.items.length ? (
                   <tr>
-                    <td colSpan={11}>No hay NRC con faltantes para ese filtro.</td>
+                    <td colSpan={7} style={{ padding: '20px 10px', textAlign: 'center', color: 'var(--text-muted, #6b7280)' }}>
+                      No hay NRC con faltantes para ese filtro.
+                    </td>
                   </tr>
                 ) : null}
               </tbody>
             </table>
           </div>
-        </>
-      ) : null}
+        ) : null}
+      </section>
+
+      <div className="divider" style={{ height: 1, background: 'var(--border, #e5e7eb)', margin: '18px 0' }} />
+
+      {/* ── Deactivacion (colapsable) ───────────────────────────── */}
+      <details className="disclosure">
+        <summary style={{ cursor: 'pointer', fontWeight: 600, fontSize: '0.9375rem', padding: '8px 0', userSelect: 'none', color: 'var(--color-danger, #dc2626)' }}>
+          Deactivar cursos sin Banner
+        </summary>
+        <div style={{ paddingTop: 12, fontSize: '0.875rem', color: 'var(--text-muted, #6b7280)', lineHeight: 1.6 }}>
+          <p style={{ margin: '0 0 10px' }}>
+            Esta accion descarta del sistema los NRC que Banner haya marcado como{' '}
+            <span style={{ fontFamily: 'monospace', background: 'var(--surface-subtle, #f3f4f6)', padding: '1px 5px', borderRadius: 3 }}>NO_ENCONTRADO</span>.
+            Solo aplica a los periodos actualmente seleccionados. La operacion es irreversible sin restauracion manual.
+          </p>
+          <p style={{ margin: '0 0 12px' }}>
+            El flujo automatico posterior a la importacion RPACA ya ejecuta esta accion si la opcion esta activada en
+            la seccion Pipeline Banner. Usa este boton solo si necesitas deactivar manualmente despues de una corrida Banner independiente.
+          </p>
+          <div className="toolbar" style={{ display: 'flex', gap: 8 }}>
+            <button
+              type="button"
+              style={{ color: 'var(--color-danger, #dc2626)', borderColor: 'var(--color-danger, #dc2626)', fontSize: '0.875rem' }}
+              onClick={() => {
+                if (
+                  window.confirm(
+                    'Confirmas la deactivacion de todos los NRC marcados como NO_ENCONTRADO en Banner para los periodos seleccionados?',
+                  )
+                ) {
+                  void runBannerPipelineForPeriods(selectedPeriodCodes.length ? selectedPeriodCodes : []);
+                }
+              }}
+              disabled={importLoading}
+            >
+              Deactivar NRC no encontrados
+            </button>
+          </div>
+        </div>
+      </details>
+
     </article>
   );
 }

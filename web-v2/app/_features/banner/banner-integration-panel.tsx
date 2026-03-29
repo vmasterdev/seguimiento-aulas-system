@@ -244,6 +244,10 @@ export default function BannerIntegrationPanel() {
   const [importPath, setImportPath] = useState('');
   const [projectRootInput, setProjectRootInput] = useState('');
 
+  // Pagination state for results table
+  const [resultsPage, setResultsPage] = useState(0);
+  const RESULTS_PAGE_SIZE = 10;
+
   const canStart = useMemo(() => !status?.runner.running && !actionLoading, [status?.runner.running, actionLoading]);
   const latestPreviewQueryId = status?.exportSummary.preview[0]?.queryId ?? '';
   const currentModeHelp = MODE_HELP[mode];
@@ -286,6 +290,7 @@ export default function BannerIntegrationPanel() {
         '/api/banner/export/results',
       );
       setFullResults(data.records ?? []);
+      setResultsPage(0);
     } catch (error) {
       setMessage(`No fue posible cargar los resultados completos: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -568,139 +573,148 @@ export default function BannerIntegrationPanel() {
       status?.runner.logTail ?? '',
     );
 
+  // Derived display values
+  const runnerStatusChipClass =
+    status?.runner.running
+      ? 'chip chip-warn'
+      : status?.runner.lastRun?.status === 'FAILED'
+        ? 'chip chip-alert'
+        : status?.runner.lastRun?.status === 'COMPLETED'
+          ? 'chip chip-ok'
+          : 'chip';
+
+  const runnerStatusLabel =
+    status?.runner.running
+      ? 'Corriendo'
+      : status?.runner.lastRun?.status === 'FAILED'
+        ? 'Fallo'
+        : status?.runner.lastRun?.status === 'COMPLETED'
+          ? 'Completado'
+          : status?.runner.lastRun?.status === 'CANCELLED'
+            ? 'Cancelado'
+            : 'Sin corridas';
+
+  const progressTotal = liveActivity?.totalRequested ?? 0;
+  const progressDone = liveActivity?.processed ?? 0;
+  const progressPct = progressTotal > 0 ? Math.min(100, Math.round((progressDone / progressTotal) * 100)) : 0;
+
+  // Paged results
+  const activeResults = fullResults ?? status?.exportSummary.preview ?? [];
+  const totalResultPages = Math.ceil(activeResults.length / RESULTS_PAGE_SIZE);
+  const pagedResults = activeResults.slice(resultsPage * RESULTS_PAGE_SIZE, (resultsPage + 1) * RESULTS_PAGE_SIZE);
+
+  // Tab definitions
+  const TABS: Array<{ id: BannerMode; label: string }> = [
+    { id: 'batch', label: 'Lote' },
+    { id: 'lookup', label: 'Lookup' },
+    { id: 'retry-errors', label: 'Reintentar' },
+    { id: 'export', label: 'Exportar' },
+  ];
+
   return (
     <article className="panel">
-      <h2>Automatizacion Banner</h2>
-      <div className="actions">
-        Esta pantalla sirve para buscar docentes en Banner por NRC, exportar el resultado e importarlo luego a la base
-        del sistema.
-        <br />
-        La ruta recomendada es usar <span className="code">Procesar un lote completo</span> con{' '}
-        <span className="code">periodos cargados por RPACA</span>. Asi no dependes de archivos manuales y los periodos
-        nuevos aparecen solos cuando importas otro RPACA.
+      {/* Header */}
+      <div className="panel-heading">
+        <h2>Automatizacion Banner</h2>
+        <div className="toolbar">
+          <span className={runnerStatusChipClass}>{runnerStatusLabel}</span>
+          <span className="chip">{status?.projectRootExists ? 'Runner OK' : 'Runner no encontrado'}</span>
+          <span className="badge">Export: {status?.exportSummary.rowCount ?? 0} filas</span>
+          <button onClick={loadAll} disabled={loading || actionLoading}>
+            {loading ? 'Actualizando...' : 'Actualizar'}
+          </button>
+        </div>
       </div>
 
-      <div className="controls" style={{ marginTop: 8 }}>
-        <button onClick={loadAll} disabled={loading || actionLoading}>
-          {loading ? 'Actualizando...' : 'Actualizar estado de Banner'}
-        </button>
-      </div>
-
-      <div className="badges" style={{ marginTop: 10 }}>
-        <span className="badge">Proceso en curso: {status?.runner.running ? 'SI' : 'NO'}</span>
-        <span className="badge">Proyecto Banner: {status?.projectRootExists ? 'Disponible' : 'No encontrado'}</span>
-        <span className="badge">Ultimo export: {status?.exportSummary.rowCount ?? 0} filas</span>
-      </div>
-
-      {status?.runner.lastRun ? (
-        <div className="actions" style={{ marginTop: 8 }}>
-          <strong>Ultima corrida:</strong> {status.runner.lastRun.command} | {status.runner.lastRun.status}
-          {latestRunQueryId ? ` | queryId ${latestRunQueryId}` : ''}
-          {status.runner.lastRun.startedAt ? ` | inicio ${status.runner.lastRun.startedAt}` : ''}
-          {status.runner.lastRun.endedAt ? ` | fin ${status.runner.lastRun.endedAt}` : ''}
+      {/* Monitor de ejecucion — solo cuando hay proceso activo */}
+      {status?.runner.running && liveActivity ? (
+        <div className="panel" style={{ marginBottom: 12 }}>
+          <div className="toolbar" style={{ flexWrap: 'wrap', gap: 8 }}>
+            <span className="chip chip-warn">En curso</span>
+            {liveActivity.queryId ? <span className="badge">Query: {liveActivity.queryId}</span> : null}
+            {liveActivity.workers !== null ? (
+              <span className="badge">Workers: {liveActivity.workers}</span>
+            ) : null}
+            <span className="badge">
+              {progressDone}{progressTotal > 0 ? ` / ${progressTotal}` : ''} NRC
+            </span>
+            <button onClick={cancelBanner} disabled={actionLoading}>
+              Cancelar
+            </button>
+          </div>
+          {progressTotal > 0 ? (
+            <div className="progress-bar" style={{ marginTop: 8 }}>
+              <div className="progress-bar-fill" style={{ width: `${progressPct}%` }} />
+            </div>
+          ) : null}
+          <details className="disclosure" style={{ marginTop: 8 }}>
+            <summary>Log del proceso</summary>
+            <div className="log-block">{status.runner.logTail}</div>
+          </details>
+        </div>
+      ) : status?.runner.running ? (
+        <div className="panel" style={{ marginBottom: 12 }}>
+          <div className="toolbar">
+            <span className="chip chip-warn">En curso</span>
+            <button onClick={cancelBanner} disabled={actionLoading}>
+              Cancelar
+            </button>
+          </div>
+          {status.runner.logTail ? (
+            <details className="disclosure" style={{ marginTop: 8 }}>
+              <summary>Log del proceso</summary>
+              <div className="log-block">{status.runner.logTail}</div>
+            </details>
+          ) : null}
         </div>
       ) : null}
 
-      <div className="actions" style={{ marginTop: 8 }}>
-        <span className="code">Proyecto externo: {status?.projectRoot ?? 'N/A'}</span>
-        <br />
-        <span className="code">Ultimo archivo exportado: {basename(status?.exportSummary.latestFile)}</span>
-      </div>
-
-      <div className="subtitle" style={{ marginTop: 12 }}>
-        Configuracion del runner Banner
-      </div>
-      <div className="controls">
-        <label style={{ minWidth: 460 }}>
-          Ruta del proyecto Banner
-          <input
-            value={projectRootInput}
-            onChange={(event) => setProjectRootInput(event.target.value)}
-            placeholder="/ruta/al/proyecto-banner"
-          />
-        </label>
-        <button onClick={saveProjectRoot} disabled={loading || actionLoading || !!status?.runner.running}>
-          Guardar ruta Banner
-        </button>
-      </div>
-      <div className="actions" style={{ marginTop: 8 }}>
-        Esta interfaz puede trabajar con cualquier copia del proyecto Banner, pero en WSL conviene usar una ruta Linux
-        para evitar bloqueos por <span className="code">/mnt/c</span>.
-        <br />
-        {projectRootLooksLinux ? (
-          <span>
-            Ruta actual en Linux: <span className="code">{bannerRootPreview}</span>
-          </span>
-        ) : projectRootLooksMounted ? (
-          <span>
-            Ruta actual en <span className="code">/mnt</span>: <span className="code">{bannerRootPreview}</span>. Se
-            recomienda moverla a una copia Linux del runner.
-          </span>
-        ) : (
-          <span>Ruta actual: <span className="code">{bannerRootPreview || 'Sin configurar'}</span></span>
-        )}
-      </div>
-
+      {/* Alerta de autenticacion */}
       {authNeedsAttention ? (
-        <div className="message" style={{ marginTop: 10 }}>
+        <div className="message" style={{ marginBottom: 10 }}>
           Si Banner abre Ellucian pero no carga SSASECT, primero usa el login manual. Completa SSO/2FA en Edge y luego
           pulsa guardar sesion.
+          <div className="toolbar" style={{ marginTop: 8 }}>
+            <button onClick={startBannerAuth} disabled={loading || actionLoading || !!status?.runner.running}>
+              Abrir login Banner
+            </button>
+            <button
+              onClick={confirmBannerAuth}
+              disabled={
+                loading ||
+                actionLoading ||
+                status?.runner.current?.command !== 'auth' ||
+                !status.runner.current?.awaitingInput
+              }
+            >
+              Guardar sesion Banner
+            </button>
+          </div>
         </div>
       ) : null}
 
-      <div className="controls" style={{ marginTop: 10 }}>
-        <button onClick={startBannerAuth} disabled={loading || actionLoading || !!status?.runner.running}>
-          Abrir login Banner
-        </button>
-        <button
-          onClick={confirmBannerAuth}
-          disabled={
-            loading ||
-            actionLoading ||
-            status?.runner.current?.command !== 'auth' ||
-            !status.runner.current?.awaitingInput
-          }
-        >
-          Guardar sesion Banner
-        </button>
-      </div>
+      {/* Mensaje de estado */}
+      {message ? <div className="message" style={{ marginBottom: 10 }}>{message}</div> : null}
 
-      <div className="subtitle">Paso 1. Elegir la tarea</div>
-      <div className="controls">
-        <label>
-          Tarea a ejecutar
-          <select value={mode} onChange={(event) => setMode(event.target.value as BannerMode)}>
-            <option value="batch">{MODE_LABELS.batch}</option>
-            <option value="lookup">{MODE_LABELS.lookup}</option>
-            <option value="retry-errors">{MODE_LABELS['retry-errors']}</option>
-            <option value="export">{MODE_LABELS.export}</option>
-          </select>
-        </label>
-        {(mode === 'batch' || mode === 'retry-errors') ? (
-          <label>
-            Workers efectivos
-            <input value={String(BANNER_STABLE_WORKERS)} readOnly />
-          </label>
-        ) : null}
-        {(mode === 'lookup' || mode === 'batch') ? (
-          <label>
-            Nombre de consulta
-            <input value={queryName} onChange={(event) => setQueryName(event.target.value)} placeholder="banner-rpaca" />
-          </label>
-        ) : null}
+      {/* Selector de modo — tabs pill */}
+      <div className="view-switcher" style={{ marginBottom: 12 }}>
+        {TABS.map((tab) => (
+          <button
+            key={tab.id}
+            className={`switch-button${mode === tab.id ? ' active' : ''}`}
+            onClick={() => setMode(tab.id)}
+          >
+            {tab.label}
+          </button>
+        ))}
       </div>
-      <div className="actions" style={{ marginTop: 8 }}>
+      <div className="actions" style={{ marginBottom: 10 }}>
         <strong>{MODE_LABELS[mode]}:</strong> {currentModeHelp}
       </div>
-      {(mode === 'batch' || mode === 'retry-errors') ? (
-        <div className="actions" style={{ marginTop: 8 }}>
-          Modo estable activo: Banner corre con <span className="code">1 worker</span> para evitar errores del
-          backend paralelo y mantener la actualizacion del sistema consistente.
-        </div>
-      ) : null}
 
+      {/* Formulario por modo */}
       {mode === 'lookup' ? (
-        <div className="controls" style={{ marginTop: 10 }}>
+        <div className="form-grid">
           <label>
             NRC a consultar
             <input value={nrc} onChange={(event) => setNrc(event.target.value)} placeholder="72305" />
@@ -709,21 +723,29 @@ export default function BannerIntegrationPanel() {
             Periodo del NRC
             <input value={period} onChange={(event) => setPeriod(event.target.value)} placeholder="202615" />
           </label>
+          <label>
+            Nombre de consulta
+            <input value={queryName} onChange={(event) => setQueryName(event.target.value)} placeholder="banner-rpaca" />
+          </label>
         </div>
       ) : null}
 
       {mode === 'batch' ? (
         <>
-          <div className="controls" style={{ marginTop: 10 }}>
+          <div className="form-grid">
             <label>
               Fuente de los NRC
               <select
                 value={batchInputMode}
                 onChange={(event) => setBatchInputMode(event.target.value as BatchInputMode)}
               >
-                <option value="DATABASE">Periodos ya cargados por RPACA (recomendado)</option>
+                <option value="DATABASE">Periodos RPACA (recomendado)</option>
                 <option value="MANUAL_INPUT">Archivo CSV manual</option>
               </select>
+            </label>
+            <label>
+              Nombre de consulta
+              <input value={queryName} onChange={(event) => setQueryName(event.target.value)} placeholder="banner-rpaca" />
             </label>
             <label>
               Query ID opcional
@@ -735,24 +757,13 @@ export default function BannerIntegrationPanel() {
             </label>
             <label className="checkbox">
               <input type="checkbox" checked={resume} onChange={(event) => setResume(event.target.checked)} />
-              <span>Reanudar un lote anterior</span>
+              <span>Reanudar lote anterior</span>
             </label>
           </div>
 
           {batchInputMode === 'DATABASE' ? (
             <>
-              <div className="subtitle" style={{ marginTop: 12 }}>
-                Paso 2. Seleccionar periodos cargados por RPACA
-              </div>
-              <div className="actions">
-                Los periodos de esta lista salen directamente de la base del sistema y se alimentan cuando importas
-                archivos RPACA.
-                <br />
-                Si el siguiente semestre viene como <span className="code">202765</span>, aparecera aqui como un periodo
-                nuevo y el sistema seguira manejando NRC tipo <span className="code">65-xxxxx</span> de forma automatica.
-              </div>
-
-              <div className="controls" style={{ marginTop: 10 }}>
+              <div className="form-grid" style={{ marginTop: 10 }}>
                 <label>
                   Tipo de lote
                   <select
@@ -775,21 +786,19 @@ export default function BannerIntegrationPanel() {
                   />
                 </label>
               </div>
-              <div className="actions" style={{ marginTop: 8 }}>
+              <div className="actions" style={{ marginTop: 4, marginBottom: 8 }}>
                 {(batchOptions?.sources ?? []).find((item) => item.code === batchSource)?.description ??
                   'Define que NRC quieres pasar por Banner.'}
               </div>
 
-              <div className="subtitle" style={{ marginTop: 10 }}>
-                Atajos por ano
-              </div>
-              <div className="controls">
+              {/* Atajos de seleccion de periodos */}
+              <div className="toolbar" style={{ marginTop: 8, flexWrap: 'wrap', gap: 6 }}>
                 <button
                   type="button"
                   onClick={() => selectPeriods((batchOptions?.periods ?? []).map((periodItem) => periodItem.code))}
                   disabled={actionLoading}
                 >
-                  Marcar todos los periodos cargados
+                  Todos los periodos
                 </button>
                 {latestYear ? (
                   <button
@@ -799,14 +808,9 @@ export default function BannerIntegrationPanel() {
                     }
                     disabled={actionLoading}
                   >
-                    Marcar solo {latestYear}
+                    Solo {latestYear}
                   </button>
                 ) : null}
-                <button type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
-                  Limpiar seleccion
-                </button>
-              </div>
-              <div className="controls" style={{ marginTop: 8 }}>
                 {(batchOptions?.years ?? []).map((yearItem) => (
                   <button
                     type="button"
@@ -814,14 +818,15 @@ export default function BannerIntegrationPanel() {
                     onClick={() => toggleYear(yearItem.year)}
                     disabled={actionLoading}
                   >
-                    Alternar {yearItem.year} ({yearItem.courseCount})
+                    {yearItem.year} ({yearItem.courseCount})
                   </button>
                 ))}
+                <button type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+                  Limpiar
+                </button>
               </div>
 
-              <div className="subtitle" style={{ marginTop: 10 }}>
-                Periodos a revisar
-              </div>
+              {/* Checkboxes de periodos */}
               <div className="badges" style={{ marginTop: 8 }}>
                 {(batchOptions?.periods ?? []).map((periodItem) => (
                   <label className="badge badge-selector" key={periodItem.code}>
@@ -839,117 +844,99 @@ export default function BannerIntegrationPanel() {
                 ))}
               </div>
 
-              <div className="controls" style={{ marginTop: 10 }}>
+              {/* Boton de preview */}
+              <div className="toolbar" style={{ marginTop: 10 }}>
                 <button
                   type="button"
                   onClick={previewDatabaseBatch}
                   disabled={actionLoading || !selectedPeriodCodes.length || !!status?.runner.running}
                 >
-                  {actionLoading ? 'Procesando...' : 'Previsualizar lote Banner'}
+                  {actionLoading ? 'Procesando...' : 'Previsualizar lote'}
                 </button>
               </div>
 
+              {/* Resultado del preview */}
               {batchPreview ? (
                 <>
-                  <div className="subtitle" style={{ marginTop: 10 }}>
-                    Resumen del lote
-                  </div>
                   <div className="badges" style={{ marginTop: 8 }}>
-                    <span className="badge">Total lote: {batchPreview.total}</span>
+                    <span className="badge">Total: {batchPreview.total}</span>
                     <span className="badge">Periodos: {batchPreview.filters.periodCodes.length}</span>
                     <span className="badge">Tipo: {batchSource}</span>
                     {batchPreview.filters.limit ? <span className="badge">Limite: {batchPreview.filters.limit}</span> : null}
-                  </div>
-                  <div className="badges" style={{ marginTop: 8 }}>
                     {Object.entries(batchPreview.byYear).map(([key, value]) => (
-                      <span className="badge" key={key}>
-                        Ano {key}: {value}
-                      </span>
+                      <span className="badge" key={key}>{key}: {value}</span>
                     ))}
-                  </div>
-                  <div className="badges" style={{ marginTop: 8 }}>
                     {Object.entries(batchPreview.byBannerStatus).map(([key, value]) => (
-                      <span className="badge" key={key}>
-                        {key}: {value}
-                      </span>
+                      <span className="badge" key={key}>{key}: {value}</span>
                     ))}
                   </div>
-                  <div className="actions" style={{ marginTop: 8 }}>
-                    Muestra de los NRC que entrarian en el lote. Si el proximo semestre o el proximo ano ya fueron
-                    cargados por RPACA, apareceran aqui sin que tengas que cambiar codigo ni reglas fijas.
-                  </div>
-                  <table style={{ marginTop: 8 }}>
-                    <thead>
-                      <tr>
-                        <th>NRC</th>
-                        <th>Periodo</th>
-                        <th>Asignatura</th>
-                        <th>Docente actual</th>
-                        <th>Estado Banner</th>
-                        <th>Archivo RPACA</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {batchPreview.sample.map((item) => (
-                        <tr key={`${item.courseId}-${item.nrc}`}>
-                          <td>{item.nrc}</td>
-                          <td>
-                            {item.periodCode} | {item.periodLabel}
-                          </td>
-                          <td>{item.subjectName ?? '-'}</td>
-                          <td>
-                            {item.teacherName || item.teacherId
-                              ? `${item.teacherName ?? '-'} (${item.teacherId ?? '-'})`
-                              : 'Sin docente'}
-                          </td>
-                          <td>{item.bannerReviewStatus ?? 'SIN_DATO'}</td>
-                          <td>{basename(item.sourceFile)}</td>
+                  <div className="table-wrap" style={{ marginTop: 8 }}>
+                    <table className="compact-table">
+                      <thead>
+                        <tr>
+                          <th>NRC</th>
+                          <th>Periodo</th>
+                          <th>Asignatura</th>
+                          <th>Docente actual</th>
+                          <th>Estado Banner</th>
+                          <th>Archivo RPACA</th>
                         </tr>
-                      ))}
-                    </tbody>
-                  </table>
+                      </thead>
+                      <tbody>
+                        {batchPreview.sample.map((item) => (
+                          <tr key={`${item.courseId}-${item.nrc}`}>
+                            <td>{item.nrc}</td>
+                            <td>{item.periodCode} | {item.periodLabel}</td>
+                            <td>{item.subjectName ?? '-'}</td>
+                            <td>
+                              {item.teacherName || item.teacherId
+                                ? `${item.teacherName ?? '-'} (${item.teacherId ?? '-'})`
+                                : 'Sin docente'}
+                            </td>
+                            <td>{item.bannerReviewStatus ?? 'SIN_DATO'}</td>
+                            <td>{basename(item.sourceFile)}</td>
+                          </tr>
+                        ))}
+                      </tbody>
+                    </table>
+                  </div>
                 </>
               ) : null}
             </>
           ) : (
-            <>
-              <div className="subtitle" style={{ marginTop: 12 }}>
-                Paso 2. Indicar el archivo manual
-              </div>
-              <div className="controls">
-                <label style={{ minWidth: 360 }}>
-                  Archivo CSV del lote
-                  <input
-                    value={inputPath}
-                    onChange={(event) => setInputPath(event.target.value)}
-                    placeholder="Ruta del CSV con los NRC a consultar"
-                  />
-                </label>
-                <label>
-                  Periodo por defecto
-                  <input value={period} onChange={(event) => setPeriod(event.target.value)} placeholder="202615" />
-                </label>
-              </div>
-              <div className="actions" style={{ marginTop: 8 }}>
-                Usa esta opcion solo si realmente necesitas trabajar con un archivo externo. Si los NRC ya estan en la
-                base por RPACA, es mejor usar la opcion recomendada.
-              </div>
-            </>
+            <div className="form-grid" style={{ marginTop: 10 }}>
+              <label style={{ gridColumn: '1 / 3' }}>
+                Archivo CSV del lote
+                <input
+                  value={inputPath}
+                  onChange={(event) => setInputPath(event.target.value)}
+                  placeholder="Ruta del CSV con los NRC a consultar"
+                />
+              </label>
+              <label>
+                Periodo por defecto
+                <input value={period} onChange={(event) => setPeriod(event.target.value)} placeholder="202615" />
+              </label>
+            </div>
           )}
         </>
       ) : null}
 
       {mode === 'retry-errors' ? (
-        <div className="controls" style={{ marginTop: 10 }}>
+        <div className="form-grid">
           <label>
             Query ID a reintentar
             <input value={queryId} onChange={(event) => setQueryId(event.target.value)} placeholder="Pega aqui el Query ID" />
+          </label>
+          <label>
+            Workers efectivos
+            <input value={String(BANNER_STABLE_WORKERS)} readOnly />
           </label>
         </div>
       ) : null}
 
       {mode === 'export' ? (
-        <div className="controls" style={{ marginTop: 10 }}>
+        <div className="form-grid">
           <label>
             Query ID a exportar
             <input value={queryId} onChange={(event) => setQueryId(event.target.value)} placeholder="Pega aqui el Query ID" />
@@ -961,7 +948,9 @@ export default function BannerIntegrationPanel() {
         </div>
       ) : null}
 
-      <div className="controls" style={{ marginTop: 10 }}>
+      {/* Boton principal de accion */}
+      <hr className="divider" />
+      <div className="toolbar">
         {mode === 'batch' && batchInputMode === 'DATABASE' ? (
           <button
             className="btn-next-action"
@@ -978,167 +967,44 @@ export default function BannerIntegrationPanel() {
               ? 'Solo buscar en Banner'
               : START_BUTTON_LABELS[mode]}
         </button>
-        <button onClick={cancelBanner} disabled={!status?.runner.running || actionLoading}>
-          Cancelar proceso Banner
-        </button>
+        {!status?.runner.running ? null : (
+          <button onClick={cancelBanner} disabled={actionLoading}>
+            Cancelar proceso Banner
+          </button>
+        )}
       </div>
       {mode === 'batch' && batchInputMode === 'DATABASE' ? (
-        <div className="actions" style={{ marginTop: 8 }}>
-          El boton verde <span className="code">Buscar docentes y actualizar base</span> hace el flujo completo en un
-          clic. El otro boton solo consulta Banner y deja el resultado sin importar.
+        <div className="actions" style={{ marginTop: 6 }}>
+          El boton <span className="code">Buscar docentes y actualizar base</span> hace el flujo completo en un clic.
+          El otro solo consulta Banner sin importar.
         </div>
       ) : null}
 
-      {liveActivity ? (
-        <>
-          <div className="subtitle">Seguimiento en vivo del lote</div>
-          <div className="badges" style={{ marginTop: 8 }}>
-            {liveActivity.queryId ? <span className="badge">Query ID: {liveActivity.queryId}</span> : null}
-            {liveActivity.totalRequested !== null ? (
-              <span className="badge">Total: {liveActivity.totalRequested}</span>
-            ) : null}
-            <span className="badge">Procesados: {liveActivity.processed}</span>
-            {liveActivity.pending !== null ? <span className="badge">Pendientes: {liveActivity.pending}</span> : null}
-            {liveActivity.workers !== null ? <span className="badge">Workers: {liveActivity.workers}</span> : null}
-          </div>
-
-          {liveActivity.workerStates.length ? (
-            <>
-              <div className="actions" style={{ marginTop: 8 }}>
-                Ultimo movimiento reportado por cada worker.
-              </div>
-              <table style={{ marginTop: 8 }}>
-                <thead>
-                  <tr>
-                    <th>Worker</th>
-                    <th>Etapa</th>
-                    <th>NRC</th>
-                    <th>Periodo</th>
-                    <th>Estado</th>
-                    <th>Hora</th>
-                  </tr>
-                </thead>
-                <tbody>
-                  {liveActivity.workerStates.map((item) => (
-                    <tr key={`${item.worker}-${item.at}`}>
-                      <td>{item.worker}</td>
-                      <td>{LIVE_STAGE_LABELS[item.stage]}</td>
-                      <td>{item.nrc ?? '-'}</td>
-                      <td>{item.period ?? '-'}</td>
-                      <td>{item.status ?? '-'}</td>
-                      <td>{item.at}</td>
-                    </tr>
-                  ))}
-                </tbody>
-              </table>
-            </>
-          ) : null}
-
-          <div className="actions" style={{ marginTop: 8 }}>
-            Ultimos NRC detectados en el seguimiento del proceso. Esta tabla se alimenta del log en curso y cambia
-            mientras el lote avanza.
-          </div>
-          <table style={{ marginTop: 8 }}>
-            <thead>
-              <tr>
-                <th>Hora</th>
-                <th>Worker</th>
-                <th>Etapa</th>
-                <th>NRC</th>
-                <th>Periodo</th>
-                <th>Estado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {liveActivity.recentEvents.map((item) => (
-                <tr key={`${item.at}-${item.worker ?? 'na'}-${item.nrc ?? 'na'}-${item.stage}`}>
-                  <td>{item.at}</td>
-                  <td>{item.worker ?? '-'}</td>
-                  <td>{LIVE_STAGE_LABELS[item.stage]}</td>
-                  <td>{item.nrc ?? '-'}</td>
-                  <td>{item.period ?? '-'}</td>
-                  <td>{item.status ?? '-'}</td>
-                </tr>
-              ))}
-              {!liveActivity.recentEvents.length ? (
-                <tr>
-                  <td colSpan={6}>Aun no hay NRC visibles en el log del proceso.</td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </>
-      ) : null}
-
-      <div className="subtitle">Paso 3. Revisar el ultimo export disponible</div>
-      <div className="badges">
-        {Object.entries(status?.exportSummary.statusCounts ?? {}).map(([key, value]) => (
-          <span className="badge" key={key}>
-            {key}: {value}
-          </span>
-        ))}
-      </div>
-      <div className="actions" style={{ marginTop: 8 }}>
-        Este bloque muestra el export mas reciente. Cuando una corrida termina bien, la interfaz intenta exportarla de forma automatica para que aqui veas ese mismo resultado.
-        <br />
-        No es seguimiento en vivo: mientras Banner corre, revisa el bloque <span className="code">Seguimiento del proceso Banner</span>. La tabla de abajo cambia cuando la corrida termina y el export queda listo.
-      </div>
-      <div className="controls" style={{ marginTop: 8 }}>
-        <button
-          type="button"
-          onClick={loadFullResults}
-          disabled={fullResultsLoading || !!status?.runner.running}
-        >
-          {fullResultsLoading ? 'Cargando...' : 'Cargar todos los resultados'}
-        </button>
-        {fullResults !== null ? (
-          <button type="button" onClick={() => setFullResults(null)}>
-            Ocultar resultados completos
+      {/* Paso 3: Ultimo export disponible */}
+      <hr className="divider" />
+      <div className="panel-heading">
+        <strong>Ultimo export Banner</strong>
+        <div className="toolbar">
+          <span className="badge">{status?.exportSummary.rowCount ?? 0} filas</span>
+          {Object.entries(status?.exportSummary.statusCounts ?? {}).map(([key, value]) => (
+            <span className="badge" key={key}>{key}: {value}</span>
+          ))}
+          <button
+            type="button"
+            onClick={loadFullResults}
+            disabled={fullResultsLoading || !!status?.runner.running}
+          >
+            {fullResultsLoading ? 'Cargando...' : 'Cargar todos'}
           </button>
-        ) : null}
+          {fullResults !== null ? (
+            <button type="button" onClick={() => { setFullResults(null); setResultsPage(0); }}>
+              Mostrar preview
+            </button>
+          ) : null}
+        </div>
       </div>
-      {fullResults !== null ? (
-        <>
-          <div className="actions" style={{ marginTop: 8 }}>
-            Resultados completos del ultimo export Banner ({fullResults.length} filas). Las columnas de fecha solo
-            aparecen cuando el runner externo las incluye en el CSV.
-          </div>
-          <table style={{ marginTop: 8 }}>
-            <thead>
-              <tr>
-                <th>NRC</th>
-                <th>Periodo</th>
-                <th>Docente</th>
-                <th>ID docente</th>
-                <th>Estado</th>
-                <th>Inicio NRC</th>
-                <th>Cierre NRC</th>
-                <th>Revisado</th>
-              </tr>
-            </thead>
-            <tbody>
-              {fullResults.map((item) => (
-                <tr key={`full-${item.queryId ?? 'sin-query'}-${item.nrc}`}>
-                  <td>{item.nrc}</td>
-                  <td>{item.period ?? '-'}</td>
-                  <td>{item.teacherName ?? '-'}</td>
-                  <td>{item.teacherId ?? '-'}</td>
-                  <td>{item.status ?? '-'}</td>
-                  <td>{item.startDate ?? '-'}</td>
-                  <td>{item.endDate ?? '-'}</td>
-                  <td>{item.checkedAt ?? '-'}</td>
-                </tr>
-              ))}
-              {!fullResults.length ? (
-                <tr>
-                  <td colSpan={8}>Sin filas en el ultimo export Banner.</td>
-                </tr>
-              ) : null}
-            </tbody>
-          </table>
-        </>
-      ) : (
-        <table style={{ marginTop: 10 }}>
+      <div className="table-wrap" style={{ marginTop: 8 }}>
+        <table className="compact-table">
           <thead>
             <tr>
               <th>NRC</th>
@@ -1152,7 +1018,7 @@ export default function BannerIntegrationPanel() {
             </tr>
           </thead>
           <tbody>
-            {(status?.exportSummary.preview ?? []).map((item) => (
+            {pagedResults.map((item) => (
               <tr key={`${item.queryId ?? 'sin-query'}-${item.nrc}`}>
                 <td>{item.nrc}</td>
                 <td>{item.period ?? '-'}</td>
@@ -1164,49 +1030,131 @@ export default function BannerIntegrationPanel() {
                 <td>{item.checkedAt ?? '-'}</td>
               </tr>
             ))}
-            {!status?.exportSummary.preview?.length ? (
+            {!pagedResults.length ? (
               <tr>
-                <td colSpan={8}>Aun no hay una exportacion Banner disponible.</td>
+                <td colSpan={8}>
+                  {fullResults !== null
+                    ? 'Sin filas en el ultimo export Banner.'
+                    : 'Aun no hay una exportacion Banner disponible.'}
+                </td>
               </tr>
             ) : null}
           </tbody>
         </table>
-      )}
+      </div>
+      {totalResultPages > 1 ? (
+        <div className="toolbar" style={{ marginTop: 6 }}>
+          <button type="button" onClick={() => setResultsPage((p) => Math.max(0, p - 1))} disabled={resultsPage === 0}>
+            Anterior
+          </button>
+          <span className="badge">
+            {resultsPage + 1} / {totalResultPages}
+          </span>
+          <button
+            type="button"
+            onClick={() => setResultsPage((p) => Math.min(totalResultPages - 1, p + 1))}
+            disabled={resultsPage >= totalResultPages - 1}
+          >
+            Siguiente
+          </button>
+        </div>
+      ) : null}
 
-      <div className="subtitle">Paso 4. Importar el resultado Banner a la base del sistema</div>
-      <div className="controls">
-        <label style={{ minWidth: 420 }}>
-          Archivo a importar (opcional)
+      {/* Paso 4: Importar resultado */}
+      <hr className="divider" />
+      <div className="form-grid">
+        <label style={{ gridColumn: '1 / 3' }}>
+          Archivo a importar (opcional — si esta vacio se usa el ultimo export Banner)
           <input
             value={importPath}
             onChange={(event) => setImportPath(event.target.value)}
             placeholder="Si lo dejas vacio, se usa el ultimo export Banner"
           />
         </label>
-        <button onClick={importBannerResult} disabled={actionLoading || status?.runner.running}>
+      </div>
+      <div className="toolbar" style={{ marginTop: 8 }}>
+        <button onClick={importBannerResult} disabled={actionLoading || !!status?.runner.running}>
           {actionLoading ? 'Procesando...' : 'Importar resultado Banner a la base'}
         </button>
       </div>
-      <div className="actions">
-        Al importar, el sistema actualiza <span className="code">bannerReview</span> en los cursos y puede enlazar el
-        docente encontrado por Banner al curso correspondiente.
-      </div>
 
-      {message ? <div className="message">{message}</div> : null}
-
-      {status?.runner.logTail ? (
-        <>
-          <div className="subtitle">Seguimiento del proceso Banner</div>
-          <pre className="log-box">{status.runner.logTail}</pre>
-        </>
-      ) : null}
-
+      {/* Resultado de la importacion */}
       {importResult ? (
-        <>
-          <div className="subtitle">Resultado de la importacion</div>
-          <pre className="log-box">{JSON.stringify(importResult, null, 2)}</pre>
-        </>
+        <details className="disclosure" style={{ marginTop: 10 }}>
+          <summary>Resultado de la importacion</summary>
+          <div className="log-block">{JSON.stringify(importResult, null, 2)}</div>
+        </details>
       ) : null}
+
+      {/* Log del ultimo proceso (cuando no hay proceso activo) */}
+      {!status?.runner.running && status?.runner.logTail ? (
+        <details className="disclosure" style={{ marginTop: 10 }}>
+          <summary>Log de la ultima corrida</summary>
+          <div className="log-block">{status.runner.logTail}</div>
+        </details>
+      ) : null}
+
+      {/* Configuracion avanzada al fondo */}
+      <hr className="divider" />
+      <details className="disclosure">
+        <summary>Configuracion del runner Banner</summary>
+        <div className="form-grid" style={{ marginTop: 10 }}>
+          <label style={{ gridColumn: '1 / 3' }}>
+            Ruta del proyecto Banner
+            <input
+              value={projectRootInput}
+              onChange={(event) => setProjectRootInput(event.target.value)}
+              placeholder="/ruta/al/proyecto-banner"
+            />
+          </label>
+        </div>
+        <div className="toolbar" style={{ marginTop: 8 }}>
+          <button onClick={saveProjectRoot} disabled={loading || actionLoading || !!status?.runner.running}>
+            Guardar ruta Banner
+          </button>
+          <button onClick={startBannerAuth} disabled={loading || actionLoading || !!status?.runner.running}>
+            Abrir login Banner
+          </button>
+          <button
+            onClick={confirmBannerAuth}
+            disabled={
+              loading ||
+              actionLoading ||
+              status?.runner.current?.command !== 'auth' ||
+              !status.runner.current?.awaitingInput
+            }
+          >
+            Guardar sesion Banner
+          </button>
+        </div>
+        <div className="actions" style={{ marginTop: 8 }}>
+          {projectRootLooksLinux ? (
+            <span>Ruta Linux: <span className="code">{bannerRootPreview}</span></span>
+          ) : projectRootLooksMounted ? (
+            <span>
+              Ruta en <span className="code">/mnt</span>: <span className="code">{bannerRootPreview}</span>.
+              Se recomienda moverla a una copia Linux del runner.
+            </span>
+          ) : (
+            <span>Ruta actual: <span className="code">{bannerRootPreview || 'Sin configurar'}</span></span>
+          )}
+        </div>
+        <div className="actions" style={{ marginTop: 6 }}>
+          <span className="code">Ultimo archivo exportado: {basename(status?.exportSummary.latestFile)}</span>
+          {latestRunQueryId ? (
+            <><br /><span className="code">Ultimo Query ID detectado: {latestRunQueryId}</span></>
+          ) : null}
+          {status?.runner.lastRun ? (
+            <><br />
+              <span className="code">
+                Ultima corrida: {status.runner.lastRun.command} | {status.runner.lastRun.status}
+                {status.runner.lastRun.startedAt ? ` | inicio ${status.runner.lastRun.startedAt}` : ''}
+                {status.runner.lastRun.endedAt ? ` | fin ${status.runner.lastRun.endedAt}` : ''}
+              </span>
+            </>
+          ) : null}
+        </div>
+      </details>
     </article>
   );
 }

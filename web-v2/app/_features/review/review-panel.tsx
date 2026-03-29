@@ -1037,80 +1037,102 @@ export function ReviewPanel({
 
   return (
     <article className={`panel ${compact ? 'panel-compact' : ''}`}>
-      <h2>Flujo de revision manual por muestreo</h2>
-      <div className="controls">
-        <label>
-          Periodo
-          <input value={periodCode} onChange={(event) => setPeriodCode(event.target.value)} placeholder="202615" />
-        </label>
-        <label>
-          Momento
-          <select value={moment} onChange={(event) => setMoment(event.target.value)}>
-            <option value="MD1">MD1 (RY1)</option>
-            <option value="MD2">MD2 (RY2)</option>
-            <option value="1">1 (RYC)</option>
-          </select>
-        </label>
-        <label>
-          Fase
-          <select value={phase} onChange={(event) => setPhase(event.target.value as 'ALISTAMIENTO' | 'EJECUCION')}>
-            <option value="ALISTAMIENTO">Alistamiento</option>
-            <option value="EJECUCION">Ejecucion</option>
-          </select>
-        </label>
-        <label>
-          Categoria
-          <select
-            value={queueCategory}
-            onChange={(event) => setQueueCategory(event.target.value as 'MUESTREO' | 'TEMPORAL')}
-          >
-            <option value="MUESTREO">Muestreo normal</option>
-            <option value="TEMPORAL">Temporal (rezagados/casos)</option>
-          </select>
-        </label>
-        <button onClick={loadQueue} disabled={loading}>
-          {loading ? 'Cargando...' : 'Cargar cola'}
-        </button>
-        {!compact ? (
-          <button onClick={openFloatingTab} type="button">
-            Abrir flotante (popup)
+
+      {/* ── HEADER ── */}
+      <div className="panel-heading">
+        <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+          <h2 style={{ margin: 0 }}>Revision NRC</h2>
+          {queue ? (
+            <>
+              <span className="chip chip-info">{queue.periodCode}</span>
+              <span className="chip chip-primary">{queue.phase}</span>
+              {queue.moment ? <span className="chip">{queue.moment}</span> : null}
+              <span className="chip chip-ok">{queue.done}/{queue.total} hechos</span>
+            </>
+          ) : null}
+        </div>
+        <div className="toolbar">
+          {!compact ? (
+            <button type="button" onClick={openFloatingTab}>
+              Abrir flotante
+            </button>
+          ) : null}
+          <button type="button" onClick={() => void loadQueue()} disabled={loading} className="primary">
+            {loading ? 'Cargando...' : 'Cargar cola'}
           </button>
-        ) : null}
+        </div>
       </div>
 
-      <div className="controls" style={{ marginTop: 8 }}>
-        <label style={{ minWidth: 360 }}>
-          URL Moodle
-          <input
-            value={moodleUrlTemplate}
-            onChange={(event) => setMoodleUrlTemplate(event.target.value)}
-            placeholder="https://campus.../course/search.php?search={nrc}"
-          />
-        </label>
-      </div>
-
-      <div className="actions">
-        {queue ? (
-          <>
-            Categoria: <span className="code">{queue.category ?? queueCategory}</span> |{' '}
-            Total grupos: <span className="code">{queue.total}</span> | Pendientes:{' '}
-            <span className="code">{queue.pending}</span> | Hechos: <span className="code">{queue.done}</span>
-          </>
-        ) : (
-          'Carga una cola para iniciar la revision.'
-        )}
-      </div>
-
-      {queue ? (
-        <div className="saved-nrc-block">
-          <div className="saved-nrc-kpis">
-            <span className="badge">NRC periodo: {queue.progress.totalNrcInPeriod}</span>
-            <span className="badge">Guardados: {queue.progress.reviewedNrcInPeriod}</span>
-            <span className="badge">Faltantes: {queue.progress.pendingNrcInPeriod}</span>
-            <span className="badge">Avance: {queue.progress.reviewedPercent}%</span>
-            <span className="badge">Falta: {queue.progress.pendingPercent}%</span>
+      {/* ── CARGA DE COLA (colapsable) ── */}
+      <details className="disclosure" style={{ marginTop: 8 }}>
+        <summary>Cargar cola de revision</summary>
+        <div className="disclosure-body">
+          <div className="form-grid">
+            <label>
+              Periodo
+              <input value={periodCode} onChange={(event) => setPeriodCode(event.target.value)} placeholder="202615" />
+            </label>
+            <label>
+              Momento
+              <select value={moment} onChange={(event) => setMoment(event.target.value)}>
+                <option value="MD1">MD1 (RY1)</option>
+                <option value="MD2">MD2 (RY2)</option>
+                <option value="1">1 (RYC)</option>
+              </select>
+            </label>
+            <label>
+              Fase
+              <select value={phase} onChange={(event) => setPhase(event.target.value as 'ALISTAMIENTO' | 'EJECUCION')}>
+                <option value="ALISTAMIENTO">Alistamiento</option>
+                <option value="EJECUCION">Ejecucion</option>
+              </select>
+            </label>
+            <label>
+              Categoria
+              <select
+                value={queueCategory}
+                onChange={(event) => setQueueCategory(event.target.value as 'MUESTREO' | 'TEMPORAL')}
+              >
+                <option value="MUESTREO">Muestreo normal</option>
+                <option value="TEMPORAL">Temporal (rezagados/casos)</option>
+              </select>
+            </label>
+            <label className="wide">
+              URL Moodle
+              <input
+                value={moodleUrlTemplate}
+                onChange={(event) => setMoodleUrlTemplate(event.target.value)}
+                placeholder="https://campus.../course/search.php?search={nrc}"
+              />
+            </label>
           </div>
+          <div className="toolbar" style={{ marginTop: 8 }}>
+            <button type="button" onClick={() => void loadQueue()} disabled={loading} className="primary">
+              {loading ? 'Cargando...' : 'Cargar cola'}
+            </button>
+          </div>
+        </div>
+      </details>
 
+      {/* ── BARRA DE PROGRESO ── */}
+      {queue ? (
+        <div style={{ marginTop: 10 }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', fontSize: 11, color: 'var(--n-500)', marginBottom: 4 }}>
+            <span>Avance del periodo</span>
+            <span>{queue.progress.reviewedNrcInPeriod} / {queue.progress.totalNrcInPeriod} NRC &mdash; {queue.progress.reviewedPercent}%</span>
+          </div>
+          <div className="progress-bar">
+            <div
+              className={`progress-bar-fill${queue.progress.reviewedPercent >= 80 ? ' ok' : queue.progress.reviewedPercent >= 40 ? ' warn' : ' danger'}`}
+              style={{ width: `${queue.progress.reviewedPercent}%` }}
+            />
+          </div>
+        </div>
+      ) : null}
+
+      {/* ── COLA + FILTROS ── */}
+      {queue ? (
+        <div style={{ marginTop: 12 }}>
           <CalendarPriorityPanel
             stats={calendarStats}
             filter={calendarFilter}
@@ -1121,33 +1143,94 @@ export function ReviewPanel({
             onSortToggle={() => { setSortByPriority((prev) => !prev); setIndex(0); }}
           />
 
-          <div className="controls" style={{ marginTop: 8 }}>
-            <label style={{ minWidth: 240 }}>
-              Buscar NRC guardado
-              <input
-                value={nrcSearch}
-                onChange={(event) => setNrcSearch(event.target.value)}
-                placeholder="Ej: 15234"
-              />
-            </label>
+          {/* Lista de cola con altura fija */}
+          <div
+            className="issue-list"
+            style={{ maxHeight: 420, overflowY: 'auto', marginTop: 10 }}
+          >
+            {processedItems.length === 0 ? (
+              <p className="muted" style={{ padding: '10px 14px' }}>Sin items para este filtro.</p>
+            ) : (
+              processedItems.map((item, i) => {
+                const isActive = i === index;
+                const itemSchedule = buildCourseScheduleInfo({
+                  startDate: item.selectedCourse.bannerStartDate,
+                  endDate: item.selectedCourse.bannerEndDate,
+                });
+                return (
+                  <button
+                    key={item.sampleGroupId}
+                    type="button"
+                    onClick={() => selectItemByIndex(i, processedItems)}
+                    style={{
+                      display: 'flex',
+                      alignItems: 'center',
+                      justifyContent: 'space-between',
+                      width: '100%',
+                      padding: '7px 12px',
+                      background: isActive ? 'var(--blue-light, #dbeafe)' : item.done ? 'var(--n-50)' : 'transparent',
+                      border: 'none',
+                      borderBottom: '1px solid var(--n-100)',
+                      cursor: 'pointer',
+                      textAlign: 'left',
+                      gap: 8,
+                    }}
+                  >
+                    <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
+                      <span style={{ fontWeight: isActive ? 700 : 500, fontSize: 13 }}>
+                        NRC {item.selectedCourse.nrc}
+                      </span>
+                      <span style={{ fontSize: 11, color: 'var(--n-500)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.teacherName}
+                        {item.selectedCourse.subjectName ? ` · ${item.selectedCourse.subjectName}` : ''}
+                      </span>
+                    </span>
+                    <span style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>
+                      {item.evaluation ? (
+                        <span className="badge badge-green" style={{ fontSize: 10 }}>{item.evaluation.score}/50</span>
+                      ) : null}
+                      {item.done ? (
+                        <span className="badge badge-gray" style={{ fontSize: 10 }}>Hecho</span>
+                      ) : (
+                        <span className="badge badge-amber" style={{ fontSize: 10 }}>Pendiente</span>
+                      )}
+                      {itemSchedule.calendarState === 'ACTIVE' && (() => {
+                        if (!itemSchedule.endIsoDate) return null;
+                        const today = new Date();
+                        const todayMs = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
+                        const endMs = new Date(itemSchedule.endIsoDate + 'T00:00:00Z').getTime();
+                        const days = Math.ceil((endMs - todayMs) / 86400000);
+                        if (days <= 7) return <span className="badge badge-red" style={{ fontSize: 10 }}>!{days}d</span>;
+                        return null;
+                      })()}
+                    </span>
+                  </button>
+                );
+              })
+            )}
           </div>
 
-          <div style={{ marginTop: 8 }}>
-            <button
-              type="button"
-              onClick={() => setNrcTableOpen((prev) => !prev)}
-              style={{ marginBottom: 4, fontSize: 12 }}
-            >
-              {nrcTableOpen ? '▲ Ocultar lista NRC' : '▼ Ver lista NRC'}
-            </button>
-            {nrcTableOpen && (
-              <table>
+          {/* NRC guardados buscables */}
+          <details className="disclosure" style={{ marginTop: 8 }}>
+            <summary>NRC guardados ({savedNrcItems.length})</summary>
+            <div className="disclosure-body">
+              <div className="form-grid" style={{ marginBottom: 8 }}>
+                <label>
+                  Buscar NRC
+                  <input
+                    value={nrcSearch}
+                    onChange={(event) => setNrcSearch(event.target.value)}
+                    placeholder="Ej: 15234"
+                  />
+                </label>
+              </div>
+              <table className="compact-table">
                 <thead>
                   <tr>
                     <th>NRC</th>
                     <th>Calificacion</th>
                     <th>Observaciones</th>
-                    <th>Accion</th>
+                    <th></th>
                   </tr>
                 </thead>
                 <tbody>
@@ -1163,9 +1246,7 @@ export function ReviewPanel({
                             onClick={() => {
                               if (!queue?.items.length) return;
                               const targetIndex = queue.items.findIndex((qItem) => qItem.sampleGroupId === item.sampleGroupId);
-                              if (targetIndex >= 0) {
-                                selectItemByIndex(targetIndex);
-                              }
+                              if (targetIndex >= 0) selectItemByIndex(targetIndex);
                             }}
                           >
                             Ver
@@ -1175,209 +1256,163 @@ export function ReviewPanel({
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="muted">
-                        No hay NRC guardados para ese filtro.
-                      </td>
+                      <td colSpan={4} className="muted">No hay NRC guardados para ese filtro.</td>
                     </tr>
                   )}
                 </tbody>
               </table>
-            )}
-          </div>
+            </div>
+          </details>
         </div>
-      ) : null}
-
-      {!current ? (
-        <p className="muted">Sin registros de muestreo para este filtro.</p>
       ) : (
-        <>
-          <div className="review-header">
+        <p className="muted" style={{ marginTop: 12 }}>Carga una cola para iniciar la revision.</p>
+      )}
+
+      {/* ── PANEL DE CHECKLIST ACTIVO ── */}
+      {!current ? (
+        queue ? <p className="muted" style={{ marginTop: 10 }}>Sin registros de muestreo para este filtro.</p> : null
+      ) : (
+        <div style={{ marginTop: 16, borderTop: '1px solid var(--n-200)', paddingTop: 14 }}>
+
+          {/* Encabezado del NRC activo */}
+          <div style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 10 }}>
             <div>
-              <div className="kpi-label">NRC seleccionado</div>
-              <div className="kpi-value-sm" style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
-                {current.selectedCourse.nrc}
+              <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                <span style={{ fontSize: 22, fontWeight: 800, letterSpacing: '-0.5px' }}>
+                  NRC {current.selectedCourse.nrc}
+                </span>
                 {currentScheduleInfo.calendarState === 'ACTIVE' && daysRemaining !== null && daysRemaining <= 7 && (
-                  <span className="badge" style={{ background: '#c0392b', color: '#fff', fontSize: 11 }}>
-                    URGENTE {daysRemaining}d
-                  </span>
+                  <span className="chip chip-alert">URGENTE {daysRemaining}d</span>
                 )}
                 {currentScheduleInfo.calendarState === 'ACTIVE' && currentScheduleInfo.isShortCourse && (daysRemaining === null || daysRemaining > 7) && (
-                  <span className="badge" style={{ background: '#b36200', color: '#fff', fontSize: 11 }}>
-                    CORTO
-                  </span>
+                  <span className="chip chip-warn">CORTO</span>
                 )}
                 {currentScheduleInfo.calendarState === 'ACTIVE' && !currentScheduleInfo.isShortCourse && (daysRemaining === null || daysRemaining > 7) && (
-                  <span className="badge" style={{ background: '#1b7a3e', color: '#fff', fontSize: 11 }}>
-                    ACTIVO
-                  </span>
+                  <span className="chip chip-ok">ACTIVO</span>
                 )}
                 {currentScheduleInfo.calendarState === 'UPCOMING' && (
-                  <span className="badge" style={{ fontSize: 11 }}>POR INICIAR</span>
+                  <span className="chip">POR INICIAR</span>
                 )}
                 {currentScheduleInfo.calendarState === 'ENDED' && (
-                  <span className="badge" style={{ background: '#555', color: '#fff', fontSize: 11 }}>FINALIZADO</span>
+                  <span className="chip chip-alert">FINALIZADO</span>
                 )}
               </div>
-            </div>
-            <div>
-              <div className="kpi-label">Docente</div>
-              <div>{current.teacherName}</div>
-            </div>
-            <div>
-              <div className="kpi-label">Programa</div>
-              <div>{current.programCode}</div>
-            </div>
-            <div>
-              <div className="kpi-label">Tipo aula (editable)</div>
-              <div className="controls">
-                <select
-                  value={editableTemplate}
-                  onChange={(event) => {
-                    const nextTemplate = event.target.value.toUpperCase();
-                    setEditableTemplate(nextTemplate);
-                    const nextChecklist = buildChecklistDefaults(phase, nextTemplate);
-                    setChecklist(nextChecklist);
-                    setDraftChecklistByCourseId((prev) => ({
-                      ...prev,
-                      [current.selectedCourse.id]: nextChecklist,
-                    }));
-                  }}
-                >
-                  {TEMPLATE_OPTIONS.map((opt) => (
-                    <option key={opt} value={opt}>
-                      {opt}
-                    </option>
-                  ))}
-                </select>
-                <button
-                  type="button"
-                  onClick={() => {
-                    void persistCurrentTemplate(editableTemplate.toUpperCase());
-                  }}
-                  disabled={savingTemplate || editableTemplate.toUpperCase() === currentTemplate}
-                >
-                  {savingTemplate ? 'Guardando...' : 'Guardar tipo'}
-                </button>
+              <div style={{ fontSize: 13, color: 'var(--n-600)', marginTop: 2 }}>
+                {current.selectedCourse.subjectName ?? '-'}
+              </div>
+              <div style={{ fontSize: 12, color: 'var(--n-500)', marginTop: 1 }}>
+                {current.teacherName} &middot; {current.programCode}
+                {current.selectedCourse.enrolledCount != null ? ` · ${current.selectedCourse.enrolledCount} inscritos` : ''}
+                {formatCourseWindowLabel(currentScheduleInfo) ? ` · ${formatCourseWindowLabel(currentScheduleInfo)}` : ''}
+                {daysRemaining !== null && currentScheduleInfo.calendarState === 'ACTIVE' ? (
+                  <span style={{ color: daysRemaining <= 7 ? '#c0392b' : daysRemaining <= 14 ? '#b36200' : undefined, fontWeight: daysRemaining <= 7 ? 700 : undefined }}>
+                    {' · '}{daysRemaining}d restantes
+                  </span>
+                ) : null}
               </div>
             </div>
-          </div>
-          <div className="muted">
-            {current.selectedCourse.subjectName ?? '-'} | Estado Moodle: {current.selectedCourse.moodleStatus ?? 'N/A'}
-            {' | '}Inscritos: <span className="code">{current.selectedCourse.enrolledCount ?? 'N/D'}</span>
-            {formatCourseWindowLabel(currentScheduleInfo) ? (
-              <>
-                {' '}
-                | Ventana Banner: <span className="code">{formatCourseWindowLabel(currentScheduleInfo)}</span>
-              </>
-            ) : null}
-            {formatCalendarStateLabel(currentScheduleInfo.calendarState) ? (
-              <>
-                {' '}
-                | Estado calendario: <span className="code">{formatCalendarStateLabel(currentScheduleInfo.calendarState)}</span>
-              </>
-            ) : null}
-            {typeof currentScheduleInfo.progressPercent === 'number' ? (
-              <>
-                {' '}
-                | Avance calendario: <span className="code">{currentScheduleInfo.progressPercent}%</span>
-              </>
-            ) : null}
-            {currentScheduleInfo.isShortCourse ? (
-              <>
-                {' '}
-                | <span className="badge" style={{ background: '#b36200', color: '#fff' }}>Curso corto</span>
-              </>
-            ) : null}
-            {daysRemaining !== null && currentScheduleInfo.calendarState === 'ACTIVE' ? (
-              <>
-                {' '}
-                | Dias restantes:{' '}
-                <span className="code" style={{ color: daysRemaining <= 7 ? '#c0392b' : daysRemaining <= 14 ? '#b36200' : undefined, fontWeight: daysRemaining <= 7 ? 700 : undefined }}>
-                  {daysRemaining}
-                </span>
-              </>
-            ) : null}
-            {current.selectedCourse.moodleCourseUrl ? (
-              <>
-                {' '}
-                | URL detectada: <span className="code">SI</span>{' '}
-                <button
-                  type="button"
-                  style={{
-                    marginLeft: 8,
-                    border: 'none',
-                    background: 'transparent',
-                    color: '#1f5f99',
-                    textDecoration: 'underline',
-                    cursor: 'pointer',
-                    padding: 0,
-                  }}
-                  onClick={() => openNrcInMoodle(current.selectedCourse.nrc, current.selectedCourse.moodleCourseUrl)}
-                >
-                  Abrir URL detectada
-                </button>
-              </>
-            ) : (
-              <>
-                {' '}
-                | URL detectada: <span className="code">NO</span>
-              </>
-            )}
-          </div>
 
-          <div className="score-board">
-            <div>
-              <div className="kpi-label">Calificacion en progreso</div>
-              <div className="kpi-value-sm">{liveScore}/50</div>
-            </div>
-            <div>
-              <div className="kpi-label">Calificacion guardada</div>
-              <div className="kpi-value-sm">{savedScore !== null ? `${savedScore}/50` : 'Sin guardar'}</div>
-            </div>
-          </div>
-
-          <div style={{ marginTop: 12 }}>{renderChecklist()}</div>
-
-          <div style={{ marginTop: 14, display: 'flex', flexDirection: 'column', gap: 6, maxWidth: 340 }}>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <button
-                style={{ flex: 1 }}
-                onClick={() => {
-                  selectItemByIndex(Math.max(0, index - 1), processedItems);
-                }}
-                disabled={index <= 0}
-              >
-                Anterior
-              </button>
-              <button
-                style={{ flex: 1 }}
-                onClick={() => {
-                  if (!processedItems.length) return;
-                  selectItemByIndex(Math.min(processedItems.length - 1, index + 1), processedItems);
-                }}
-                disabled={!processedItems.length || index >= processedItems.length - 1}
-              >
-                Siguiente
-              </button>
-            </div>
+            {/* Boton Moodle prominent */}
             <button
-              onClick={() => openNrcInMoodle(current.selectedCourse.nrc, current.selectedCourse.moodleCourseUrl)}
               type="button"
+              className="primary"
+              style={{ flexShrink: 0 }}
+              onClick={() => openNrcInMoodle(current.selectedCourse.nrc, current.selectedCourse.moodleCourseUrl)}
             >
-              Abrir NRC en Moodle
+              Abrir en Moodle {current.selectedCourse.moodleCourseUrl ? '(URL detectada)' : '(buscar)'}
             </button>
-            <button onClick={() => saveCurrent(false)} disabled={saving}>
+          </div>
+
+          {/* Tipo de aula editable */}
+          <div style={{ display: 'flex', alignItems: 'center', gap: 8, marginBottom: 12 }}>
+            <span style={{ fontSize: 12, color: 'var(--n-500)' }}>Tipo aula:</span>
+            <select
+              value={editableTemplate}
+              onChange={(event) => {
+                const nextTemplate = event.target.value.toUpperCase();
+                setEditableTemplate(nextTemplate);
+                const nextChecklist = buildChecklistDefaults(phase, nextTemplate);
+                setChecklist(nextChecklist);
+                setDraftChecklistByCourseId((prev) => ({
+                  ...prev,
+                  [current.selectedCourse.id]: nextChecklist,
+                }));
+              }}
+            >
+              {TEMPLATE_OPTIONS.map((opt) => (
+                <option key={opt} value={opt}>{opt}</option>
+              ))}
+            </select>
+            <button
+              type="button"
+              onClick={() => { void persistCurrentTemplate(editableTemplate.toUpperCase()); }}
+              disabled={savingTemplate || editableTemplate.toUpperCase() === currentTemplate}
+            >
+              {savingTemplate ? 'Guardando...' : 'Guardar tipo'}
+            </button>
+            <span style={{ fontSize: 11, color: 'var(--n-400)' }}>
+              Estado Moodle: {current.selectedCourse.moodleStatus ?? 'N/A'}
+            </span>
+          </div>
+
+          {/* Checklist */}
+          <div style={{ marginBottom: 14 }}>{renderChecklist()}</div>
+
+          {/* Score display */}
+          <div style={{ display: 'flex', gap: 20, alignItems: 'center', padding: '10px 14px', background: 'var(--n-50)', borderRadius: 6, marginBottom: 14 }}>
+            <div style={{ textAlign: 'center' }}>
+              <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, color: liveScore >= 40 ? '#1b7a3e' : liveScore >= 20 ? '#b36200' : '#c0392b' }}>
+                {liveScore}
+              </div>
+              <div style={{ fontSize: 11, color: 'var(--n-500)', marginTop: 2 }}>en progreso / 50</div>
+            </div>
+            {savedScore !== null ? (
+              <div style={{ textAlign: 'center' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, color: 'var(--n-400)' }}>
+                  {savedScore}
+                </div>
+                <div style={{ fontSize: 11, color: 'var(--n-500)', marginTop: 2 }}>guardado / 50</div>
+              </div>
+            ) : (
+              <div style={{ fontSize: 12, color: 'var(--n-400)' }}>Sin guardar</div>
+            )}
+            {lastReplication ? (
+              <div style={{ fontSize: 11, color: 'var(--n-500)', marginLeft: 'auto' }}>
+                Replicado a <strong>{lastReplication.replicatedCourses}</strong> NRC
+              </div>
+            ) : null}
+          </div>
+
+          {/* Toolbar de navegacion y acciones */}
+          <div className="toolbar" style={{ flexWrap: 'wrap', gap: 6 }}>
+            <button
+              type="button"
+              onClick={() => selectItemByIndex(Math.max(0, index - 1), processedItems)}
+              disabled={index <= 0}
+            >
+              Anterior
+            </button>
+            <button
+              type="button"
+              onClick={() => {
+                if (!processedItems.length) return;
+                selectItemByIndex(Math.min(processedItems.length - 1, index + 1), processedItems);
+              }}
+              disabled={!processedItems.length || index >= processedItems.length - 1}
+            >
+              Siguiente
+            </button>
+            <span style={{ flex: 1 }} />
+            <button
+              type="button"
+              onClick={() => void saveCurrent(false)}
+              disabled={saving}
+            >
               {saving ? 'Guardando...' : 'Guardar'}
             </button>
             <button
-              className="btn-next-action"
-              style={{
-                background: '#1b9a59',
-                borderColor: '#1b9a59',
-                color: '#ffffff',
-                fontWeight: 700,
-                boxShadow: '0 0 0 2px rgba(27,154,89,0.35) inset',
-              }}
+              type="button"
+              className="primary"
               onClick={() => {
                 const nextPending = processedItems.find((item, i) => i !== index && !item.done);
                 if (nextPending) {
@@ -1387,20 +1422,13 @@ export function ReviewPanel({
               }}
               disabled={saving}
             >
-              {saving ? 'Guardando...' : 'Guardar y abrir siguiente NRC (AUTO)'}
+              {saving ? 'Guardando...' : 'Guardar y siguiente (AUTO)'}
             </button>
           </div>
-
-          {lastReplication ? (
-            <div className="actions" style={{ marginTop: 8 }}>
-              Ultima replicacion: <span className="code">{lastReplication.replicatedCourses}</span> NRC |
-              Grupos coincidentes: <span className="code">{lastReplication.groupsMatched}</span>
-            </div>
-          ) : null}
-        </>
+        </div>
       )}
 
-      {message ? <div className="message">{message}</div> : null}
+      {message ? <div className="message" style={{ marginTop: 10 }}>{message}</div> : null}
     </article>
   );
 }
