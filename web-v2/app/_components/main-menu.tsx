@@ -193,7 +193,7 @@ function SidebarContent({
       </nav>
 
       <div className="sidebar-footer">
-        Ops Studio V2
+        Seguimiento Aulas &middot; v4
       </div>
     </>
   );
