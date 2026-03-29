@@ -71,6 +71,8 @@ type BannerStatusResponse = {
       status: string | null;
       checkedAt: string | null;
       errorMessage: string | null;
+      startDate: string | null;
+      endDate: string | null;
     }>;
   };
 };
@@ -223,6 +225,9 @@ export default function BannerIntegrationPanel() {
   const [message, setMessage] = useState('');
   const [importResult, setImportResult] = useState<unknown>(null);
 
+  const [fullResults, setFullResults] = useState<BannerStatusResponse['exportSummary']['preview'] | null>(null);
+  const [fullResultsLoading, setFullResultsLoading] = useState(false);
+
   const [mode, setMode] = useState<BannerMode>('batch');
   const [batchInputMode, setBatchInputMode] = useState<BatchInputMode>('DATABASE');
   const [batchSource, setBatchSource] = useState<BannerBatchSource>('ALL');
@@ -271,6 +276,20 @@ export default function BannerIntegrationPanel() {
       setMessage(`No fue posible cargar Banner: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       setLoading(false);
+    }
+  }
+
+  async function loadFullResults() {
+    try {
+      setFullResultsLoading(true);
+      const data = await fetchJson<{ ok: boolean; records: BannerStatusResponse['exportSummary']['preview'] }>(
+        '/api/banner/export/results',
+      );
+      setFullResults(data.records ?? []);
+    } catch (error) {
+      setMessage(`No fue posible cargar los resultados completos: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setFullResultsLoading(false);
     }
   }
 
@@ -1064,35 +1083,95 @@ export default function BannerIntegrationPanel() {
         <br />
         No es seguimiento en vivo: mientras Banner corre, revisa el bloque <span className="code">Seguimiento del proceso Banner</span>. La tabla de abajo cambia cuando la corrida termina y el export queda listo.
       </div>
-      <table style={{ marginTop: 10 }}>
-        <thead>
-          <tr>
-            <th>NRC</th>
-            <th>Periodo</th>
-            <th>Docente</th>
-            <th>ID docente</th>
-            <th>Estado</th>
-            <th>Fecha</th>
-          </tr>
-        </thead>
-        <tbody>
-          {(status?.exportSummary.preview ?? []).map((item) => (
-            <tr key={`${item.queryId ?? 'sin-query'}-${item.nrc}`}>
-              <td>{item.nrc}</td>
-              <td>{item.period ?? '-'}</td>
-              <td>{item.teacherName ?? '-'}</td>
-              <td>{item.teacherId ?? '-'}</td>
-              <td>{item.status ?? '-'}</td>
-              <td>{item.checkedAt ?? '-'}</td>
-            </tr>
-          ))}
-          {!status?.exportSummary.preview?.length ? (
+      <div className="controls" style={{ marginTop: 8 }}>
+        <button
+          type="button"
+          onClick={loadFullResults}
+          disabled={fullResultsLoading || !!status?.runner.running}
+        >
+          {fullResultsLoading ? 'Cargando...' : 'Cargar todos los resultados'}
+        </button>
+        {fullResults !== null ? (
+          <button type="button" onClick={() => setFullResults(null)}>
+            Ocultar resultados completos
+          </button>
+        ) : null}
+      </div>
+      {fullResults !== null ? (
+        <>
+          <div className="actions" style={{ marginTop: 8 }}>
+            Resultados completos del ultimo export Banner ({fullResults.length} filas). Las columnas de fecha solo
+            aparecen cuando el runner externo las incluye en el CSV.
+          </div>
+          <table style={{ marginTop: 8 }}>
+            <thead>
+              <tr>
+                <th>NRC</th>
+                <th>Periodo</th>
+                <th>Docente</th>
+                <th>ID docente</th>
+                <th>Estado</th>
+                <th>Inicio NRC</th>
+                <th>Cierre NRC</th>
+                <th>Revisado</th>
+              </tr>
+            </thead>
+            <tbody>
+              {fullResults.map((item) => (
+                <tr key={`full-${item.queryId ?? 'sin-query'}-${item.nrc}`}>
+                  <td>{item.nrc}</td>
+                  <td>{item.period ?? '-'}</td>
+                  <td>{item.teacherName ?? '-'}</td>
+                  <td>{item.teacherId ?? '-'}</td>
+                  <td>{item.status ?? '-'}</td>
+                  <td>{item.startDate ?? '-'}</td>
+                  <td>{item.endDate ?? '-'}</td>
+                  <td>{item.checkedAt ?? '-'}</td>
+                </tr>
+              ))}
+              {!fullResults.length ? (
+                <tr>
+                  <td colSpan={8}>Sin filas en el ultimo export Banner.</td>
+                </tr>
+              ) : null}
+            </tbody>
+          </table>
+        </>
+      ) : (
+        <table style={{ marginTop: 10 }}>
+          <thead>
             <tr>
-              <td colSpan={6}>Aun no hay una exportacion Banner disponible.</td>
+              <th>NRC</th>
+              <th>Periodo</th>
+              <th>Docente</th>
+              <th>ID docente</th>
+              <th>Estado</th>
+              <th>Inicio NRC</th>
+              <th>Cierre NRC</th>
+              <th>Revisado</th>
             </tr>
-          ) : null}
-        </tbody>
-      </table>
+          </thead>
+          <tbody>
+            {(status?.exportSummary.preview ?? []).map((item) => (
+              <tr key={`${item.queryId ?? 'sin-query'}-${item.nrc}`}>
+                <td>{item.nrc}</td>
+                <td>{item.period ?? '-'}</td>
+                <td>{item.teacherName ?? '-'}</td>
+                <td>{item.teacherId ?? '-'}</td>
+                <td>{item.status ?? '-'}</td>
+                <td>{item.startDate ?? '-'}</td>
+                <td>{item.endDate ?? '-'}</td>
+                <td>{item.checkedAt ?? '-'}</td>
+              </tr>
+            ))}
+            {!status?.exportSummary.preview?.length ? (
+              <tr>
+                <td colSpan={8}>Aun no hay una exportacion Banner disponible.</td>
+              </tr>
+            ) : null}
+          </tbody>
+        </table>
+      )}
 
       <div className="subtitle">Paso 4. Importar el resultado Banner a la base del sistema</div>
       <div className="controls">

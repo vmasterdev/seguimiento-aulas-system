@@ -63,6 +63,7 @@ const StartExtractionFromDatabaseSchema = DatabaseBatchSchema.extend({
   headless: z.coerce.boolean().optional(),
   loginWaitSeconds: z.coerce.number().int().min(30).max(3600).optional(),
   keepOpen: z.coerce.boolean().optional(),
+  workers: z.coerce.number().int().min(1).max(8).optional(),
 });
 
 const RevalidateDatabaseSchema = z.object({

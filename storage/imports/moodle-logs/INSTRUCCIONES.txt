@@ -1,0 +1,1 @@
+Coloca aqui archivos CSV exportados desde Moodle. Formato del nombre: logs_NRC_*.csv (ej: logs_15-79471_20260328.csv)

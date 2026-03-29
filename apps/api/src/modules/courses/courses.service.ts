@@ -31,6 +31,7 @@ const ManualUpdateSchema = z.object({
 
 const MissingTeacherQuerySchema = z.object({
   periodCode: z.string().trim().optional(),
+  periodCodes: z.string().trim().optional(),
   moment: z.string().trim().optional(),
   q: z.string().trim().optional(),
   limit: z.coerce.number().int().min(1).max(500).default(100),
@@ -519,9 +520,15 @@ export class CoursesService {
     const offset = query.offset ?? 0;
     const limit = query.limit ?? 100;
     const normalizedMoment = query.moment ? normalizeMoment(query.moment) : undefined;
+    const periodCodes = this.parseCsvList(query.periodCodes);
+    const effectivePeriodCodes = periodCodes.length
+      ? periodCodes
+      : query.periodCode?.trim()
+        ? [query.periodCode.trim()]
+        : [];
 
     const where = {
-      period: query.periodCode ? { code: query.periodCode } : undefined,
+      period: effectivePeriodCodes.length ? { code: { in: effectivePeriodCodes } } : undefined,
       moment: normalizedMoment,
       OR: query.q
         ? [
@@ -627,6 +634,11 @@ export class CoursesService {
       total,
       limit,
       offset,
+      filters: {
+        periodCodes: effectivePeriodCodes,
+        moment: normalizedMoment ?? null,
+        q: query.q ?? null,
+      },
       items: paged,
     };
   }

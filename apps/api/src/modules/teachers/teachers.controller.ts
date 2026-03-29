@@ -17,6 +17,11 @@ export class TeachersController {
     return this.teachersService.upsertOne(body);
   }
 
+  @Post('/consolidate-banner-ids')
+  async consolidateBannerIds() {
+    return this.teachersService.consolidateBannerIdsFromResolvedCourses();
+  }
+
   @Post('/import-csv')
   @UseInterceptors(
     AnyFilesInterceptor({
@@ -34,4 +39,3 @@ export class TeachersController {
     return this.teachersService.importCsv(files, body);
   }
 }
-

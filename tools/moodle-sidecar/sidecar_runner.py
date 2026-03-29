@@ -288,6 +288,8 @@ def activity(args, cfg: Dict, root: Path) -> int:
         cmd.extend(["--login-wait-seconds", str(args.login_wait_seconds)])
     if args.keep_open:
         cmd.append("--keep-open")
+    if getattr(args, "workers", None) and args.workers > 1:
+        cmd.extend(["--workers", str(args.workers)])
     return run_cmd(cmd, sidecar_root)
 
 
@@ -371,6 +373,7 @@ def main() -> int:
     p_activity.add_argument("--headless", action="store_true")
     p_activity.add_argument("--login-wait-seconds", type=int)
     p_activity.add_argument("--keep-open", action="store_true")
+    p_activity.add_argument("--workers", type=int)
 
     p_participants = sub.add_parser("participants", help="Extrae participantes y roles visibles del curso")
     p_participants.add_argument("--input-json", required=True)

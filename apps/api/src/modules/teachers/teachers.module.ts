@@ -7,6 +7,6 @@ import { TeachersService } from './teachers.service';
   imports: [DatabaseModule],
   controllers: [TeachersController],
   providers: [TeachersService],
+  exports: [TeachersService],
 })
 export class TeachersModule {}
-

@@ -19,6 +19,8 @@ type BannerRow = {
   html_path?: string;
   raw_payload?: string;
   additional_data?: string;
+  start_date?: string;
+  end_date?: string;
 };
 
 function asRecord(value: unknown): Record<string, unknown> {
@@ -105,6 +107,9 @@ async function main() {
       }
 
       const rawJson = asRecord(course.rawJson);
+      const bannerStartDate = String(row.start_date ?? '').trim() || null;
+      const bannerEndDate = String(row.end_date ?? '').trim() || null;
+
       rawJson.bannerReview = {
         source: 'BANNER',
         sourceFile,
@@ -120,6 +125,8 @@ async function main() {
         htmlPath: row.html_path ?? null,
         rawPayload: parseJsonCell(row.raw_payload),
         additionalData: parseJsonCell(row.additional_data),
+        startDate: bannerStartDate,
+        endDate: bannerEndDate,
       };
 
       let teacherIdToUse = course.teacherId;
@@ -179,6 +186,8 @@ async function main() {
           programCode: courseProgramCodeToUse,
           programName: courseProgramNameToUse,
           rawJson: rawJson as unknown as object,
+          ...(bannerStartDate !== null ? { bannerStartDate } : {}),
+          ...(bannerEndDate !== null ? { bannerEndDate } : {}),
         },
       });
       updatedCourses += 1;

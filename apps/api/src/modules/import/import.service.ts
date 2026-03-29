@@ -68,6 +68,8 @@ const PROGRAM_NAME_KEYS = [
 ];
 const SUBJECT_KEYS = ['asignatura', 'materia', 'subject_name', 'titulo'];
 const MOMENT_KEYS = ['momento', 'moment', 'parte_periodo'];
+const START_DATE_KEYS = ['fecha_inicial_1', 'fecha_inicio', 'start_date', 'fecha_inicial'];
+const END_DATE_KEYS = ['fecha_final_1', 'fecha_fin', 'end_date', 'fecha_final'];
 const SALON_KEYS = ['salon'];
 const SALON1_KEYS = ['salon1'];
 const TEMPLATE_KEYS = ['tipo_aula', 'plantilla', 'template'];
@@ -265,6 +267,7 @@ export class ImportService {
       createdCourses: number;
       updatedCourses: number;
       skippedRows: number;
+      failedRows: number;
       skippedExistingCourses: number;
       preservedTeacherAssignments: number;
       periodsTouched: string[];
@@ -364,6 +367,7 @@ export class ImportService {
     let createdCourses = 0;
     let updatedCourses = 0;
     let skippedRows = 0;
+    let failedRows = 0;
     let skippedExistingCourses = 0;
     let preservedTeacherAssignments = 0;
     const periodsTouched = new Set<string>();
@@ -439,6 +443,8 @@ export class ImportService {
               subjectName: true,
               moment: true,
               rawJson: true,
+              bannerStartDate: true,
+              bannerEndDate: true,
             },
           });
 
@@ -484,6 +490,8 @@ export class ImportService {
           });
           const subjectName = pickValue(row, SUBJECT_KEYS) || null;
           const moment = normalizeMoment(pickValue(row, MOMENT_KEYS) || '1');
+          const bannerStartDate = pickValue(row, START_DATE_KEYS) || existing?.bannerStartDate || null;
+          const bannerEndDate = pickValue(row, END_DATE_KEYS) || existing?.bannerEndDate || null;
           const templateDeclared = normalizeTemplate(pickValue(row, TEMPLATE_KEYS) || 'UNKNOWN');
           const d4FlagLegacy = toBoolean(pickValue(row, D4_KEYS)) || templateDeclared === 'D4';
 
@@ -549,6 +557,8 @@ export class ImportService {
             programName: resolvedProgram.programName,
             subjectName,
             moment,
+            bannerStartDate,
+            bannerEndDate,
             salon: pickValue(row, SALON_KEYS) || null,
             salon1: pickValue(row, SALON1_KEYS) || null,
             templateDeclared,
@@ -598,6 +608,7 @@ export class ImportService {
             update: {},
           });
         } catch (error) {
+          failedRows += 1;
           const message = error instanceof Error ? error.message : 'Error desconocido';
           const failure = `${file.originalname} fila ${idx + 2}: ${message}`;
           this.logger.error(failure);
@@ -629,6 +640,7 @@ export class ImportService {
           createdCourses,
           updatedCourses,
           skippedRows,
+          failedRows,
           skippedExistingCourses,
           preservedTeacherAssignments,
           periodsTouched: [...periodsTouched],
@@ -651,6 +663,8 @@ export class ImportService {
       createdCourses,
       updatedCourses,
       skippedRows,
+      failedRows,
+      completedWithErrors: failedRows > 0,
       skippedExistingCourses,
       preservedTeacherAssignments,
       periodsTouched: [...periodsTouched],
@@ -863,5 +877,229 @@ export class ImportService {
       updatedCoordinators,
       skippedCoordinatorRows,
     };
+  }
+
+  async importMoodleLogsFromFolder(rawBody: unknown) {
+    const body = rawBody && typeof rawBody === 'object' ? rawBody as Record<string, unknown> : {};
+    const defaultPeriodCode = typeof body['periodCode'] === 'string' ? body['periodCode'].trim() : '';
+    const folderPath = path.resolve(resolveProjectRoot(), 'storage/imports/moodle-logs');
+
+    let files: string[] = [];
+    try {
+      const entries = await fs.readdir(folderPath);
+      files = entries.filter((e) => e.toLowerCase().endsWith('.csv') && e.toLowerCase().startsWith('logs_'));
+    } catch {
+      return { ok: false, error: `Carpeta no encontrada: ${folderPath}`, processed: 0, skipped: 0, details: [] };
+    }
+
+    if (!files.length) {
+      return { ok: true, message: 'No hay archivos logs_*.csv en la carpeta.', processed: 0, skipped: 0, details: [] };
+    }
+
+    const REQUIRED_DAYS_PER_WEEK = 3;
+    const details: Array<{ file: string; nrc: string; status: string; teacherDays?: number; complianceRate?: number; ingresosScore?: number }> = [];
+    let processed = 0;
+    let skipped = 0;
+
+    for (const file of files) {
+      // Extraer NRC del nombre: logs_15-79471_*.csv o logs_79471_*.csv
+      const nrcMatch = file.match(/logs_(?:(?:\d{2}-)?(\d+))_/);
+      const nrcRaw = nrcMatch?.[1] ?? null;
+      if (!nrcRaw) { skipped++; details.push({ file, nrc: '', status: 'NRC_NO_DETECTADO_EN_NOMBRE' }); continue; }
+
+      // Buscar el curso en BD
+      const course = await this.prisma.course.findFirst({
+        where: {
+          nrc: { endsWith: nrcRaw },
+          ...(defaultPeriodCode ? { period: { code: defaultPeriodCode } } : {}),
+        },
+        include: {
+          teacher: { select: { fullName: true } },
+          period: { select: { code: true, executionPolicy: true } },
+          evaluations: { where: { phase: 'EJECUCION' }, select: { id: true, checklist: true, score: true, observations: true } },
+        },
+        orderBy: { period: { code: 'desc' } },
+      });
+
+      if (!course) { skipped++; details.push({ file, nrc: nrcRaw, status: 'CURSO_NO_ENCONTRADO' }); continue; }
+      if (!course.teacher?.fullName) { skipped++; details.push({ file, nrc: nrcRaw, status: 'SIN_DOCENTE' }); continue; }
+
+      // Parsear CSV Moodle (log de actividad)
+      const content = await fs.readFile(path.join(folderPath, file));
+      const rows: Record<string, string>[] = parse(content, { columns: true, skip_empty_lines: true, trim: true, bom: true });
+
+      // Identificar al docente: normalizar nombre del DB y buscar coincidencia en el log
+      // Normalizar: quitar tildes y convertir a mayúsculas para comparación robusta
+      const normalize = (s: string) => s.normalize('NFD').replace(/[\u0300-\u036f]/g, '').toUpperCase();
+
+      const teacherDbName = normalize(course.teacher.fullName);
+      // DB format: "GLORIA, ROJAS DURAN I." → extraer tokens significativos
+      const dbTokens = teacherDbName.replace(/[.,]/g, ' ').split(/\s+/).filter((t) => t.length > 2);
+
+      const userCounts = new Map<string, number>();
+      for (const row of rows) {
+        const u = (row['Nombre completo del usuario'] ?? row['Full name of user'] ?? '').trim();
+        if (u && u !== '-') userCounts.set(u, (userCounts.get(u) ?? 0) + 1);
+      }
+
+      // Buscar usuario del log que más tokens del DB tenga en su nombre
+      let teacherLogName = '';
+      let bestMatch = 0;
+      for (const [userName] of userCounts) {
+        const upper = normalize(userName);
+        const matches = dbTokens.filter((t) => upper.includes(t)).length;
+        if (matches > bestMatch) { bestMatch = matches; teacherLogName = userName; }
+      }
+
+      if (!teacherLogName || bestMatch < 2) {
+        skipped++;
+        details.push({ file, nrc: course.nrc, status: `DOCENTE_NO_IDENTIFICADO (DB: ${teacherDbName})` });
+        continue;
+      }
+
+      // Contar días únicos de acceso del docente
+      const teacherDays = new Set<string>();
+      const allLogDates = new Set<string>();
+      for (const row of rows) {
+        const hora = (row['Hora'] ?? row['Time'] ?? '').trim();
+        const day = hora.split(',')[0]?.trim();
+        if (day) allLogDates.add(day);
+        const userName = (row['Nombre completo del usuario'] ?? '').trim();
+        if (userName === teacherLogName && day) teacherDays.add(day);
+      }
+
+      // Calcular semanas del curso: usar fechas Banner si existen, sino rango del log
+      const parseLogDate = (d: string) => {
+        // Formato "28/03/26" → día/mes/año (2 dígitos)
+        const parts = d.split('/');
+        if (parts.length !== 3) return null;
+        const [dd, mm, yy] = parts;
+        return new Date(`20${yy}-${mm}-${dd}`);
+      };
+      const parseBannerDate = (d: string) => {
+        const [dd, mm, yyyy] = d.split('/');
+        return new Date(`${yyyy}-${mm}-${dd}`);
+      };
+
+      let totalWeeks: number;
+      let dateSource: string;
+      if (course.bannerStartDate && course.bannerEndDate) {
+        const start = parseBannerDate(course.bannerStartDate);
+        const end = parseBannerDate(course.bannerEndDate);
+        const totalDays = Math.max(1, Math.round((end.getTime() - start.getTime()) / 86400000));
+        totalWeeks = Math.max(1, Math.ceil(totalDays / 7));
+        dateSource = 'banner';
+      } else {
+        // Sin fechas Banner: usar rango de fechas presentes en el log
+        const logDates = [...allLogDates].map((d) => parseLogDate(d)).filter(Boolean) as Date[];
+        if (logDates.length < 2) {
+          skipped++;
+          details.push({ file, nrc: course.nrc, status: 'SIN_FECHAS_BANNER_Y_LOG_INSUFICIENTE' });
+          continue;
+        }
+        const minDate = new Date(Math.min(...logDates.map((d) => d.getTime())));
+        const maxDate = new Date(Math.max(...logDates.map((d) => d.getTime())));
+        const totalDays = Math.max(1, Math.round((maxDate.getTime() - minDate.getTime()) / 86400000));
+        totalWeeks = Math.max(1, Math.ceil(totalDays / 7));
+        dateSource = 'log';
+      }
+
+      const requiredDays = totalWeeks * REQUIRED_DAYS_PER_WEEK;
+      const complianceRate = Math.min(100, Math.round((teacherDays.size / requiredDays) * 100 * 100) / 100);
+      const ingresosValue = complianceRate; // valor numérico 0-100
+
+      // Actualizar o crear evaluación EJECUCION con ingresos
+      const existingEval = course.evaluations[0];
+      const existingChecklist = (existingEval?.checklist && typeof existingEval.checklist === 'object') ? existingEval.checklist as Record<string, unknown> : {};
+      const newChecklist = { ...existingChecklist, ingresos: ingresosValue };
+
+      if (existingEval) {
+        await this.prisma.evaluation.update({
+          where: { id: existingEval.id },
+          data: { checklist: newChecklist },
+        });
+      } else {
+        await this.prisma.evaluation.create({
+          data: {
+            courseId: course.id,
+            phase: 'EJECUCION',
+            checklist: newChecklist,
+            score: 0,
+          },
+        });
+      }
+
+      processed++;
+      details.push({
+        file,
+        nrc: course.nrc,
+        status: 'OK',
+        teacherDays: teacherDays.size,
+        complianceRate,
+        ingresosScore: Math.round((Math.min(100, complianceRate) / 100) * 10 * 100) / 100,
+      });
+    }
+
+    return { ok: true, processed, skipped, filesFound: files.length, details };
+  }
+
+  async importBannerDatesFromFolder(rawBody: unknown) {
+    const body = rawBody && typeof rawBody === 'object' ? rawBody as Record<string, unknown> : {};
+    const defaultPeriodCode = typeof body['periodCode'] === 'string' ? body['periodCode'].trim() : '';
+    const folderPath = path.resolve(resolveProjectRoot(), 'storage/imports/banner-dates');
+
+    let files: string[] = [];
+    try {
+      const entries = await fs.readdir(folderPath);
+      files = entries.filter((e) => e.toLowerCase().endsWith('.csv'));
+    } catch {
+      return { ok: false, error: `Carpeta no encontrada: ${folderPath}`, updated: 0, skipped: 0, periodCodes: [] };
+    }
+
+    if (!files.length) {
+      return { ok: true, message: 'No hay archivos CSV en la carpeta.', updated: 0, skipped: 0, periodCodes: [] };
+    }
+
+    let updated = 0;
+    let skipped = 0;
+    const periodCodesSet = new Set<string>();
+    const details: Array<{ nrc: string; period: string; status: string }> = [];
+
+    for (const file of files) {
+      if (file.startsWith('README')) continue;
+      const content = await fs.readFile(path.join(folderPath, file));
+      const rows: Record<string, string>[] = parse(content, { columns: true, skip_empty_lines: true, trim: true });
+
+      for (const row of rows) {
+        const nrcRaw = (row['nrc'] ?? row['NRC'] ?? '').trim().replace(/^\d{2}-/, '');
+        const periodCode = (row['period'] ?? row['periodo'] ?? row['period_code'] ?? defaultPeriodCode).trim();
+        const startDate = (row['start_date'] ?? row['fecha_inicio'] ?? row['fecha_inicial'] ?? '').trim();
+        const endDate = (row['end_date'] ?? row['fecha_fin'] ?? row['fecha_final'] ?? '').trim();
+
+        if (!nrcRaw || !periodCode) { skipped++; continue; }
+
+        const period = await this.prisma.period.findFirst({ where: { code: periodCode } });
+        if (!period) { skipped++; details.push({ nrc: nrcRaw, period: periodCode, status: 'PERIODO_NO_ENCONTRADO' }); continue; }
+
+        const result = await this.prisma.course.updateMany({
+          where: { nrc: { endsWith: nrcRaw }, periodId: period.id },
+          data: {
+            ...(startDate ? { bannerStartDate: startDate } : {}),
+            ...(endDate ? { bannerEndDate: endDate } : {}),
+          },
+        });
+
+        if (result.count > 0) {
+          updated += result.count;
+          periodCodesSet.add(periodCode);
+          details.push({ nrc: nrcRaw, period: periodCode, status: 'ACTUALIZADO' });
+        } else {
+          skipped++;
+          details.push({ nrc: nrcRaw, period: periodCode, status: 'NRC_NO_ENCONTRADO' });
+        }
+      }
+    }
+
+    return { ok: true, updated, skipped, periodCodes: [...periodCodesSet], filesProcessed: files.length, details };
   }
 }

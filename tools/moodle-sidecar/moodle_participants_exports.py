@@ -17,6 +17,7 @@ from moodle_export_common import (
     derive_course_id,
     ensure_login,
     load_input_rows,
+    prelogin_all_modalidades,
     sanitize_file_token,
     to_relative_path,
     write_summary,
@@ -248,6 +249,8 @@ def main() -> int:
     exit_code = 0
 
     try:
+        prelogin_all_modalidades(driver, input_rows, headless=args.headless, login_wait_seconds=args.login_wait_seconds)
+
         for row in input_rows:
             nrc = str(row.get("nrc") or "").strip()
             period_code = str(row.get("periodCode") or "").strip()

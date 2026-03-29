@@ -108,6 +108,76 @@ def copy_legacy_profile_if_needed(target: Path, legacy: Path) -> None:
         print(f"[WARN] No se pudo migrar perfil desde {legacy}: {exc}")
 
 
+def prepare_worker_profiles(browser: str, num_workers: int) -> List[str]:
+    """Devuelve una lista de rutas de perfil dedicadas por worker (_w0, _w1, _w2...).
+    Nunca usa el perfil principal para evitar conflictos de bloqueo.
+    El pre-login copia el perfil principal -> _w0, luego _w0 -> _w1, _w2...
+    """
+    browser_key = (browser or "edge").strip().lower()
+    if browser_key == "chrome":
+        base = PROFILE_DIR_CHROME
+    else:
+        base = PROFILE_DIR_EDGE
+
+    return [f"{base}_w{i}" for i in range(num_workers)]
+
+
+def _apply_driver_options(options, download_dir: Path, profile_dir: str, headless: bool) -> None:
+    download_dir.mkdir(parents=True, exist_ok=True)
+    Path(profile_dir).mkdir(parents=True, exist_ok=True)
+    options.add_argument(f"--user-data-dir={profile_dir}")
+    options.add_argument("--no-first-run")
+    options.add_argument("--no-default-browser-check")
+    options.add_argument("--disable-dev-shm-usage")
+    options.add_argument("--no-sandbox")
+    if headless:
+        options.add_argument("--headless=new")
+        options.add_argument("--disable-gpu")
+        options.add_argument("--window-size=1920,1080")
+    prefs = {
+        "download.default_directory": str(download_dir),
+        "download.prompt_for_download": False,
+        "download.directory_upgrade": True,
+        "safebrowsing.enabled": True,
+    }
+    options.add_experimental_option("prefs", prefs)
+
+
+def create_download_driver_with_profile(browser: str, download_dir: Path, profile_dir: str, headless: bool = False) -> WebDriver:
+    """Crea un driver usando un directorio de perfil explícito (para multi-worker)."""
+    if SELENIUM_IMPORT_ERROR is not None:
+        raise RuntimeError("No se pudo importar selenium.") from SELENIUM_IMPORT_ERROR
+
+    browser_key = (browser or "edge").strip().lower()
+    Path(profile_dir).parent.mkdir(parents=True, exist_ok=True)
+
+    if browser_key == "chrome":
+        options = ChromeOptions()
+        _apply_driver_options(options, download_dir, profile_dir, headless)
+        driver = webdriver.Chrome(options=options)
+    elif browser_key == "edge":
+        options = EdgeOptions()
+        _apply_driver_options(options, download_dir, profile_dir, headless)
+        driver = webdriver.Edge(options=options)
+    else:
+        raise ValueError("Navegador no soportado. Usa edge o chrome.")
+
+    if not headless:
+        try:
+            driver.maximize_window()
+        except Exception:
+            try:
+                driver.set_window_size(1920, 1080)
+            except Exception:
+                pass
+    else:
+        try:
+            driver.set_window_size(1920, 1080)
+        except Exception:
+            pass
+    return driver
+
+
 def create_download_driver(browser: str, download_dir: Path, headless: bool = False) -> WebDriver:
     if SELENIUM_IMPORT_ERROR is not None:
         raise RuntimeError("No se pudo importar selenium.") from SELENIUM_IMPORT_ERROR
@@ -175,6 +245,41 @@ def ensure_login(driver: WebDriver, base_url: str, row: Dict[str, object], headl
             import moodle_categorizacion_aulas as sidecar_module
 
             sidecar_module.LOGIN_WAIT_SECONDS = original_wait
+
+
+def prelogin_all_modalidades(
+    driver: WebDriver,
+    input_rows: List[Dict[str, object]],
+    headless: bool,
+    login_wait_seconds: Optional[int],
+) -> None:
+    """Hace login en todas las base_urls distintas que aparecen en input_rows
+    antes de empezar la revision masiva de NRCs.  Asi el usuario completa
+    todos los logins de una vez y el proceso posterior corre sin interrupciones.
+    """
+    seen: set = set()
+    unique_bases: List[Dict[str, object]] = []
+    for row in input_rows:
+        base = derive_base_url(row)
+        if base and base not in seen:
+            seen.add(base)
+            unique_bases.append(row)
+
+    if not unique_bases:
+        return
+
+    total = len(unique_bases)
+    print(
+        f"[INFO] Pre-login: se detectaron {total} modalidad(es) distinta(s). "
+        "Completa el inicio de sesion en cada ventana antes de continuar."
+    )
+    for idx, row in enumerate(unique_bases, start=1):
+        base = derive_base_url(row)
+        label = modality_label(row, base)
+        print(f"[INFO] Pre-login [{idx}/{total}]: {label} ({base})")
+        ensure_login(driver, base, row, headless=headless, login_wait_seconds=login_wait_seconds)
+        print(f"[INFO] Pre-login [{idx}/{total}]: sesion confirmada en {label}.")
+    print("[INFO] Pre-login completado en todas las modalidades. Iniciando revision masiva de NRCs.")
 
 
 def wait_for_new_download(

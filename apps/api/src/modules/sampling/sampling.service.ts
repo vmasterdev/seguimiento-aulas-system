@@ -27,7 +27,10 @@ function readSpecialChecklistQueue(rawJson: unknown): { active: boolean; reason:
 }
 
 function hasSavedEvaluation(value: unknown): boolean {
-  return Object.keys(parseChecklist(value)).length > 0;
+  // 'ingresos' lo setea apply-teacher-access automáticamente.
+  // Una revisión manual real tiene otros campos además de ingresos.
+  const keys = Object.keys(parseChecklist(value));
+  return keys.some((k) => k !== 'ingresos');
 }
 
 function countSavedEvaluations(course: { evaluations: Array<{ checklist: unknown }> }): number {
@@ -45,7 +48,7 @@ function latestSavedEvaluationTime(course: { evaluations: Array<{ checklist: unk
 export class SamplingService {
   constructor(@Inject(PrismaService) private readonly prisma: PrismaService) {}
 
-  private pickRepresentativeCourse<T extends { nrc: string; evaluations: Array<{ checklist: unknown; computedAt: Date }> }>(
+  private pickRepresentativeCourse<T extends { id: string; nrc: string; templateDeclared?: string | null; evaluations: Array<{ checklist: unknown; computedAt: Date; [key: string]: unknown }> }>(
     courses: T[],
     key: string,
     seed: string,
@@ -339,6 +342,8 @@ export class SamplingService {
               id: course.id,
               nrc: course.nrc,
               subjectName: course.subjectName,
+              bannerStartDate: course.bannerStartDate,
+              bannerEndDate: course.bannerEndDate,
               enrolledCount: readEnrolledCount(course.rawJson),
               moodleStatus: course.moodleCheck?.status ?? null,
               detectedTemplate: course.moodleCheck?.detectedTemplate ?? null,
@@ -455,6 +460,8 @@ export class SamplingService {
             id: selected.id,
             nrc: selected.nrc,
             subjectName: selected.subjectName,
+            bannerStartDate: selected.bannerStartDate,
+            bannerEndDate: selected.bannerEndDate,
             enrolledCount: readEnrolledCount(selected.rawJson),
             moodleStatus: selected.moodleCheck?.status ?? null,
             detectedTemplate: selected.moodleCheck?.detectedTemplate ?? null,

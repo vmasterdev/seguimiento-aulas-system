@@ -15,6 +15,8 @@ const SYSTEM_ROOT = path.resolve(process.cwd(), '..');
 const LOG_DIR = path.join(SYSTEM_ROOT, 'storage', 'outputs', 'banner-runs');
 const BANNER_CONFIG_DIR = path.join(SYSTEM_ROOT, 'storage', 'runtime', 'banner');
 const BANNER_CONFIG_FILE = path.join(BANNER_CONFIG_DIR, 'runner-config.json');
+const BANNER_AUTH_BRIDGE_DIR = path.join(BANNER_CONFIG_DIR, 'auth-bridge');
+const BANNER_AUTH_BRIDGE_SCRIPT = path.join(SYSTEM_ROOT, 'web-v2', 'scripts', 'banner-auth-bridge.cjs');
 const DEV_STACK_ENV_FILE = path.join(SYSTEM_ROOT, 'storage', 'runtime', 'dev-stack', 'stack.env');
 const HOME_DIR = process.env.HOME ?? '';
 const API_SHADOW_RUN_DIR = process.env.API_LINUX_RUN_DIR ?? path.join(HOME_DIR || '/home', 'seguimiento-api-run-20260307');
@@ -92,8 +94,12 @@ function getWindowsAuthScript(bannerRoot = getBannerProjectRoot()) {
   return path.join(bannerRoot, 'scripts', 'auth-windows.cjs');
 }
 
-function getWindowsAuthSessionFile(bannerRoot = getBannerProjectRoot()) {
-  return path.join(bannerRoot, 'storage', 'auth', 'banner-auth-session.json');
+function getBannerBridgeStorageStateFile() {
+  return path.join(BANNER_AUTH_BRIDGE_DIR, 'banner-storage-state.json');
+}
+
+function getBannerBridgeAuthSessionFile() {
+  return path.join(BANNER_AUTH_BRIDGE_DIR, 'banner-auth-session.json');
 }
 
 type BannerCommand = 'lookup' | 'batch' | 'retry-errors' | 'export';
@@ -206,6 +212,8 @@ export type BannerExportRecord = {
   status: string | null;
   checkedAt: string | null;
   errorMessage: string | null;
+  startDate: string | null;
+  endDate: string | null;
 };
 
 export type BannerExportSummary = {
@@ -289,7 +297,7 @@ function getPersistedCurrentRun() {
 }
 
 function removeAuthSessionFile() {
-  const sessionFile = getWindowsAuthSessionFile();
+  const sessionFile = getBannerBridgeAuthSessionFile();
   try {
     fs.unlinkSync(sessionFile);
   } catch {
@@ -709,8 +717,102 @@ function toWindowsPath(filePath: string) {
   return `${match[1].toUpperCase()}:\\${match[2].replace(/\//g, '\\')}`;
 }
 
+function quoteShellArg(value: string) {
+  return `'${value.replace(/'/g, `'"'"'`)}'`;
+}
+
 function quotePowerShell(value: string) {
   return `'${value.replace(/'/g, "''")}'`;
+}
+
+function buildBannerCommandEnv(
+  options: {
+    windowsPaths?: boolean;
+    extra?: Record<string, string | undefined>;
+  } = {},
+) {
+  const storageStatePath = getBannerBridgeStorageStateFile();
+  const env: NodeJS.ProcessEnv = {
+    ...process.env,
+    BANNER_STORAGE_STATE_PATH: options.windowsPaths ? toWindowsPath(storageStatePath) : storageStatePath,
+  };
+
+  for (const [key, value] of Object.entries(options.extra ?? {})) {
+    if (value === undefined) {
+      delete env[key];
+    } else {
+      env[key] = value;
+    }
+  }
+
+  return env;
+}
+
+function findWorkspacePackageRoot(packageName: string) {
+  const pnpmRoot = path.join(SYSTEM_ROOT, 'node_modules', '.pnpm');
+  try {
+    const entry = fs
+      .readdirSync(pnpmRoot, { withFileTypes: true })
+      .find((item) => item.isDirectory() && item.name.startsWith(`${packageName}@`));
+    if (!entry) return null;
+
+    const packageRoot = path.join(pnpmRoot, entry.name, 'node_modules', packageName);
+    return exists(packageRoot) ? packageRoot : null;
+  } catch {
+    return null;
+  }
+}
+
+export function ensureBannerAuthBridgeRuntime() {
+  const runtimeRoot = path.join(BANNER_AUTH_BRIDGE_DIR, 'node-runtime');
+  const runtimeNodeModules = path.join(runtimeRoot, 'node_modules');
+  const manifestPath = path.join(runtimeRoot, 'manifest.json');
+  const requiredPackages = ['playwright', 'playwright-core'] as const;
+  const nextManifest: { packages: Record<string, string> } = {
+    packages: {},
+  };
+  const sourceRoots = new Map<string, string>();
+
+  for (const packageName of requiredPackages) {
+    const packageRoot = findWorkspacePackageRoot(packageName);
+    if (!packageRoot) {
+      throw new Error(`No se encontro el paquete ${packageName} en node_modules para el bridge Banner.`);
+    }
+
+    const packageJsonPath = path.join(packageRoot, 'package.json');
+    const packageJson = JSON.parse(fs.readFileSync(packageJsonPath, 'utf8')) as { version?: string };
+    nextManifest.packages[packageName] = packageJson.version?.trim() || 'unknown';
+    sourceRoots.set(packageName, packageRoot);
+  }
+
+  try {
+    const currentManifest = JSON.parse(fs.readFileSync(manifestPath, 'utf8')) as {
+      packages?: Record<string, string>;
+    };
+    const isFresh = requiredPackages.every(
+      (packageName) =>
+        currentManifest.packages?.[packageName] === nextManifest.packages[packageName] &&
+        exists(path.join(runtimeNodeModules, packageName, 'package.json')),
+    );
+    if (isFresh) {
+      return runtimeNodeModules;
+    }
+  } catch {
+    // Rehidrata el runtime si no existe o quedo incompleto.
+  }
+
+  fs.mkdirSync(runtimeNodeModules, { recursive: true });
+  for (const packageName of requiredPackages) {
+    const targetDir = path.join(runtimeNodeModules, packageName);
+    fs.rmSync(targetDir, { recursive: true, force: true });
+    fs.cpSync(sourceRoots.get(packageName)!, targetDir, {
+      recursive: true,
+      dereference: true,
+    });
+  }
+  fs.writeFileSync(manifestPath, JSON.stringify(nextManifest, null, 2), 'utf8');
+
+  return runtimeNodeModules;
 }
 
 function normalizeWorkers(options: StartBannerOptions) {
@@ -766,6 +868,7 @@ function resolveSpawnCommand(options: StartBannerOptions) {
       bannerRoot,
       executable: WINDOWS_POWERSHELL_CANDIDATE,
       args: ['-NoProfile', '-Command', command],
+      env: buildBannerCommandEnv({ windowsPaths: true }),
       displayCommand: command,
     };
   }
@@ -775,32 +878,40 @@ function resolveSpawnCommand(options: StartBannerOptions) {
     bannerRoot,
     executable: 'node',
     args: ['--import', 'tsx', ...cliArgs],
+    env: buildBannerCommandEnv(),
     displayCommand: `node --import tsx ${cliArgs.map((arg) => JSON.stringify(arg)).join(' ')}`,
   };
 }
 
 function resolveAuthCommand(mode: 'start' | 'confirm' = 'start') {
   const bannerRoot = getBannerProjectRoot();
-  const authScript = getWindowsAuthScript(bannerRoot);
-
-  if (shouldUseWindowsNode(bannerRoot) && exists(WINDOWS_POWERSHELL_CANDIDATE) && exists(authScript)) {
-    const command =
-      `Set-Location ${quotePowerShell(toWindowsPath(bannerRoot))}; ` +
-      `& ${quotePowerShell(toWindowsPath(WINDOWS_NODE_CANDIDATE))} ${quotePowerShell(
-        toWindowsPath(authScript)
-      )} ${quotePowerShell(mode)}`;
+  if (exists(WINDOWS_NODE_CANDIDATE) && exists(BANNER_AUTH_BRIDGE_SCRIPT)) {
+    const windowsBridgeScript = toWindowsPath(BANNER_AUTH_BRIDGE_SCRIPT);
+    const shellCommand = `${quoteShellArg(WINDOWS_NODE_CANDIDATE)} ${quoteShellArg(windowsBridgeScript)} ${quoteShellArg(mode)}`;
     return {
       bannerRoot,
-      executable: WINDOWS_POWERSHELL_CANDIDATE,
-      args: ['-NoProfile', '-Command', command],
-      displayCommand: command,
+      cwd: SYSTEM_ROOT,
+      executable: 'bash',
+      args: ['-lc', shellCommand],
+      env: buildBannerCommandEnv({
+        windowsPaths: true,
+        extra: {
+          BANNER_AUTH_SESSION_PATH: toWindowsPath(getBannerBridgeAuthSessionFile()),
+          BANNER_REMOTE_DEBUGGING_URL: '',
+        },
+      }),
+      displayCommand: `[win-node] ${JSON.stringify(windowsBridgeScript)} ${JSON.stringify(mode)}`,
     };
   }
 
+  const authScript = getWindowsAuthScript(bannerRoot);
+
   return {
     bannerRoot,
+    cwd: bannerRoot,
     executable: 'node',
     args: [authScript, mode],
+    env: buildBannerCommandEnv(),
     displayCommand: `node ${JSON.stringify(authScript)} ${JSON.stringify(mode)}`,
   };
 }
@@ -832,6 +943,7 @@ function resolveBannerEnrollmentCommand(options: {
     bannerRoot,
     executable: 'node',
     args: ['--import', 'tsx', ...cliArgs],
+    env: buildBannerCommandEnv(),
     displayCommand: `node --import tsx ${cliArgs.map((arg) => JSON.stringify(arg)).join(' ')}`,
   };
 }
@@ -888,14 +1000,14 @@ async function finalizeBannerEnrollmentImport(options: {
   let exitCode: number | null = null;
   let finalStatus: BannerRunnerRun['status'] = 'RUNNING';
   try {
-    const child = spawn(command.executable, command.args, {
-      cwd: command.bannerRoot,
-      env: {
-        ...process.env,
-        LOG_LEVEL: 'info',
-      },
-      stdio: 'pipe',
-    });
+  const child = spawn(command.executable, command.args, {
+    cwd: command.bannerRoot,
+    env: {
+      ...(command.env ?? buildBannerCommandEnv()),
+      LOG_LEVEL: 'info',
+    },
+    stdio: 'pipe',
+  });
 
     if (!currentRun) {
       throw new Error('No fue posible inicializar la corrida de matricula Banner.');
@@ -1108,7 +1220,7 @@ async function exportBannerQuery(queryId: string) {
 
   return execFileAsync(command.executable, command.args, {
     cwd: command.bannerRoot,
-    env: process.env,
+    env: command.env ?? buildBannerCommandEnv(),
     maxBuffer: 1024 * 1024 * 16,
   });
 }
@@ -1213,6 +1325,8 @@ export function getBannerExportSummary(): BannerExportSummary {
       status,
       checkedAt: String(row.checked_at ?? '').trim() || null,
       errorMessage: String(row.error_message ?? '').trim() || null,
+      startDate: String(row.start_date ?? '').trim() || null,
+      endDate: String(row.end_date ?? '').trim() || null,
     };
 
     const nrcKey = normalizeNrcKey(item.nrc);
@@ -1222,7 +1336,7 @@ export function getBannerExportSummary(): BannerExportSummary {
   }
 
   const preview = records
-    .slice(0, 15)
+    .slice(0, 50)
     .map((row) => previewByNrc[normalizeNrcKey(String(row.nrc ?? ''))])
     .filter((item): item is BannerExportRecord => Boolean(item));
 
@@ -1233,6 +1347,34 @@ export function getBannerExportSummary(): BannerExportSummary {
     statusCounts,
     preview,
   };
+}
+
+export function getAllBannerExportRecords(limit = 500): BannerExportRecord[] {
+  const latestFile = pickLatestBannerExportFile();
+  if (!latestFile) return [];
+
+  const content = fs.readFileSync(latestFile, 'utf8');
+  const records = parseCsvRecords(content);
+  const result: BannerExportRecord[] = [];
+
+  for (const row of records.slice(0, limit)) {
+    const status = String(row.status ?? '').trim() || null;
+    result.push({
+      queryId: String(row.query_id ?? '').trim() || null,
+      nrc: String(row.nrc ?? '').trim(),
+      period: String(row.period ?? '').trim() || null,
+      teacherName: String(row.teacher_name ?? '').trim() || null,
+      teacherId: String(row.teacher_id ?? '').trim() || null,
+      programName: String(row.program_name ?? '').trim() || null,
+      status,
+      checkedAt: String(row.checked_at ?? '').trim() || null,
+      errorMessage: String(row.error_message ?? '').trim() || null,
+      startDate: String(row.start_date ?? '').trim() || null,
+      endDate: String(row.end_date ?? '').trim() || null,
+    });
+  }
+
+  return result;
 }
 
 export function getBannerRunnerStatus(): BannerRunnerStatus {
@@ -1269,7 +1411,7 @@ export function startBannerRun(options: StartBannerOptions) {
 
   const child = spawn(command.executable, command.args, {
     cwd: command.bannerRoot,
-    env: process.env,
+    env: command.env ?? buildBannerCommandEnv(),
     stdio: 'pipe',
   });
   let combinedOutput = '';
@@ -1387,12 +1529,13 @@ export async function startBannerAuth() {
   ensureLogDir();
 
   removeAuthSessionFile();
+  ensureBannerAuthBridgeRuntime();
 
   const command = resolveAuthCommand('start');
   const stamp = new Date().toISOString().replace(/[:.]/g, '-');
   const logPath = path.join(LOG_DIR, `${stamp}_auth.log`);
   appendLog(logPath, `[START] ${new Date().toISOString()}\n`);
-  appendLog(logPath, `[CWD] ${bannerRoot}\n`);
+  appendLog(logPath, `[CWD] ${command.cwd ?? bannerRoot}\n`);
   appendLog(logPath, `[EXECUTABLE] ${command.executable}\n`);
   appendLog(logPath, `[CMD] ${command.displayCommand}\n\n`);
 
@@ -1400,8 +1543,8 @@ export async function startBannerAuth() {
   const startedAt = new Date().toISOString();
   try {
     const { stdout, stderr } = await execFileAsync(command.executable, command.args, {
-      cwd: bannerRoot,
-      env: process.env,
+      cwd: command.cwd ?? bannerRoot,
+      env: command.env ?? buildBannerCommandEnv(),
       maxBuffer: 1024 * 1024 * 8,
     });
 
@@ -1462,14 +1605,15 @@ export async function confirmBannerAuth() {
     throw new Error('No hay una autenticacion Banner pendiente por confirmar.');
   }
 
+  ensureBannerAuthBridgeRuntime();
   const command = resolveAuthCommand('confirm');
   appendLog(pendingAuth.logPath, `\n[CONFIRM_START] ${new Date().toISOString()}\n`);
   appendLog(pendingAuth.logPath, `[CONFIRM_CMD] ${command.displayCommand}\n\n`);
 
   try {
     const { stdout, stderr } = await execFileAsync(command.executable, command.args, {
-      cwd: command.bannerRoot,
-      env: process.env,
+      cwd: command.cwd ?? command.bannerRoot,
+      env: command.env ?? buildBannerCommandEnv(),
       maxBuffer: 1024 * 1024 * 8,
     });
 

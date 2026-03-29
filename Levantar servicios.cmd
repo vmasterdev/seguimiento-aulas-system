@@ -26,7 +26,7 @@ if not defined REPO (
 echo Levantando servicios del proyecto...
 echo Carpeta: %REPO_WIN%
 echo.
-wsl.exe --cd "%REPO%" env API_SHADOW_BUILD_TIMEOUT_SECONDS=20 bash scripts/dev-stack.sh up
+wsl.exe bash -lc "cd \"%REPO%\" && API_SHADOW_BUILD_TIMEOUT_SECONDS=20 bash scripts/dev-stack.sh up"
 set "EXIT_CODE=%ERRORLEVEL%"
 echo.
 if not "%EXIT_CODE%"=="0" (

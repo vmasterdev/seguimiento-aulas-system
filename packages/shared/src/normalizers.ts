@@ -1,4 +1,4 @@
-import { createHash } from "node:crypto";
+import { createHash } from "crypto";
 import { MomentSchema, TemplateSchema } from "./schemas";
 
 const MODALITY_BY_INDICATIVE: Record<string, string> = {
