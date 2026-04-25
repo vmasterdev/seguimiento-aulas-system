@@ -16,6 +16,25 @@ const SyncBannerPeopleSchema = z.object({
   limitPerScope: z.coerce.number().int().min(1).max(5000).optional(),
 });
 
+const RosterSyncSchema = z.object({
+  periodCode: z.string().trim().min(3),
+  moment: z.string().trim().optional(),
+  limit: z.coerce.number().int().min(1).max(5000).optional(),
+});
+
+type RosterCliSummary = {
+  ok: boolean;
+  kind: string;
+  sourceLabel: string | null;
+  outputPath: string;
+  outputJsonPath: string;
+  processedCourses: number;
+  foundCourses: number;
+  emptyCourses: number;
+  failedCourses: number;
+  totalStudents: number;
+};
+
 type SyncScope = z.infer<typeof SyncBannerPeopleSchema>['scope'];
 
 type RunnerBatchResultItem = {
@@ -81,7 +100,10 @@ type SyncCandidate =
 function normalizePersonId(value: string | null | undefined): string {
   const trimmed = String(value ?? '').trim();
   if (!trimmed) return '';
-  if (!/^\d+$/.test(trimmed) || trimmed.length >= 9) return trimmed;
+  if (!/^\d+$/.test(trimmed)) return trimmed;
+  // IDs >=8 digits: dejar sin padding (cedulas de 8-9 digitos)
+  // IDs <8 digits: padear a 9 con ceros a la izquierda
+  if (trimmed.length >= 8) return trimmed;
   return trimmed.padStart(9, '0');
 }
 
@@ -178,12 +200,11 @@ export class BannerPeopleSyncService {
     const candidates = uniquePaths([
       configured,
       process.env.BANNER_PROJECT_ROOT,
+      path.join(systemRoot, 'tools', 'banner-runner'),
       path.join(repoParent, 'banner-docente-runner'),
       path.join(repoParent, 'banner-batch-run-current'),
-      path.join(repoParent, 'banner buscador de docente en nrc'),
       homeDir ? path.join(homeDir, 'banner-docente-runner') : null,
       homeDir ? path.join(homeDir, 'banner-batch-run-current') : null,
-      homeDir ? path.join(homeDir, 'banner-batch-run-20260317-1508') : null,
     ]);
 
     const resolved = candidates.find((candidate) => existsSync(path.join(candidate, 'src', 'cli.ts')));
@@ -585,6 +606,119 @@ export class BannerPeopleSyncService {
         skippedCoordinators: coordinatorCandidates.skippedWithoutMatch.slice(0, 10),
         notFoundEntities: notFoundEntities.slice(0, 20),
       },
+    };
+  }
+
+  async rosterSync(rawPayload: unknown): Promise<{
+    ok: boolean;
+    periodCode: string;
+    nrcsQueried: number;
+    rosterCsvPath: string;
+    processedCourses: number;
+    foundCourses: number;
+    emptyCourses: number;
+    failedCourses: number;
+    totalStudentRows: number;
+  }> {
+    const payload = parseWithSchema(RosterSyncSchema, rawPayload, 'roster sync payload');
+    const systemRoot = this.resolveSystemRoot();
+    const bannerRoot = this.resolveBannerRunnerRoot(systemRoot);
+
+    const courses = await this.prisma.course.findMany({
+      where: {
+        period: { code: payload.periodCode },
+        ...(payload.moment ? { moment: payload.moment } : {}),
+      },
+      select: { nrc: true, period: { select: { code: true } } },
+      ...(payload.limit ? { take: payload.limit } : {}),
+    });
+
+    if (!courses.length) {
+      throw new Error(`No hay NRCs en la base de datos para el periodo ${payload.periodCode}.`);
+    }
+
+    const runtimeDir = path.join(systemRoot, 'storage', 'runtime', 'banner', 'roster-sync');
+    const stamp = new Date().toISOString().replace(/[:.]/g, '-');
+    const inputCsvPath = path.join(runtimeDir, `${stamp}_nrcs.csv`);
+
+    await mkdir(runtimeDir, { recursive: true });
+
+    const csvRows = ['nrc,period', ...courses.map((c) => `${c.nrc},${c.period.code}`)];
+    await writeFile(inputCsvPath, csvRows.join('\n') + '\n', 'utf8');
+
+    const storageRoot = path.join(bannerRoot, 'storage');
+    const { stdout } = await execFileAsync(
+      'node',
+      [
+        '--import', 'tsx',
+        'src/cli.ts',
+        'roster',
+        '--input', inputCsvPath,
+        '--period', payload.periodCode,
+        '--source-label', `roster-sync-${payload.periodCode}${payload.moment ? `-${payload.moment}` : ''}`,
+      ],
+      {
+        cwd: bannerRoot,
+        maxBuffer: 64 * 1024 * 1024,
+        timeout: 3 * 60 * 60 * 1000,
+        env: {
+          ...process.env,
+          STORAGE_ROOT: storageRoot,
+          LOGS_DIR: path.join(storageRoot, 'logs'),
+          EVIDENCE_DIR: path.join(storageRoot, 'evidence'),
+          EXPORTS_DIR: path.join(storageRoot, 'exports'),
+          AUTH_DIR: path.join(storageRoot, 'auth'),
+          BANNER_PROFILE_PATH: path.join(bannerRoot, 'config', 'banner.profile.json'),
+          BANNER_STORAGE_STATE_PATH: path.join(storageRoot, 'auth', 'banner-storage-state.json'),
+          BANNER_BROWSER_PROFILE_DIR: path.join(storageRoot, 'auth', 'edge-profile'),
+        },
+      },
+    );
+
+    const summary = JSON.parse(stdout.trim()) as RosterCliSummary;
+
+    return {
+      ok: true,
+      periodCode: payload.periodCode,
+      nrcsQueried: courses.length,
+      rosterCsvPath: summary.outputPath,
+      processedCourses: summary.processedCourses,
+      foundCourses: summary.foundCourses,
+      emptyCourses: summary.emptyCourses,
+      failedCourses: summary.failedCourses,
+      totalStudentRows: summary.totalStudents,
+    };
+  }
+
+  async uniqueStudentCount(periodCode: string): Promise<{
+    periodCode: string;
+    uniqueStudents: number;
+    totalRows: number;
+  }> {
+    const reports = await this.prisma.bannerEnrollmentReport.findMany({
+      where: { course: { period: { code: periodCode } } },
+      select: { id: true },
+    });
+    const reportIds = reports.map((r) => r.id);
+    if (!reportIds.length) {
+      return { periodCode, uniqueStudents: 0, totalRows: 0 };
+    }
+
+    const [uniqueResult, totalResult] = await Promise.all([
+      this.prisma.bannerEnrollmentRecord.findMany({
+        where: { reportId: { in: reportIds }, institutionalId: { not: null } },
+        select: { institutionalId: true },
+        distinct: ['institutionalId'],
+      }),
+      this.prisma.bannerEnrollmentRecord.count({
+        where: { reportId: { in: reportIds } },
+      }),
+    ]);
+
+    return {
+      periodCode,
+      uniqueStudents: uniqueResult.length,
+      totalRows: totalResult,
     };
   }
 }

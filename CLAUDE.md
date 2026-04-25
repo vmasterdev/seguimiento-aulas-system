@@ -9,6 +9,7 @@ Monorepo operativo para seguimiento de aulas Moodle sin API institucional.
 - `web-v2`: frontend principal y consola operativa.
 - `packages/shared`: reglas y esquemas compartidos.
 - `tools/moodle-sidecar`: automatizacion Python sidecar para Moodle.
+- `tools/banner-runner`: CLI de consulta NRC en Banner (integrado desde proyecto externo).
 
 `web-v2` es la interfaz principal. Cuando haya que agregar funcionalidad nueva de UI, debe entrar ahi.
 
@@ -55,15 +56,16 @@ Variables utiles:
 
 ### Banner
 
-La UI y el backend asumen un proyecto externo de Banner con CLI propio. La ruta efectiva se resuelve en este orden:
+El CLI de Banner vive en `tools/banner-runner/` dentro del monorepo. La ruta efectiva se resuelve en este orden:
 
 1. `storage/runtime/banner/runner-config.json`
 2. `BANNER_PROJECT_ROOT`
-3. carpetas hermanas comunes del repo
-4. rutas conocidas en `$HOME`
+3. `tools/banner-runner/` (interno al monorepo — candidato prioritario)
+4. carpetas hermanas del repo o rutas en `$HOME` (fallbacks legacy)
 
 Archivos clave:
 
+- `tools/banner-runner/src/`: codigo fuente del CLI
 - `web-v2/app/_lib/banner-runner.ts`
 - `apps/api/src/modules/banner-people-sync/banner-people-sync.service.ts`
 

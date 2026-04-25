@@ -109,6 +109,10 @@ type BannerBatchOptions = {
     year: string;
     courseCount: number;
   }>;
+  moments: Array<{
+    code: string;
+    courseCount: number;
+  }>;
   defaults: {
     source: BannerBatchSource;
     selectedPeriodCodes: string[];
@@ -120,11 +124,13 @@ type BannerBatchPreview = {
   filters: {
     source: BannerBatchSource;
     periodCodes: string[];
+    moments: string[] | null;
     limit: number | null;
   };
   total: number;
   byPeriod: Record<string, number>;
   byYear: Record<string, number>;
+  byMoment: Record<string, number>;
   byBannerStatus: Record<string, number>;
   sample: Array<{
     courseId: string;
@@ -232,6 +238,7 @@ export default function BannerIntegrationPanel() {
   const [batchInputMode, setBatchInputMode] = useState<BatchInputMode>('DATABASE');
   const [batchSource, setBatchSource] = useState<BannerBatchSource>('ALL');
   const [selectedPeriodCodes, setSelectedPeriodCodes] = useState<string[]>([]);
+  const [selectedMoments, setSelectedMoments] = useState<string[]>([]);
 
   const [nrc, setNrc] = useState('72305');
   const [period, setPeriod] = useState('202615');
@@ -351,7 +358,7 @@ export default function BannerIntegrationPanel() {
 
   useEffect(() => {
     setBatchPreview(null);
-  }, [selectedPeriodCodes, batchSource, batchInputMode]);
+  }, [selectedPeriodCodes, selectedMoments, batchSource, batchInputMode]);
 
   async function runAction(action: BannerAction, payload?: Record<string, unknown>) {
     return fetchJson<BannerActionResponse>('/api/banner/actions', {
@@ -406,6 +413,7 @@ export default function BannerIntegrationPanel() {
         body: JSON.stringify({
           source: batchSource,
           periodCodes: selectedPeriodCodes,
+          moments: selectedMoments.length ? selectedMoments : undefined,
           limit: batchLimit.trim() ? Number(batchLimit) || undefined : undefined,
         }),
       });
@@ -430,6 +438,7 @@ export default function BannerIntegrationPanel() {
       body: JSON.stringify({
         source: batchSource,
         periodCodes: selectedPeriodCodes,
+        moments: selectedMoments.length ? selectedMoments : undefined,
         queryName: queryName.trim() || undefined,
         queryId: queryId.trim() || undefined,
         limit: batchLimit.trim() ? Number(batchLimit) || undefined : undefined,
@@ -620,7 +629,7 @@ export default function BannerIntegrationPanel() {
           <span className={runnerStatusChipClass}>{runnerStatusLabel}</span>
           <span className="chip">{status?.projectRootExists ? 'Runner OK' : 'Runner no encontrado'}</span>
           <span className="badge">Export: {status?.exportSummary.rowCount ?? 0} filas</span>
-          <button onClick={loadAll} disabled={loading || actionLoading}>
+          <button className="primary" onClick={loadAll} disabled={loading || actionLoading}>
             {loading ? 'Actualizando...' : 'Actualizar'}
           </button>
         </div>
@@ -638,7 +647,7 @@ export default function BannerIntegrationPanel() {
             <span className="badge">
               {progressDone}{progressTotal > 0 ? ` / ${progressTotal}` : ''} NRC
             </span>
-            <button onClick={cancelBanner} disabled={actionLoading}>
+            <button className="danger" onClick={cancelBanner} disabled={actionLoading}>
               Cancelar
             </button>
           </div>
@@ -656,7 +665,7 @@ export default function BannerIntegrationPanel() {
         <div className="panel" style={{ marginBottom: 12 }}>
           <div className="toolbar">
             <span className="chip chip-warn">En curso</span>
-            <button onClick={cancelBanner} disabled={actionLoading}>
+            <button className="danger" onClick={cancelBanner} disabled={actionLoading}>
               Cancelar
             </button>
           </div>
@@ -675,10 +684,11 @@ export default function BannerIntegrationPanel() {
           Si Banner abre Ellucian pero no carga SSASECT, primero usa el login manual. Completa SSO/2FA en Edge y luego
           pulsa guardar sesion.
           <div className="toolbar" style={{ marginTop: 8 }}>
-            <button onClick={startBannerAuth} disabled={loading || actionLoading || !!status?.runner.running}>
+            <button className="primary" onClick={startBannerAuth} disabled={loading || actionLoading || !!status?.runner.running}>
               Abrir login Banner
             </button>
             <button
+              className="primary"
               onClick={confirmBannerAuth}
               disabled={
                 loading ||
@@ -795,6 +805,7 @@ export default function BannerIntegrationPanel() {
               <div className="toolbar" style={{ marginTop: 8, flexWrap: 'wrap', gap: 6 }}>
                 <button
                   type="button"
+                  style={{ background: '#f3f4f6', color: '#111827' }}
                   onClick={() => selectPeriods((batchOptions?.periods ?? []).map((periodItem) => periodItem.code))}
                   disabled={actionLoading}
                 >
@@ -803,6 +814,7 @@ export default function BannerIntegrationPanel() {
                 {latestYear ? (
                   <button
                     type="button"
+                    style={{ background: '#f3f4f6', color: '#111827' }}
                     onClick={() =>
                       selectPeriods(batchOptions?.years.find((item) => item.year === latestYear)?.periodCodes ?? [])
                     }
@@ -815,13 +827,14 @@ export default function BannerIntegrationPanel() {
                   <button
                     type="button"
                     key={yearItem.year}
+                    style={{ background: '#f3f4f6', color: '#111827' }}
                     onClick={() => toggleYear(yearItem.year)}
                     disabled={actionLoading}
                   >
                     {yearItem.year} ({yearItem.courseCount})
                   </button>
                 ))}
-                <button type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+                <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
                   Limpiar
                 </button>
               </div>
@@ -844,10 +857,42 @@ export default function BannerIntegrationPanel() {
                 ))}
               </div>
 
+              {/* Filtro por momento */}
+              {(batchOptions?.moments ?? []).length > 0 ? (
+                <div style={{ marginTop: 10 }}>
+                  <div style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: 4 }}>
+                    Filtrar por momento{' '}
+                    <button
+                      type="button"
+                      style={{ fontSize: '0.75rem', marginLeft: 6 }}
+                      onClick={() => setSelectedMoments([])}
+                      disabled={actionLoading}
+                    >
+                      Todos
+                    </button>
+                  </div>
+                  <div className="badges">
+                    {(batchOptions?.moments ?? []).map((momentItem) => (
+                      <label className="badge badge-selector" key={momentItem.code}>
+                        <input
+                          type="checkbox"
+                          checked={selectedMoments.includes(momentItem.code)}
+                          onChange={() =>
+                            setSelectedMoments((current) => toggleSelection(current, momentItem.code))
+                          }
+                        />
+                        <span>{momentItem.code} ({momentItem.courseCount})</span>
+                      </label>
+                    ))}
+                  </div>
+                </div>
+              ) : null}
+
               {/* Boton de preview */}
               <div className="toolbar" style={{ marginTop: 10 }}>
                 <button
                   type="button"
+                  className="primary"
                   onClick={previewDatabaseBatch}
                   disabled={actionLoading || !selectedPeriodCodes.length || !!status?.runner.running}
                 >
@@ -862,9 +907,15 @@ export default function BannerIntegrationPanel() {
                     <span className="badge">Total: {batchPreview.total}</span>
                     <span className="badge">Periodos: {batchPreview.filters.periodCodes.length}</span>
                     <span className="badge">Tipo: {batchSource}</span>
+                    {batchPreview.filters.moments?.length ? (
+                      <span className="badge badge-amber">Momento: {batchPreview.filters.moments.join(', ')}</span>
+                    ) : null}
                     {batchPreview.filters.limit ? <span className="badge">Limite: {batchPreview.filters.limit}</span> : null}
                     {Object.entries(batchPreview.byYear).map(([key, value]) => (
                       <span className="badge" key={key}>{key}: {value}</span>
+                    ))}
+                    {Object.entries(batchPreview.byMoment ?? {}).map(([key, value]) => (
+                      <span className="badge" key={key}>Momento {key}: {value}</span>
                     ))}
                     {Object.entries(batchPreview.byBannerStatus).map(([key, value]) => (
                       <span className="badge" key={key}>{key}: {value}</span>
@@ -960,7 +1011,7 @@ export default function BannerIntegrationPanel() {
             {actionLoading ? 'Procesando...' : 'Buscar docentes y actualizar base'}
           </button>
         ) : null}
-        <button onClick={startBanner} disabled={!canStart}>
+        <button className="primary" onClick={startBanner} disabled={!canStart}>
           {actionLoading
             ? 'Procesando...'
             : mode === 'batch' && batchInputMode === 'DATABASE'
@@ -968,7 +1019,7 @@ export default function BannerIntegrationPanel() {
               : START_BUTTON_LABELS[mode]}
         </button>
         {!status?.runner.running ? null : (
-          <button onClick={cancelBanner} disabled={actionLoading}>
+          <button className="danger" onClick={cancelBanner} disabled={actionLoading}>
             Cancelar proceso Banner
           </button>
         )}
@@ -991,13 +1042,14 @@ export default function BannerIntegrationPanel() {
           ))}
           <button
             type="button"
+            className="primary"
             onClick={loadFullResults}
             disabled={fullResultsLoading || !!status?.runner.running}
           >
             {fullResultsLoading ? 'Cargando...' : 'Cargar todos'}
           </button>
           {fullResults !== null ? (
-            <button type="button" onClick={() => { setFullResults(null); setResultsPage(0); }}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => { setFullResults(null); setResultsPage(0); }}>
               Mostrar preview
             </button>
           ) : null}
@@ -1044,7 +1096,7 @@ export default function BannerIntegrationPanel() {
       </div>
       {totalResultPages > 1 ? (
         <div className="toolbar" style={{ marginTop: 6 }}>
-          <button type="button" onClick={() => setResultsPage((p) => Math.max(0, p - 1))} disabled={resultsPage === 0}>
+          <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setResultsPage((p) => Math.max(0, p - 1))} disabled={resultsPage === 0}>
             Anterior
           </button>
           <span className="badge">
@@ -1052,6 +1104,7 @@ export default function BannerIntegrationPanel() {
           </span>
           <button
             type="button"
+            style={{ background: '#f3f4f6', color: '#111827' }}
             onClick={() => setResultsPage((p) => Math.min(totalResultPages - 1, p + 1))}
             disabled={resultsPage >= totalResultPages - 1}
           >
@@ -1073,7 +1126,7 @@ export default function BannerIntegrationPanel() {
         </label>
       </div>
       <div className="toolbar" style={{ marginTop: 8 }}>
-        <button onClick={importBannerResult} disabled={actionLoading || !!status?.runner.running}>
+        <button className="primary" onClick={importBannerResult} disabled={actionLoading || !!status?.runner.running}>
           {actionLoading ? 'Procesando...' : 'Importar resultado Banner a la base'}
         </button>
       </div>
@@ -1109,13 +1162,14 @@ export default function BannerIntegrationPanel() {
           </label>
         </div>
         <div className="toolbar" style={{ marginTop: 8 }}>
-          <button onClick={saveProjectRoot} disabled={loading || actionLoading || !!status?.runner.running}>
+          <button className="primary" onClick={saveProjectRoot} disabled={loading || actionLoading || !!status?.runner.running}>
             Guardar ruta Banner
           </button>
-          <button onClick={startBannerAuth} disabled={loading || actionLoading || !!status?.runner.running}>
+          <button className="primary" onClick={startBannerAuth} disabled={loading || actionLoading || !!status?.runner.running}>
             Abrir login Banner
           </button>
           <button
+            className="primary"
             onClick={confirmBannerAuth}
             disabled={
               loading ||

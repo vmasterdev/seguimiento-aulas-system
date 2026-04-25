@@ -18,6 +18,27 @@ export const OutboxPreviewByCourseSchema = z.object({
   phase: z.enum(['ALISTAMIENTO', 'EJECUCION']).default('ALISTAMIENTO'),
 });
 
+export const OutboxQueueCierreSchema = z.object({
+  periodCode: z.string().trim().min(3),
+  moment: z.string().trim().min(1),
+  audience: z.enum(['DOCENTE', 'COORDINADOR', 'GLOBAL']),
+  items: z
+    .array(
+      z.object({
+        recipientName: z.string().trim().min(1),
+        recipientEmail: z.string().trim().email().nullable().optional(),
+        cc: z.string().trim().optional(),
+        teacherId: z.string().trim().min(1).optional(),
+        coordinatorId: z.string().trim().min(1).optional(),
+        subject: z.string().trim().min(1),
+        htmlBody: z.string().min(1),
+      }),
+    )
+    .min(1)
+    .max(300),
+  dryRun: z.coerce.boolean().optional().default(false),
+});
+
 export const OutboxWorkshopInvitationPrepareSchema = z.object({
   periodCode: z.string().trim().min(3),
   phase: z.enum(['ALISTAMIENTO', 'EJECUCION']).default('ALISTAMIENTO'),

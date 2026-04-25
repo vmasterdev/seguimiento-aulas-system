@@ -1012,47 +1012,54 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
     <article className="panel">
       <h2>Automatizacion Moodle</h2>
       <div className="actions">
-        Esta pantalla sirve para revisar aulas de Moodle en lote, seguir el avance del proceso y guardar el resultado
-        en la base del sistema.
-        <br />
-        La ruta recomendada es usar <span className="code">Base de datos del sistema</span> para que no dependas de
-        carpetas manuales. Para ejecucion visible, <span className="code">4 workers</span> es el punto recomendado.
+        Revisa aulas de Moodle en lote, sigue el avance y guarda el resultado en el sistema.
       </div>
 
       <div className="controls" style={{ marginTop: 8 }}>
-        <button onClick={loadAll} disabled={loading || actionLoading}>
+        <button style={{ background: '#f3f4f6', color: '#111827' }} onClick={loadAll} disabled={loading || actionLoading}>
           {loading ? 'Actualizando...' : 'Actualizar estado del proceso'}
         </button>
       </div>
 
-      <div className="actions" style={{ marginTop: 6 }}>
-        <span className="code">Archivo de configuracion: {config?.configPath ?? 'N/A'}</span>
-      </div>
       <div className="badges" style={{ marginTop: 8 }}>
-        <span className="badge">Proceso en curso: {status?.running ? 'SI' : 'NO'}</span>
-        {status?.current ? <span className="badge">Tarea actual: {COMMAND_LABELS[status.current.command]}</span> : null}
-        {status?.lastRun ? <span className="badge">Ultima tarea: {COMMAND_LABELS[status.lastRun.command]}</span> : null}
+        <span className="badge" style={status?.running ? { background: '#166534', color: '#fff' } : undefined}>
+          {status?.running ? 'Proceso en curso' : 'Sin proceso activo'}
+        </span>
+        {status?.current ? <span className="badge">Tarea: {COMMAND_LABELS[status.current.command]}</span> : null}
+        {lastRun ? (
+          <span className="badge">
+            Ultima: {COMMAND_LABELS[lastRun.command]} &mdash; {lastRun.status}
+            {lastRun.endedAt ? ` (${lastRun.endedAt})` : ''}
+          </span>
+        ) : null}
       </div>
-      {lastRun ? (
-        <div className="actions" style={{ marginTop: 8 }}>
-          <strong>Ultima corrida:</strong> {COMMAND_LABELS[lastRun.command]} | {lastRun.status}
-          {lastRun.startedAt ? ` | inicio ${lastRun.startedAt}` : ''}
-          {lastRun.endedAt ? ` | fin ${lastRun.endedAt}` : ''}
-          {typeof lastRun.exitCode === 'number' ? ` | exit ${lastRun.exitCode}` : ''}
-        </div>
-      ) : null}
-      {lastRun?.logPath ? (
+      <details style={{ marginTop: 6 }}>
+        <summary style={{ cursor: 'pointer', color: '#6b7280', fontSize: 13, padding: '2px 0' }}>
+          Informacion tecnica del proceso
+        </summary>
         <div className="actions" style={{ marginTop: 6 }}>
-          <span className="code">Log mas reciente: {lastRun.logPath}</span>
+          <span className="code">Archivo de configuracion: {config?.configPath ?? 'N/A'}</span>
         </div>
-      ) : null}
+        {lastRun?.logPath ? (
+          <div className="actions" style={{ marginTop: 4 }}>
+            <span className="code">Log mas reciente: {lastRun.logPath}</span>
+          </div>
+        ) : null}
+        {lastRun ? (
+          <div className="actions" style={{ marginTop: 4 }}>
+            {lastRun.startedAt ? `Inicio: ${lastRun.startedAt}` : ''}
+            {lastRun.endedAt ? ` | Fin: ${lastRun.endedAt}` : ''}
+            {typeof lastRun.exitCode === 'number' ? ` | Exit code: ${lastRun.exitCode}` : ''}
+          </div>
+        ) : null}
+      </details>
 
       <div className="subtitle">Paso 1. Elegir la tarea</div>
       <div
         style={{
           display: 'grid',
-          gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))',
-          gap: 10,
+          gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))',
+          gap: 12,
           marginBottom: 12,
         }}
       >
@@ -1068,68 +1075,64 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               background: option === command ? '#eef5ff' : '#fff',
               color: '#16324f',
               borderRadius: 12,
-              padding: '12px 14px',
+              padding: '14px 16px',
+              display: 'flex',
+              flexDirection: 'column',
+              gap: 6,
+              whiteSpace: 'normal',
+              overflow: 'hidden',
+              height: '100%',
             }}
           >
-            <strong>{COMMAND_LABELS[option]}</strong>
-            <br />
-            <span style={{ fontSize: 13, opacity: 0.9 }}>{COMMAND_HELP[option]}</span>
+            <strong style={{ fontSize: 14, lineHeight: 1.3 }}>{COMMAND_LABELS[option]}</strong>
+            <span style={{ fontSize: 12, opacity: 0.75, lineHeight: 1.5 }}>{COMMAND_HELP[option]}</span>
           </button>
         ))}
       </div>
-      <div className="controls">
-        <label>
-          Tarea a ejecutar
-          <select value={command} onChange={(event) => setCommand(event.target.value as SidecarRunCommand)}>
-            <option value="classify">{COMMAND_LABELS.classify}</option>
-            <option value="revalidate">{COMMAND_LABELS.revalidate}</option>
-            <option value="backup">{COMMAND_LABELS.backup}</option>
-            <option value="attendance">{COMMAND_LABELS.attendance}</option>
-            <option value="activity">{COMMAND_LABELS.activity}</option>
-            <option value="participants">{COMMAND_LABELS.participants}</option>
-            <option value="gui">{COMMAND_LABELS.gui}</option>
-          </select>
-        </label>
-        {command === 'attendance' || command === 'activity' || command === 'participants' ? null : (
+      <details style={{ marginTop: 4, marginBottom: 4 }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', padding: '4px 0' }}>
+          Configuracion avanzada
+        </summary>
+        <div className="controls" style={{ marginTop: 8 }}>
+          {command === 'attendance' || command === 'activity' || command === 'participants' ? null : (
+            <label>
+              Cantidad de workers
+              <input value={workers} onChange={(event) => setWorkers(event.target.value)} placeholder="4" />
+            </label>
+          )}
           <label>
-            Cantidad de workers
-            <input value={workers} onChange={(event) => setWorkers(event.target.value)} placeholder="4" />
+            Navegador
+            <select value={browser} onChange={(event) => setBrowser(event.target.value as 'edge' | 'chrome')}>
+              <option value="edge">Microsoft Edge</option>
+              <option value="chrome">Google Chrome</option>
+            </select>
           </label>
-        )}
-        <label>
-          Navegador
-          <select value={browser} onChange={(event) => setBrowser(event.target.value as 'edge' | 'chrome')}>
-            <option value="edge">Microsoft Edge</option>
-            <option value="chrome">Google Chrome</option>
-          </select>
-        </label>
-        <label>
-          Comando de Python
-          <input value={python} onChange={(event) => setPython(event.target.value)} placeholder="python3" />
-        </label>
-      </div>
-      <div className="actions" style={{ marginTop: 8 }}>
-        <strong>{currentCommandLabel}:</strong> {currentCommandHelp}
-      </div>
-      <div className="actions" style={{ marginTop: 8 }}>
-        <strong>Ruta recomendada segun el caso:</strong>
-        <br />
-        1. {RECOMMENDED_FLOW_HINTS[0]}
-        <br />
-        2. {RECOMMENDED_FLOW_HINTS[1]}
-        <br />
-        3. {RECOMMENDED_FLOW_HINTS[2]}
-        <br />
-        4. {RECOMMENDED_FLOW_HINTS[3]}
-      </div>
+          <label>
+            Comando de Python
+            <input value={python} onChange={(event) => setPython(event.target.value)} placeholder="python3" />
+          </label>
+        </div>
+      </details>
+      <details style={{ marginTop: 4, marginBottom: 4 }}>
+        <summary style={{ cursor: 'pointer', fontWeight: 600, color: '#374151', padding: '4px 0' }}>
+          Cuando usar cada opcion
+        </summary>
+        <div className="actions" style={{ marginTop: 8 }}>
+          1. {RECOMMENDED_FLOW_HINTS[0]}
+          <br />
+          2. {RECOMMENDED_FLOW_HINTS[1]}
+          <br />
+          3. {RECOMMENDED_FLOW_HINTS[2]}
+          <br />
+          4. {RECOMMENDED_FLOW_HINTS[3]}
+        </div>
+      </details>
 
       <div className="subtitle" style={{ marginTop: 12 }}>Atajos frecuentes</div>
-      <div className="actions">
-        Si tu objetivo es revisar casos especiales, no cambies mas de lo necesario: selecciona periodos y momentos, y usa uno de estos atajos.
-      </div>
       <div className="controls" style={{ marginTop: 8 }}>
         <button
           type="button"
+          style={{ background: '#f3f4f6', color: '#111827' }}
           onClick={() => {
             setCommand('revalidate');
             setMode('aulas_vacias');
@@ -1140,6 +1143,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
         </button>
         <button
           type="button"
+          style={{ background: '#f3f4f6', color: '#111827' }}
           onClick={() => {
             setCommand('revalidate');
             setMode('sin_matricula');
@@ -1151,6 +1155,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
         </button>
         <button
           type="button"
+          style={{ background: '#f3f4f6', color: '#111827' }}
           onClick={() => {
             setCommand('revalidate');
             setMode('ambos');
@@ -1236,10 +1241,11 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                   type="button"
                   onClick={() => setSelectedPeriodCodes((batchOptions?.periods ?? []).map((period) => period.code))}
                   disabled={actionLoading}
+                  style={{ background: '#f3f4f6', color: '#111827' }}
                 >
                   Marcar todos los periodos
                 </button>
-                <button type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+                <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
                   Limpiar seleccion
                 </button>
               </div>
@@ -1266,10 +1272,11 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                   type="button"
                   onClick={() => setSelectedMoments(batchOptions?.moments ?? [])}
                   disabled={actionLoading}
+                  style={{ background: '#f3f4f6', color: '#111827' }}
                 >
                   Marcar todos los momentos
                 </button>
-                <button type="button" onClick={() => setSelectedMoments([])} disabled={actionLoading}>
+                <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedMoments([])} disabled={actionLoading}>
                   Usar todos los momentos
                 </button>
               </div>
@@ -1287,7 +1294,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               </div>
 
               <div className="controls" style={{ marginTop: 10 }}>
-                <button type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
+                <button className="primary" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
                   {actionLoading ? 'Procesando...' : 'Previsualizar cursos a revisar'}
                 </button>
               </div>
@@ -1411,12 +1418,13 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           <div className="controls">
             <button
               type="button"
+              style={{ background: '#f3f4f6', color: '#111827' }}
               onClick={() => setSelectedPeriodCodes((batchOptions?.periods ?? []).map((period) => period.code))}
               disabled={actionLoading}
             >
               Marcar todos los periodos
             </button>
-            <button type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
               Limpiar seleccion
             </button>
           </div>
@@ -1439,10 +1447,10 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             Momentos a incluir
           </div>
           <div className="controls">
-            <button type="button" onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
               Marcar todos los momentos
             </button>
-            <button type="button" onClick={() => setSelectedMoments([])} disabled={actionLoading}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedMoments([])} disabled={actionLoading}>
               Usar todos los momentos
             </button>
           </div>
@@ -1461,6 +1469,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
 
           <div className="controls" style={{ marginTop: 10 }}>
             <button
+              className="primary"
               type="button"
               onClick={() => void previewRevalidateMode('aulas_vacias')}
               disabled={actionLoading || !hasBatchSelection || !!status?.running}
@@ -1468,13 +1477,14 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               {actionLoading ? 'Procesando...' : 'Previsualizar aulas vacias'}
             </button>
             <button
+              className="primary"
               type="button"
               onClick={() => void previewRevalidateMode('sin_matricula')}
               disabled={actionLoading || !hasBatchSelection || !!status?.running}
             >
               {actionLoading ? 'Procesando...' : 'Previsualizar sin matricula / no registrado'}
             </button>
-            <button type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
+            <button className="primary" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
               {actionLoading ? 'Procesando...' : 'Previsualizar cursos a revalidar'}
             </button>
           </div>
@@ -1592,10 +1602,11 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                   type="button"
                   onClick={() => setSelectedPeriodCodes((batchOptions?.periods ?? []).map((period) => period.code))}
                   disabled={actionLoading}
+                  style={{ background: '#f3f4f6', color: '#111827' }}
                 >
                   Marcar todos los periodos
                 </button>
-                <button type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+                <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
                   Limpiar seleccion
                 </button>
               </div>
@@ -1646,10 +1657,11 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                   type="button"
                   onClick={() => setSelectedTemplates((batchOptions?.templates ?? []).map((template) => template.code))}
                   disabled={actionLoading}
+                  style={{ background: '#f3f4f6', color: '#111827' }}
                 >
                   Marcar todos los tipos
                 </button>
-                <button type="button" onClick={() => setSelectedTemplates([])} disabled={actionLoading}>
+                <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedTemplates([])} disabled={actionLoading}>
                   Usar todos los tipos
                 </button>
               </div>
@@ -1684,7 +1696,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               </div>
 
               <div className="controls" style={{ marginTop: 10 }}>
-                <button type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
+                <button className="primary" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
                   {actionLoading ? 'Procesando...' : 'Previsualizar cursos para respaldo'}
                 </button>
               </div>
@@ -1831,12 +1843,13 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           <div className="controls">
             <button
               type="button"
+              style={{ background: '#f3f4f6', color: '#111827' }}
               onClick={() => setSelectedPeriodCodes((batchOptions?.periods ?? []).map((period) => period.code))}
               disabled={actionLoading}
             >
               Marcar todos los periodos
             </button>
-            <button type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
               Limpiar seleccion
             </button>
           </div>
@@ -1859,10 +1872,10 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             Momentos a incluir
           </div>
           <div className="controls">
-            <button type="button" onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
               Marcar todos los momentos
             </button>
-            <button type="button" onClick={() => setSelectedMoments([])} disabled={actionLoading}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedMoments([])} disabled={actionLoading}>
               Usar todos los momentos
             </button>
           </div>
@@ -1887,10 +1900,11 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               type="button"
               onClick={() => setSelectedTemplates((batchOptions?.templates ?? []).map((template) => template.code))}
               disabled={actionLoading}
+              style={{ background: '#f3f4f6', color: '#111827' }}
             >
               Marcar todos los tipos
             </button>
-            <button type="button" onClick={() => setSelectedTemplates([])} disabled={actionLoading}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedTemplates([])} disabled={actionLoading}>
               Usar todos los tipos
             </button>
           </div>
@@ -1910,7 +1924,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           </div>
 
           <div className="controls" style={{ marginTop: 10 }}>
-            <button type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
+            <button className="primary" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
               {actionLoading
                 ? 'Procesando...'
                 : command === 'attendance'
@@ -1984,10 +1998,10 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
       ) : null}
 
       <div className="controls" style={{ marginTop: 10 }}>
-        <button onClick={startRun} disabled={!canStart}>
+        <button className="primary" onClick={startRun} disabled={!canStart}>
           {actionLoading ? 'Procesando...' : startButtonLabel}
         </button>
-        <button onClick={cancelRun} disabled={!status?.running || actionLoading}>
+        <button className="danger" onClick={cancelRun} disabled={!status?.running || actionLoading}>
           Cancelar proceso actual
         </button>
       </div>
@@ -2017,7 +2031,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           <input type="checkbox" checked={importDryRun} onChange={(event) => setImportDryRun(event.target.checked)} />
           <span>Solo simular la importacion</span>
         </label>
-        <button onClick={importToSystem} disabled={actionLoading || status?.running}>
+        <button className="primary" onClick={importToSystem} disabled={actionLoading || status?.running}>
           {actionLoading ? 'Procesando...' : 'Importar resultado al sistema'}
         </button>
       </div>
@@ -2069,35 +2083,36 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
         disponibles.
       </div>
       <div className="controls" style={{ marginTop: 8 }}>
-        <button type="button" onClick={() => void loadFollowupCases('sin_matricula')} disabled={actionLoading}>
+        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => void loadFollowupCases('sin_matricula')} disabled={actionLoading}>
           {actionLoading ? 'Procesando...' : 'Cargar no registrados'}
         </button>
-        <button type="button" onClick={() => void loadFollowupCases('no_encontrado')} disabled={actionLoading}>
+        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => void loadFollowupCases('no_encontrado')} disabled={actionLoading}>
           {actionLoading ? 'Procesando...' : 'Cargar no encontrados'}
         </button>
-        <button type="button" onClick={() => void loadFollowupCases('ambos')} disabled={actionLoading}>
+        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => void loadFollowupCases('ambos')} disabled={actionLoading}>
           {actionLoading ? 'Procesando...' : 'Cargar ambos'}
         </button>
-        <button type="button" onClick={() => void loadFollowupCases()} disabled={actionLoading}>
+        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => void loadFollowupCases()} disabled={actionLoading}>
           {actionLoading ? 'Procesando...' : 'Cargar lista de seguimiento'}
         </button>
-        <button type="button" onClick={exportFollowupCsv} disabled={actionLoading || !followupItems.length}>
+        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={exportFollowupCsv} disabled={actionLoading || !followupItems.length}>
           Descargar CSV de la lista
         </button>
         <button
           type="button"
+          style={{ background: '#f3f4f6', color: '#111827' }}
           onClick={downloadAuditorTemplate}
           disabled={actionLoading || !visibleAuditorFollowupItems.length}
         >
           Descargar formato oficial de auditor
         </button>
-        <button type="button" onClick={sendNotFoundToBanner} disabled={actionLoading || !followupItems.some((item) => item.canSendToBanner)}>
+        <button className="primary" type="button" onClick={sendNotFoundToBanner} disabled={actionLoading || !followupItems.some((item) => item.canSendToBanner)}>
           Enviar no encontrados a Banner
         </button>
-        <button type="button" onClick={importLatestBannerResult} disabled={actionLoading}>
+        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={importLatestBannerResult} disabled={actionLoading}>
           Importar ultimo resultado Banner
         </button>
-        <button type="button" onClick={deactivateFollowupCourses} disabled={actionLoading || !followupItems.some((item) => item.canDeactivate)}>
+        <button className="danger" type="button" onClick={deactivateFollowupCourses} disabled={actionLoading || !followupItems.some((item) => item.canDeactivate)}>
           Desactivar no encontrados en Moodle y Banner
         </button>
       </div>
@@ -2118,11 +2133,12 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             ))}
           </div>
           <div className="controls" style={{ marginTop: 8 }}>
-            <button type="button" onClick={() => setSelectedFollowupIds(followupItems.map((item) => item.id))} disabled={actionLoading || !followupItems.length}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedFollowupIds(followupItems.map((item) => item.id))} disabled={actionLoading || !followupItems.length}>
               Marcar visibles
             </button>
             <button
               type="button"
+              style={{ background: '#f3f4f6', color: '#111827' }}
               onClick={() => setSelectedFollowupIds(unique(followupItems.filter((item) => item.canSendToBanner).map((item) => item.id)))}
               disabled={actionLoading || !followupItems.some((item) => item.canSendToBanner)}
             >
@@ -2130,6 +2146,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             </button>
             <button
               type="button"
+              style={{ background: '#f3f4f6', color: '#111827' }}
               onClick={() => setSelectedFollowupIds(unique(followupItems.filter((item) => item.canDeactivate).map((item) => item.id)))}
               disabled={actionLoading || !followupItems.some((item) => item.canDeactivate)}
             >
@@ -2137,12 +2154,13 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             </button>
             <button
               type="button"
+              style={{ background: '#f3f4f6', color: '#111827' }}
               onClick={() => setSelectedFollowupIds(unique(visibleAuditorFollowupItems.map((item) => item.id)))}
               disabled={actionLoading || !visibleAuditorFollowupItems.length}
             >
               Marcar sin matricula para formato
             </button>
-            <button type="button" onClick={() => setSelectedFollowupIds([])} disabled={actionLoading || !selectedFollowupIds.length}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedFollowupIds([])} disabled={actionLoading || !selectedFollowupIds.length}>
               Limpiar seleccion
             </button>
           </div>

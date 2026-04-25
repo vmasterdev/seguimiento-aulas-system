@@ -235,6 +235,62 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
   const [bannerQueryId, setBannerQueryId] = useState('');
   const [bannerExportFormat, setBannerExportFormat] = useState('csv,json');
 
+  const [killingBrowsers, setKillingBrowsers] = useState(false);
+  const [killBrowsersResult, setKillBrowsersResult] = useState<string>('');
+  const [bannerLoginResult, setBannerLoginResult] = useState<string>('');
+
+  async function killBrowsers() {
+    setKillingBrowsers(true);
+    setKillBrowsersResult('');
+    try {
+      const res = await fetch('/api/system/kill-browsers', { method: 'POST' });
+      const data = await res.json() as { ok: boolean; message: string };
+      setKillBrowsersResult(data.message);
+    } catch (err) {
+      setKillBrowsersResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setKillingBrowsers(false);
+    }
+  }
+
+  async function startBannerLogin() {
+    setBannerLoginResult('Abriendo Edge para login Banner...');
+    try {
+      const res = await fetch('/api/banner/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'auth-start', payload: {} }),
+      });
+      const data = await res.json() as { ok: boolean; message?: string; error?: string };
+      if (!data.ok) {
+        setBannerLoginResult(`Error: ${data.error ?? data.message ?? 'Falló el login Banner.'}`);
+        return;
+      }
+      setBannerLoginResult('Edge abierto. Completa SSO/2FA en la ventana, luego presiona "Guardar sesión Banner".');
+    } catch (err) {
+      setBannerLoginResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
+  async function confirmBannerLogin() {
+    setBannerLoginResult('Guardando sesión Banner...');
+    try {
+      const res = await fetch('/api/banner/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'auth-confirm', payload: {} }),
+      });
+      const data = await res.json() as { ok: boolean; message?: string; error?: string };
+      if (!data.ok) {
+        setBannerLoginResult(`Error: ${data.error ?? data.message ?? 'No se pudo guardar la sesión.'}`);
+        return;
+      }
+      setBannerLoginResult('Sesión Banner guardada. Ya puedes ir a /docentes y presionar "Solo docentes".');
+    } catch (err) {
+      setBannerLoginResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    }
+  }
+
   async function refreshData(silent = false) {
     try {
       if (!silent) {
@@ -365,7 +421,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
       {/* ── Hero compacto ── */}
       <section className="hero hero-compact">
         <div className="hero-copy">
-          <h1>Ops Studio</h1>
+          <h1>Panel operativo</h1>
           <div className="hero-meta">
             <span className={`chip ${data.apiReachable ? 'chip-ok' : 'chip-alert'}`}>
               <span className={`status-dot ${data.apiReachable ? 'dot-ok' : 'dot-error'}`} />
@@ -431,20 +487,21 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
           {/* Columna izquierda: acciones operativas como disclosures */}
           <article className="panel">
             <div className="panel-heading">
-              <h2>Operaciones</h2>
-              <span className="panel-note">Acciones sobre cola, sidecar y Banner</span>
+              <h2>Herramientas del sistema</h2>
+              <span className="panel-note">Procesos automáticos de verificación y consulta</span>
             </div>
 
             <details className="disclosure">
-              <summary>Cola Moodle</summary>
+              <summary>Verificar aulas en Moodle</summary>
               <div className="disclosure-body">
+                <p className="disclosure-desc">Detecta aulas con estado pendiente o con error en Moodle y las pone en cola de verificación automática.</p>
                 <div className="form-row">
                   <label>
                     Periodo
                     <input value={queuePeriodCode} onChange={(event) => setQueuePeriodCode(event.target.value)} />
                   </label>
                   <label>
-                    Limite
+                    Límite de aulas
                     <input value={queueLimit} onChange={(event) => setQueueLimit(event.target.value)} />
                   </label>
                 </div>
@@ -490,27 +547,28 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
             </details>
 
             <details className="disclosure">
-              <summary>Sidecar Moodle</summary>
+              <summary>Clasificar aulas Moodle</summary>
               <div className="disclosure-body">
+                <p className="disclosure-desc">Abre el navegador automáticamente y revisa cada aula en Moodle para clasificarla por tipo y detectar participantes.</p>
                 <div className="form-row">
                   <label>
-                    Comando
+                    Operación
                     <select value={sidecarCommand} onChange={(event) => setSidecarCommand(event.target.value as SidecarCommand)}>
-                      <option value="classify">classify</option>
-                      <option value="revalidate">revalidate</option>
-                      <option value="backup">backup</option>
-                      <option value="gui">gui</option>
+                      <option value="classify">Clasificar aulas</option>
+                      <option value="revalidate">Revalidar clasificaciones</option>
+                      <option value="backup">Crear respaldo</option>
+                      <option value="gui">Modo manual</option>
                     </select>
                   </label>
                   <label>
-                    Workers
+                    Navegadores paralelos
                     <input value={sidecarWorkers} onChange={(event) => setSidecarWorkers(event.target.value)} />
                   </label>
                   <label>
-                    Browser
+                    Navegador
                     <select value={sidecarBrowser} onChange={(event) => setSidecarBrowser(event.target.value)}>
-                      <option value="chrome">chrome</option>
-                      <option value="edge">edge</option>
+                      <option value="chrome">Chrome</option>
+                      <option value="edge">Edge</option>
                     </select>
                   </label>
                 </div>
@@ -528,7 +586,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== '' || !data.apiReachable}
                   >
-                    Iniciar sidecar
+                    Iniciar clasificación
                   </button>
                   <button
                     className="secondary-button"
@@ -541,7 +599,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== '' || !data.apiReachable}
                   >
-                    Importar resultados
+                    Cargar resultados
                   </button>
                   <button
                     className="ghost-button"
@@ -555,15 +613,16 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
             </details>
 
             <details className="disclosure">
-              <summary>Banner docente</summary>
+              <summary>Consultar docente en Banner</summary>
               <div className="disclosure-body">
+                <p className="disclosure-desc">Consulta el sistema Banner para obtener el nombre e información del docente asignado a un NRC específico.</p>
                 <div className="form-row">
                   <label>
                     NRC
                     <input value={bannerNrc} onChange={(event) => setBannerNrc(event.target.value)} />
                   </label>
                   <label>
-                    Periodo
+                    Período
                     <input value={bannerPeriod} onChange={(event) => setBannerPeriod(event.target.value)} />
                   </label>
                 </div>
@@ -579,7 +638,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== ''}
                   >
-                    Lookup NRC
+                    Consultar NRC
                   </button>
                   <button
                     className="secondary-button"
@@ -595,7 +654,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== ''}
                   >
-                    Lote
+                    Consulta por lote
                   </button>
                   <button
                     className="ghost-button"
@@ -609,12 +668,56 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
             </details>
 
             <details className="disclosure">
-              <summary>Modulos avanzados</summary>
+              <summary>Mantenimiento de navegadores</summary>
               <div className="disclosure-body">
-                <div className="toolbar toolbar-wrap">
+                <p className="disclosure-desc">
+                  <strong>Paso A:</strong> Click <strong>Limpiar navegadores</strong> si Edge está bloqueado.
+                  {' '}<strong>Paso B:</strong> Click <strong>1. Abrir login Banner</strong> → completa SSO/2FA en Edge.
+                  {' '}<strong>Paso C:</strong> Click <strong>2. Guardar sesión Banner</strong> (MUY IMPORTANTE — sin esto la sesión no persiste).
+                  {' '}Listo → ve a /docentes → Solo docentes.
+                </p>
+                <div className="toolbar">
+                  <button
+                    style={{ background: '#7f1d1d', color: '#fff' }}
+                    disabled={killingBrowsers}
+                    onClick={() => void killBrowsers()}
+                  >
+                    {killingBrowsers ? 'Limpiando...' : 'Limpiar navegadores colgados'}
+                  </button>
+                  <button
+                    style={{ background: '#92400e', color: '#fff' }}
+                    onClick={() => void startBannerLogin()}
+                  >
+                    1. Abrir login Banner
+                  </button>
+                  <button
+                    style={{ background: '#15803d', color: '#fff' }}
+                    onClick={() => void confirmBannerLogin()}
+                  >
+                    2. Guardar sesión Banner
+                  </button>
+                </div>
+                {killBrowsersResult && (
+                  <div style={{ marginTop: 8, padding: '8px 12px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, color: '#374151' }}>
+                    {killBrowsersResult}
+                  </div>
+                )}
+                {bannerLoginResult && (
+                  <div style={{ marginTop: 8, padding: '8px 12px', background: '#fefce8', border: '1px solid #fde68a', borderRadius: 6, fontSize: 13, color: '#92400e' }}>
+                    {bannerLoginResult}
+                  </div>
+                )}
+              </div>
+            </details>
+
+            <details className="disclosure" open>
+              <summary>Ir a otras secciones</summary>
+              <div className="disclosure-body">
+                <div className="module-cards">
                   {ADVANCED_MODULES.map((item) => (
-                    <a key={item.href} className="secondary-button" href={item.href}>
-                      {item.title}
+                    <a key={item.href} className="module-card" href={item.href}>
+                      <strong>{item.title}</strong>
+                      <span>{item.description}</span>
                     </a>
                   ))}
                 </div>
@@ -625,8 +728,8 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
           {/* Columna derecha: atencion prioritaria + metricas sidecar */}
           <article className="panel">
             <div className="panel-heading">
-              <h2>Atencion prioritaria</h2>
-              <span className="panel-note">{data.derived.attention.length} alertas activas</span>
+              <h2>Avisos de atención</h2>
+              <span className="panel-note">{data.derived.attention.length} avisos activos</span>
             </div>
             <div className="issue-list">
               {data.derived.attention.length ? (
@@ -653,17 +756,17 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
           {/* Fila inferior: sidecar preview + outbox */}
           <article className="panel">
             <div className="panel-heading">
-              <h2>Sidecar — muestra reciente</h2>
-              <span className="panel-note">{data.sidecar.summary.rowCount} filas · prom. {data.sidecar.summary.participantAverage ?? '-'} participantes</span>
+              <h2>Últimas aulas clasificadas</h2>
+              <span className="panel-note">{data.sidecar.summary.rowCount} aulas · prom. {data.sidecar.summary.participantAverage ?? '-'} estudiantes</span>
             </div>
             <div className="table-wrap">
               <table className="compact-table">
                 <thead>
                   <tr>
                     <th>NRC</th>
-                    <th>Tipo</th>
-                    <th>Usuarios</th>
-                    <th>Curso Moodle</th>
+                    <th>Tipo de aula</th>
+                    <th>Estudiantes</th>
+                    <th>Nombre en Moodle</th>
                   </tr>
                 </thead>
                 <tbody>
@@ -682,8 +785,8 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
 
           <article className="panel">
             <div className="panel-heading">
-              <h2>Outbox borrador</h2>
-              <span className="panel-note">{data.outbox.total} mensajes pendientes</span>
+              <h2>Correos pendientes</h2>
+              <span className="panel-note">{data.outbox.total} mensajes por enviar</span>
             </div>
             <div className="table-wrap">
               <table className="compact-table">
@@ -723,8 +826,8 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
         <section className="courses-layout">
           <article className="panel">
             <div className="panel-heading">
-              <h2>Explorador de cursos</h2>
-              <span className="panel-note">{filteredCourses.length} resultados</span>
+              <h2>Listado de cursos</h2>
+              <span className="panel-note">{filteredCourses.length} resultados encontrados</span>
             </div>
             <div className="filters">
               <label>
@@ -771,8 +874,8 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     <th>NRC</th>
                     <th>Asignatura</th>
                     <th>Docente</th>
-                    <th>Moodle</th>
-                    <th>Sidecar</th>
+                    <th>Estado Moodle</th>
+                    <th>Tipo de aula</th>
                     <th>URL</th>
                     <th></th>
                   </tr>
@@ -821,8 +924,8 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
 
           <aside className="panel course-detail">
             <div className="panel-heading">
-              <h2>Ficha integrada</h2>
-              <span className="panel-note">API + Banner + sidecar</span>
+              <h2>Detalle del curso</h2>
+              <span className="panel-note">Moodle · Banner · Revisión</span>
             </div>
             {selectedCourse ? (
               <div className="detail-stack">
@@ -846,26 +949,26 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     <strong>{selectedCourse.moodleCheck?.status ?? '-'}</strong>
                   </div>
                   <div>
-                    <span>Tipo sidecar</span>
+                    <span>Tipo de aula</span>
                     <strong>{selectedCourse.integrations.moodleSidecar?.type ?? '-'}</strong>
                   </div>
                   <div>
-                    <span>Participantes</span>
+                    <span>Estudiantes Moodle</span>
                     <strong>{selectedCourse.integrations.moodleSidecar?.participants ?? '-'}</strong>
                   </div>
                   <div>
-                    <span>Curso Moodle</span>
+                    <span>Nombre en Moodle</span>
                     <strong>{selectedCourse.integrations.moodleSidecar?.moodleCourseName ?? '-'}</strong>
                   </div>
                 </div>
 
                 <div className="detail-group">
-                  <h4>Integracion Moodle</h4>
+                  <h4>Estado en Moodle</h4>
                   <div className="detail-lines">
-                    <div>Template: {selectedCourse.moodleCheck?.detectedTemplate ?? '-'}</div>
+                    <div>Plantilla detectada: {selectedCourse.moodleCheck?.detectedTemplate ?? '-'}</div>
                     <div>Modalidad: {selectedCourse.moodleCheck?.resolvedModality ?? selectedCourse.integrations.urlValidation?.modality ?? '-'}</div>
-                    <div>Course ID: {selectedCourse.integrations.moodleSidecar?.moodleCourseId ?? selectedCourse.moodleCheck?.moodleCourseId ?? '-'}</div>
-                    <div>Usuarios detectados: {selectedCourse.integrations.moodleSidecar?.participantsDetected ?? '-'}</div>
+                    <div>ID del aula Moodle: {selectedCourse.integrations.moodleSidecar?.moodleCourseId ?? selectedCourse.moodleCheck?.moodleCourseId ?? '-'}</div>
+                    <div>Estudiantes detectados: {selectedCourse.integrations.moodleSidecar?.participantsDetected ?? '-'}</div>
                   </div>
                   {selectedMoodleUrl ? (
                     <a href={selectedMoodleUrl} target="_blank" rel="noreferrer" className="inline-link">
@@ -877,24 +980,24 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                 </div>
 
                 <div className="detail-group">
-                  <h4>Integracion Banner</h4>
+                  <h4>Datos de Banner</h4>
                   <div className="detail-lines">
-                    <div>Teacher ID: {selectedCourse.integrations.bannerExport?.teacherId ?? selectedCourse.teacherId ?? '-'}</div>
-                    <div>Nombre: {selectedCourse.integrations.bannerExport?.teacherName ?? selectedCourse.teacher?.fullName ?? '-'}</div>
-                    <div>Verificado: {formatDate(selectedCourse.integrations.bannerExport?.checkedAt)}</div>
-                    <div>Error: {selectedCourse.integrations.bannerExport?.errorMessage ?? '-'}</div>
+                    <div>ID del docente: {selectedCourse.integrations.bannerExport?.teacherId ?? selectedCourse.teacherId ?? '-'}</div>
+                    <div>Nombre del docente: {selectedCourse.integrations.bannerExport?.teacherName ?? selectedCourse.teacher?.fullName ?? '-'}</div>
+                    <div>Última verificación: {formatDate(selectedCourse.integrations.bannerExport?.checkedAt)}</div>
+                    <div>Mensaje de error: {selectedCourse.integrations.bannerExport?.errorMessage ?? '-'}</div>
                   </div>
                 </div>
 
                 <div className="detail-group">
-                  <h4>Revision y muestreo</h4>
+                  <h4>Estado de revisión</h4>
                   <div className="detail-lines">
-                    <div>Excluido: {selectedCourse.reviewExcluded ? 'Si' : 'No'}</div>
-                    <div>Razon: {selectedCourse.reviewExcludedReason ?? '-'}</div>
-                    <div>Checklist temporal: {selectedCourse.checklistTemporal?.active ? 'Activo' : 'No'}</div>
-                    <div>Alistamiento: {formatScore(selectedCourse.evaluationSummary?.alistamientoScore)}</div>
-                    <div>Ejecucion: {formatScore(selectedCourse.evaluationSummary?.ejecucionScore)}</div>
-                    <div>Ultima fase: {selectedCourse.evaluationSummary?.latestPhase ?? '-'}</div>
+                    <div>Excluido de revisión: {selectedCourse.reviewExcluded ? 'Sí' : 'No'}</div>
+                    <div>Razón de exclusión: {selectedCourse.reviewExcludedReason ?? '-'}</div>
+                    <div>Checklist activo: {selectedCourse.checklistTemporal?.active ? 'Sí' : 'No'}</div>
+                    <div>Calificación alistamiento: {formatScore(selectedCourse.evaluationSummary?.alistamientoScore)}</div>
+                    <div>Calificación ejecución: {formatScore(selectedCourse.evaluationSummary?.ejecucionScore)}</div>
+                    <div>Última fase evaluada: {selectedCourse.evaluationSummary?.latestPhase ?? '-'}</div>
                   </div>
                 </div>
               </div>
@@ -914,58 +1017,58 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
           {/* Estado de integraciones: chips de estado */}
           <article className="panel">
             <div className="panel-heading">
-              <h2>Estado de integraciones</h2>
-              <span className="panel-note">Resumen de conectividad y procesos</span>
+              <h2>Estado de conexiones</h2>
+              <span className="panel-note">Servicios activos y su último estado</span>
             </div>
             <div className="integration-status-list">
               <div className="integration-row">
-                <span className="integration-name">API backend</span>
+                <span className="integration-name">Servicio principal (API)</span>
                 <span className={`chip ${data.apiReachable ? 'chip-ok' : 'chip-alert'}`}>
                   {data.apiReachable ? 'Conectada' : 'Sin conexion'}
                 </span>
               </div>
               <div className="integration-row">
-                <span className="integration-name">Banner runner</span>
+                <span className="integration-name">Conector Banner</span>
                 <span className={`chip ${data.banner.runner.running ? 'chip-warn' : 'chip-ok'}`}>
                   {data.banner.runner.running ? 'En ejecucion' : 'Inactivo'}
                 </span>
               </div>
               <div className="integration-row">
-                <span className="integration-name">Sidecar Moodle</span>
+                <span className="integration-name">Clasificador Moodle</span>
                 <span className={`chip ${(data.sidecar.runner as { running?: boolean } | null)?.running ? 'chip-warn' : 'chip-ok'}`}>
                   {(data.sidecar.runner as { running?: boolean } | null)?.running ? 'En ejecucion' : 'Inactivo'}
                 </span>
               </div>
               <div className="integration-row">
-                <span className="integration-name">Export Banner</span>
+                <span className="integration-name">Datos exportados Banner</span>
                 <span className={`chip ${data.banner.exportSummary.rowCount > 0 ? 'chip-ok' : 'chip-alert'}`}>
                   {data.banner.exportSummary.rowCount} filas
                 </span>
               </div>
               <div className="integration-row">
-                <span className="integration-name">CSV Sidecar</span>
+                <span className="integration-name">Archivo de clasificación</span>
                 <span className={`chip ${data.sidecar.summary.rowCount > 0 ? 'chip-ok' : 'chip-alert'}`}>
                   {data.sidecar.summary.rowCount} filas
                 </span>
               </div>
               <div className="integration-row">
-                <span className="integration-name">Aulas vacias</span>
+                <span className="integration-name">Aulas sin estudiantes</span>
                 <span className={`chip ${data.sidecar.summary.emptyClassrooms > 0 ? 'chip-alert' : 'chip-ok'}`}>
                   {data.sidecar.summary.emptyClassrooms}
                 </span>
               </div>
               <div className="integration-row">
-                <span className="integration-name">Cola activa</span>
+                <span className="integration-name">Cola de procesamiento</span>
                 <span className={`chip ${(data.queue?.queue.active ?? 0) > 0 ? 'chip-warn' : 'chip-ok'}`}>
                   {data.queue?.queue.active ?? 0} activos / {data.queue?.queue.waiting ?? 0} en espera
                 </span>
               </div>
               <div className="integration-row">
-                <span className="integration-name">Ultimo Banner</span>
+                <span className="integration-name">Última consulta Banner</span>
                 <span className="chip">{formatDate(data.banner.runner.lastRun?.endedAt ?? data.banner.runner.current?.startedAt)}</span>
               </div>
               <div className="integration-row">
-                <span className="integration-name">Ultimo Sidecar</span>
+                <span className="integration-name">Última clasificación Moodle</span>
                 <span className="chip">
                   {formatDate(
                     (data.sidecar.runner as { lastRun?: { endedAt?: string }; current?: { startedAt?: string } } | null)?.lastRun?.endedAt ??
@@ -976,7 +1079,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
             </div>
 
             <div className="panel-heading" style={{ marginTop: '1.25rem' }}>
-              <h3>Estatus Banner por categoria</h3>
+              <h3>Resultados Banner por categoría</h3>
             </div>
             <div className="badge-wall">
               {topBannerStatuses.map(([label, value]) => (
@@ -990,48 +1093,48 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
           {/* Control Sidecar */}
           <article className="panel">
             <div className="panel-heading">
-              <h2>Control Sidecar</h2>
-              <span className="panel-note">Ejecucion e importacion</span>
+              <h2>Clasificador de aulas Moodle</h2>
+              <span className="panel-note">Inicia el proceso automático que revisa cada aula y la clasifica</span>
             </div>
 
             <details className="disclosure" open>
-              <summary>Ejecutar sidecar</summary>
+              <summary>Iniciar clasificación</summary>
               <div className="disclosure-body">
                 <div className="form-grid">
                   <label>
-                    Comando
+                    Operación
                     <select value={sidecarCommand} onChange={(event) => setSidecarCommand(event.target.value as SidecarCommand)}>
-                      <option value="classify">classify</option>
-                      <option value="revalidate">revalidate</option>
-                      <option value="backup">backup</option>
-                      <option value="gui">gui</option>
+                      <option value="classify">Clasificar aulas</option>
+                      <option value="revalidate">Revalidar clasificaciones</option>
+                      <option value="backup">Crear respaldo</option>
+                      <option value="gui">Modo manual</option>
                     </select>
                   </label>
                   <label>
-                    Workers
+                    Navegadores paralelos
                     <input value={sidecarWorkers} onChange={(event) => setSidecarWorkers(event.target.value)} />
                   </label>
                   <label>
-                    Browser
+                    Navegador
                     <select value={sidecarBrowser} onChange={(event) => setSidecarBrowser(event.target.value)}>
-                      <option value="chrome">chrome</option>
-                      <option value="edge">edge</option>
+                      <option value="chrome">Chrome</option>
+                      <option value="edge">Edge</option>
                     </select>
                   </label>
                   <label>
-                    Modo revalidate
+                    Modo de revalidación
                     <select value={sidecarMode} onChange={(event) => setSidecarMode(event.target.value)}>
-                      <option value="ambos">ambos</option>
-                      <option value="sin_matricula">sin_matricula</option>
-                      <option value="aulas_vacias">aulas_vacias</option>
+                      <option value="ambos">Todos</option>
+                      <option value="sin_matricula">Sin matrícula</option>
+                      <option value="aulas_vacias">Aulas vacías</option>
                     </select>
                   </label>
                   <label className="wide">
-                    input-dir
+                    Carpeta de entrada
                     <input value={sidecarInputDir} onChange={(event) => setSidecarInputDir(event.target.value)} />
                   </label>
                   <label className="wide">
-                    output
+                    Archivo de salida
                     <input value={sidecarOutput} onChange={(event) => setSidecarOutput(event.target.value)} />
                   </label>
                 </div>
@@ -1049,7 +1152,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== '' || !data.apiReachable}
                   >
-                    Iniciar
+                    Iniciar clasificación
                   </button>
                   <button
                     className="secondary-button"
@@ -1059,22 +1162,22 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     Cancelar
                   </button>
                   <button className="ghost-button" onClick={() => void refreshData()} disabled={loading}>
-                    Leer estado
+                    Refrescar estado
                   </button>
                 </div>
               </div>
             </details>
 
             <details className="disclosure">
-              <summary>Importar resultados sidecar</summary>
+              <summary>Cargar resultados a la base</summary>
               <div className="disclosure-body">
                 <div className="form-grid">
                   <label className="wide">
-                    inputPath
-                    <input value={sidecarImportPath} onChange={(event) => setSidecarImportPath(event.target.value)} placeholder="Dejar vacio para usar el ultimo detectado" />
+                    Archivo de resultados (opcional)
+                    <input value={sidecarImportPath} onChange={(event) => setSidecarImportPath(event.target.value)} placeholder="Dejar vacío para usar el último detectado" />
                   </label>
                   <label>
-                    sourceLabel
+                    Etiqueta de importación
                     <input value={sidecarImportSource} onChange={(event) => setSidecarImportSource(event.target.value)} />
                   </label>
                   <label className="checkbox-line">
@@ -1083,7 +1186,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                       checked={sidecarImportDryRun}
                       onChange={(event) => setSidecarImportDryRun(event.target.checked)}
                     />
-                    <span>dry run</span>
+                    <span>Solo simular (sin guardar)</span>
                   </label>
                 </div>
                 <div className="toolbar">
@@ -1097,7 +1200,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     }
                     disabled={busyAction !== '' || !data.apiReachable}
                   >
-                    Importar a la base
+                    Cargar a la base de datos
                   </button>
                 </div>
               </div>
@@ -1107,21 +1210,21 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
           {/* Control Banner */}
           <article className="panel">
             <div className="panel-heading">
-              <h2>Control Banner</h2>
-              <span className="panel-note">Lookup, batch, retry y export</span>
+              <h2>Consultas a Banner</h2>
+              <span className="panel-note">Busca y actualiza datos de docentes directamente desde Banner</span>
             </div>
 
             <details className="disclosure" open>
-              <summary>Ejecutar Banner</summary>
+              <summary>Ejecutar consulta</summary>
               <div className="disclosure-body">
                 <div className="form-grid">
                   <label>
-                    Accion
+                    Tipo de consulta
                     <select value={bannerMode} onChange={(event) => setBannerMode(event.target.value as BannerMode)}>
-                      <option value="lookup">lookup</option>
-                      <option value="batch">batch</option>
-                      <option value="retry-errors">retry-errors</option>
-                      <option value="export">export</option>
+                      <option value="lookup">NRC individual</option>
+                      <option value="batch">Lote desde CSV</option>
+                      <option value="retry-errors">Reintentar fallidos</option>
+                      <option value="export">Exportar resultados</option>
                     </select>
                   </label>
                   <label>
@@ -1129,32 +1232,32 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                     <input value={bannerNrc} onChange={(event) => setBannerNrc(event.target.value)} />
                   </label>
                   <label>
-                    Periodo
+                    Período
                     <input value={bannerPeriod} onChange={(event) => setBannerPeriod(event.target.value)} />
                   </label>
                   <label>
-                    Query name
+                    Referencia de consulta
                     <input value={bannerQueryName} onChange={(event) => setBannerQueryName(event.target.value)} />
                   </label>
                   <label className="wide">
-                    Input batch
+                    Archivo CSV de entrada
                     <input value={bannerInputPath} onChange={(event) => setBannerInputPath(event.target.value)} />
                   </label>
                   <label>
-                    Workers
+                    Hilos paralelos
                     <input value={bannerWorkers} onChange={(event) => setBannerWorkers(event.target.value)} />
                   </label>
                   <label>
-                    Query ID
+                    ID de consulta
                     <input value={bannerQueryId} onChange={(event) => setBannerQueryId(event.target.value)} />
                   </label>
                   <label>
-                    Export format
+                    Formato de exportación
                     <input value={bannerExportFormat} onChange={(event) => setBannerExportFormat(event.target.value)} />
                   </label>
                   <label className="checkbox-line">
                     <input type="checkbox" checked={bannerResume} onChange={(event) => setBannerResume(event.target.checked)} />
-                    <span>resume</span>
+                    <span>Continuar desde donde quedó</span>
                   </label>
                 </div>
                 <div className="toolbar">
@@ -1190,7 +1293,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
             </details>
 
             <details className="disclosure">
-              <summary>Log Banner</summary>
+              <summary>Registro de ejecución Banner</summary>
               <div className="disclosure-body">
                 <pre className="log-block">{data.banner.runner.logTail || 'Sin log de Banner aun.'}</pre>
               </div>
@@ -1207,8 +1310,8 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
         <section className="dashboard-grid">
           <article className="panel panel-span-2">
             <div className="panel-heading">
-              <h2>Centro de archivos</h2>
-              <span className="panel-note">Ultimas salidas del sistema</span>
+              <h2>Archivos del sistema</h2>
+              <span className="panel-note">Archivos generados o importados automáticamente</span>
             </div>
             <div className="table-wrap">
               <table className="compact-table">
@@ -1238,8 +1341,8 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
 
           <article className="panel">
             <div className="panel-heading">
-              <h2>Resumen Banner</h2>
-              <span className="panel-note">{data.banner.exportSummary.rowCount} filas en export</span>
+              <h2>Resultados de Banner</h2>
+              <span className="panel-note">{data.banner.exportSummary.rowCount} registros consultados</span>
             </div>
             <div className="badge-wall">
               {topBannerStatuses.map(([label, value]) => (
@@ -1276,7 +1379,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
 
           <article className="panel">
             <div className="panel-heading">
-              <h2>Resumen URL Moodle</h2>
+              <h2>URLs de aulas Moodle</h2>
               <span className="panel-note">{data.sidecar.urlValidation.withUrlCount} URLs resueltas</span>
             </div>
             <div className="table-wrap">

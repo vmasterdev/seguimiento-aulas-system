@@ -1,0 +1,124 @@
+{
+  "login": {
+    "url": "https://genesisadmin.uniminuto.edu/applicationNavigator/seamless",
+    "framePath": [],
+    "username": [
+      { "type": "css", "value": "#i0116" },
+      { "type": "css", "value": "input[name='loginfmt']" },
+      { "type": "css", "value": "input[type='email']" }
+    ],
+    "usernameSubmit": [
+      { "type": "css", "value": "#idSIButton9" },
+      { "type": "css", "value": "input[type='submit']" },
+      { "type": "role", "value": "button", "name": "Siguiente" }
+    ],
+    "password": [
+      { "type": "css", "value": "#i0118" },
+      { "type": "css", "value": "input[name='passwd']" },
+      { "type": "css", "value": "input[type='password']" }
+    ],
+    "passwordSubmit": [
+      { "type": "css", "value": "#idSIButton9" },
+      { "type": "css", "value": "input[type='submit']" },
+      { "type": "role", "value": "button", "name": "Iniciar sesion" },
+      { "type": "role", "value": "button", "name": "Sign in" }
+    ],
+    "staySignedInDecline": [
+      { "type": "css", "value": "#idBtn_Back" },
+      { "type": "role", "value": "button", "name": "No" }
+    ],
+    "submit": [
+      { "type": "css", "value": "#idSIButton9" },
+      { "type": "css", "value": "input[type='submit']" }
+    ],
+    "successIndicators": [
+      { "type": "css", "value": "#inp\\:ssasectTermCode" },
+      { "type": "css", "value": "#inp\\:ssasectCrn" }
+    ]
+  },
+  "navigation": {
+    "searchUrl": "https://genesisadmin.uniminuto.edu/BannerAdmin/?form=SSASECT&ban_args=&ban_mode=xe#eyJ0eXBlIjoiY29udGV4dCIsImNvbnRleHQiOnsicGFnZU5hbWUiOiJTU0FTRUNUIiwidmFsdWVzIjp7fSwiaG9zdCI6Imh0dHBzOi8vZ2VuZXNpc2FkbWluLnVuaW1pbnV0by5lZHUvYXBwbGljYXRpb25OYXZpZ2F0b3IiLCJhcHBpZCI6ImJhbm5lckhTIiwicGxhdGZvcm0iOiJiYW5uZXJIUyJ9fQ==",
+    "framePath": [],
+    "menuPath": []
+  },
+  "lookup": {
+    "formFramePath": [],
+    "actionFramePath": [],
+    "resultsFramePath": [],
+    "preSearchWaitMs": 250,
+    "postSearchWaitMs": 1200,
+    "nrcInput": [
+      { "type": "css", "value": "#inp\\:ssasectCrn" },
+      { "type": "css", "value": "input[name='ssasectCrn']" },
+      { "type": "label", "value": "NRC" }
+    ],
+    "periodInput": [
+      { "type": "css", "value": "#inp\\:ssasectTermCode" },
+      { "type": "css", "value": "input[name='ssasectTermCode']" },
+      { "type": "label", "value": "Periodo" }
+    ],
+    "resetButton": [
+      { "type": "role", "value": "button", "name": "Limpiar" },
+      { "type": "text", "value": "Clear Record" },
+      { "type": "text", "value": "Clear Data" },
+      { "type": "text", "value": "Refresh" }
+    ],
+    "restartButton": [
+      { "type": "css", "value": "button[data-member='KEY-CLRFRM_BTN']" },
+      { "type": "css", "value": "button[data-action='CLEAR-FORM']" },
+      { "type": "role", "value": "button", "name": "Recomenzar" },
+      { "type": "text", "value": "Recomenzar" }
+    ],
+    "postSearchActions": [
+      [
+        { "type": "css", "value": "a[data-action='OPT_INST_TRIGGER']" },
+        { "type": "css", "value": "a[data-uuid='SIRASGN#P']" },
+        { "type": "role", "value": "menuitem", "name": "Instructores asignados" },
+        { "type": "text", "value": "Instructores asignados" }
+      ]
+    ],
+    "resultsContainer": [
+      { "type": "text", "value": "Instructores asignados" },
+      { "type": "css", "value": "div[data-member='SIRASGN_CATEGORY']" },
+      { "type": "css", "value": "div[data-member='SIRASGN_IDNO']" },
+      { "type": "css", "value": "div[data-member='NAME']" },
+      { "type": "css", "value": "table" }
+    ],
+    "noResultsIndicators": [
+      { "type": "text", "value": "No se encontraron registros" },
+      { "type": "text", "value": "does not exist" }
+    ],
+    "noTeacherIndicators": [
+      { "type": "text", "value": "Sin docente" },
+      { "type": "text", "value": "No instructors assigned" }
+    ],
+    "teacherName": [
+      { "type": "css", "value": "div[data-member='NAME']" },
+      { "type": "css", "value": "[data-member='NAME']" },
+      { "type": "css", "value": "[data-field='teacher-name']" },
+      { "type": "css", "value": "input[name*='lastName']" },
+      { "type": "css", "value": "input[name*='firstName']" }
+    ],
+    "teacherId": [
+      { "type": "css", "value": "div[data-member='SIRASGN_IDNO']" },
+      { "type": "css", "value": "[data-member='SIRASGN_IDNO']" },
+      { "type": "css", "value": "[data-field='teacher-id']" },
+      { "type": "css", "value": "input[name*='id']" },
+      { "type": "css", "value": "input[name*='pidm']" }
+    ],
+    "programName": [
+      { "type": "css", "value": "[data-field='program-name']" }
+    ],
+    "statusText": [
+      { "type": "css", "value": "[data-field='status']" }
+    ],
+    "additionalFields": {
+      "course_title": [
+        { "type": "css", "value": "[data-field='course-title']" }
+      ],
+      "assignment_section": [
+        { "type": "css", "value": "input[name*='percentageOfResponsibility']" }
+      ]
+    }
+  }
+}

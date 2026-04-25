@@ -8,6 +8,8 @@ async function bootstrap() {
   const logger = new Logger('Bootstrap');
   logger.log('Inicializando API...');
   const app = await NestFactory.create(AppModule, { cors: true });
+  app.use(require('express').json({ limit: '10mb' }));
+  app.use(require('express').urlencoded({ limit: '10mb', extended: true }));
   logger.log('Nest app creada.');
   app.enableShutdownHooks();
   const port = process.env.PORT ? Number(process.env.PORT) : 3001;

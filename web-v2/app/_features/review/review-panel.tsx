@@ -1345,6 +1345,7 @@ export function ReviewPanel({
             </select>
             <button
               type="button"
+              className="primary"
               onClick={() => { void persistCurrentTemplate(editableTemplate.toUpperCase()); }}
               disabled={savingTemplate || editableTemplate.toUpperCase() === currentTemplate}
             >
@@ -1405,6 +1406,7 @@ export function ReviewPanel({
             <span style={{ flex: 1 }} />
             <button
               type="button"
+              className="primary"
               onClick={() => void saveCurrent(false)}
               disabled={saving}
             >

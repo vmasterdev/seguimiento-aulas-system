@@ -596,7 +596,7 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       {audience === 'GLOBAL' ? (
         <>
           <div className="controls" style={{ marginTop: 10 }}>
-            <button type="button" onClick={applyAnnualPreset} disabled={busy}>
+            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={applyAnnualPreset} disabled={busy}>
               Usar preset anual {yearPrefix || DEFAULT_YEAR_PREFIX}
             </button>
           </div>
@@ -629,10 +629,10 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       ) : null}
 
       <div className="controls" style={{ marginTop: 10 }}>
-        <button type="button" onClick={() => void onlyGenerate()} disabled={busy}>
+        <button type="button" className="primary" onClick={() => void onlyGenerate()} disabled={busy}>
           {busy ? 'Procesando...' : 'Generar borradores'}
         </button>
-        <button type="button" onClick={() => void runCampaign(true)} disabled={busy}>
+        <button type="button" className="primary" onClick={() => void runCampaign(true)} disabled={busy}>
           {busy ? 'Procesando...' : 'Generar + previsualizar envio'}
         </button>
         <button type="button" className="btn-next-action" onClick={() => void runCampaign(false)} disabled={busy}>
@@ -685,7 +685,7 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
               <div className="panel-heading">
                 <h2>Preview del correo seleccionado</h2>
                 <div className="button-row" style={{ marginTop: 0 }}>
-                  <button type="button" onClick={() => void loadPreview(previewData.id)} disabled={busy}>
+                  <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => void loadPreview(previewData.id)} disabled={busy}>
                     Refrescar preview
                   </button>
                   <button type="button" className="btn-next-action" onClick={() => void sendSelectedDraft()} disabled={busy}>

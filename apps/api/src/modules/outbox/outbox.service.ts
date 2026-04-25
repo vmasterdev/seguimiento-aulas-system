@@ -35,6 +35,7 @@ import {
 } from './outbox.report-builder';
 import {
   OutboxPreviewByCourseSchema,
+  OutboxQueueCierreSchema,
   OutboxResendByCourseSchema,
   OutboxResendUpdatedSchema,
   OutboxWorkshopInvitationPrepareSchema,
@@ -61,6 +62,11 @@ import {
   sanitizeForFilename,
   toEml,
 } from './outbox.utils';
+
+function teacherRecipientEmail(teacher: { email?: string | null; email2?: string | null }): string | null {
+  const emails = [teacher.email, teacher.email2].filter((e): e is string => Boolean(e?.trim()));
+  return emails.length ? emails.join(';') : null;
+}
 
 @Injectable()
 export class OutboxService {
@@ -403,7 +409,7 @@ export class OutboxService {
 
     for (const { teacher, rows } of grouped.values()) {
       if (!rows.length) continue;
-      if (!teacher.email) {
+      if (!teacher.email && !teacher.email2) {
         skippedTeachersWithoutEmail.push(teacher.fullName);
         continue;
       }
@@ -441,7 +447,7 @@ export class OutboxService {
           moment: invitationMomentKey,
           subject,
           recipientName: teacher.fullName,
-          recipientEmail: teacher.email,
+          recipientEmail: teacherRecipientEmail(teacher),
           htmlBody,
           status: 'DRAFT',
         },
@@ -452,7 +458,7 @@ export class OutboxService {
         id: createdMessage.id,
         teacherId: teacher.id,
         recipientName: teacher.fullName,
-        recipientEmail: teacher.email,
+        recipientEmail: teacherRecipientEmail(teacher) ?? '',
         courseCount: rows.length,
         moments: [...new Set(rows.map((item) => item.moment))],
         scoreBands: [...new Set(rows.map((item) => item.band))],
@@ -989,7 +995,7 @@ export class OutboxService {
           moment: payload.moment,
           subject,
           recipientName: teacher.fullName,
-          recipientEmail: teacher.email,
+          recipientEmail: teacherRecipientEmail(teacher),
           htmlBody,
           status: 'DRAFT',
         },
@@ -1152,7 +1158,7 @@ export class OutboxService {
           moment,
           subject,
           recipientName: teacher.fullName,
-          recipientEmail: teacher.email,
+          recipientEmail: teacherRecipientEmail(teacher),
           htmlBody,
           status: 'DRAFT',
         },
@@ -1663,7 +1669,7 @@ export class OutboxService {
     phase: GeneratePayload['phase'];
   }): Promise<
     | {
-        teacher: { fullName: string; email: string | null; costCenter: string | null };
+        teacher: { fullName: string; email: string | null; email2: string | null; costCenter: string | null };
         programCode: string | null;
         rows: Array<{
           nrc: string;
@@ -1686,6 +1692,7 @@ export class OutboxService {
         id: true,
         fullName: true,
         email: true,
+        email2: true,
         costCenter: true,
       },
     });
@@ -1792,6 +1799,7 @@ export class OutboxService {
         teacher: {
           fullName: teacher.fullName,
           email: teacher.email,
+          email2: teacher.email2 ?? null,
           costCenter: teacher.costCenter,
         },
         programCode: teacher.costCenter ?? null,
@@ -1896,6 +1904,7 @@ export class OutboxService {
       teacher: {
         fullName: teacher.fullName,
         email: teacher.email,
+        email2: teacher.email2 ?? null,
         costCenter: teacher.costCenter,
       },
       programCode: teacher.costCenter ?? sampleGroups[0]?.programCode ?? null,
@@ -2123,6 +2132,72 @@ foreach ($item in $payload) {
     return result;
   }
 
+  async queueCierre(rawPayload: unknown) {
+    const payload = parseWithSchema(OutboxQueueCierreSchema, rawPayload, 'outbox queue cierre');
+
+    const period = await this.prisma.period.findUnique({ where: { code: payload.periodCode } });
+    if (!period) {
+      throw new NotFoundException(`No existe el periodo ${payload.periodCode}.`);
+    }
+
+    const momentKey = `CIERRE_${payload.moment}`;
+    const audienceKey = `CIERRE_${payload.audience}`;
+
+    if (payload.dryRun) {
+      return {
+        ok: true,
+        dryRun: true,
+        wouldCreate: payload.items.length,
+        items: payload.items.map((item) => ({
+          recipientName: item.recipientName,
+          recipientEmail: item.recipientEmail ?? null,
+          subject: item.subject,
+        })),
+      };
+    }
+
+    // Eliminar borradores previos del mismo cierre
+    await this.prisma.outboxMessage.deleteMany({
+      where: {
+        periodId: period.id,
+        phase: 'CIERRE',
+        moment: momentKey,
+        audience: audienceKey,
+      },
+    });
+
+    const createdMessageIds: string[] = [];
+    for (const item of payload.items) {
+      const msg = await this.prisma.outboxMessage.create({
+        data: {
+          audience: audienceKey,
+          teacherId: item.teacherId ?? null,
+          coordinatorId: item.coordinatorId ?? null,
+          programCode: null,
+          periodId: period.id,
+          phase: 'CIERRE',
+          moment: momentKey,
+          subject: item.subject,
+          recipientName: item.recipientName,
+          recipientEmail: item.recipientEmail ?? null,
+          cc: item.cc ?? null,
+          htmlBody: item.htmlBody,
+          status: 'DRAFT',
+        },
+      });
+      createdMessageIds.push(msg.id);
+    }
+
+    return {
+      ok: true,
+      created: createdMessageIds.length,
+      createdMessageIds,
+      periodCode: period.code,
+      moment: momentKey,
+      audience: audienceKey,
+    };
+  }
+
   async send(rawPayload: unknown) {
     const parsedPayload = parseWithSchema(OutboxSendSchema, rawPayload, 'outbox send request');
     const payload: SendPayload = {
@@ -2235,11 +2310,13 @@ foreach ($item in $payload) {
               : (message.teacherId ?? ''),
       });
 
+      const messageCc = (message as any).cc as string | null | undefined;
+      const resolvedCc = [messageCc, defaultCc].filter(Boolean).join(', ') || undefined;
       return {
         id: message.id,
         originalTo,
         to,
-        cc: defaultCc,
+        cc: resolvedCc,
         recipientName,
         fingerprint,
         messageCreatedAt: message.createdAt,
@@ -2903,7 +2980,7 @@ foreach ($item in $payload) {
       this.prisma.outboxMessage.findMany({
         where,
         include: {
-          teacher: { select: { id: true, fullName: true, email: true } },
+          teacher: { select: { id: true, fullName: true, email: true, email2: true } },
           coordinator: { select: { fullName: true, email: true } },
           period: { select: { code: true, label: true } },
         },

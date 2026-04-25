@@ -1,5 +1,6 @@
 import { Module } from '@nestjs/common';
 import { HealthController } from './health.controller';
+import { ReviewController } from './review.controller';
 import { DatabaseModule } from './database.module';
 import { ImportModule } from './import/import.module';
 import { QueueModule } from './queue/queue.module';
@@ -30,6 +31,6 @@ import { BannerPeopleSyncModule } from './banner-people-sync/banner-people-sync.
     CoordinatorsModule,
     BannerPeopleSyncModule,
   ],
-  controllers: [HealthController],
+  controllers: [HealthController, ReviewController],
 })
 export class AppModule {}

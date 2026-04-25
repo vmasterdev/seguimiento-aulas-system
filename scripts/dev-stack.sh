@@ -174,12 +174,17 @@ configure_runtime_ports() {
   local original_postgres_port="$POSTGRES_HOST_PORT"
   local original_redis_port="$REDIS_HOST_PORT"
 
+  # If compose service is already running, keep the current port (avoids port churn under Docker Desktop + WSL2)
   if [[ -z "$POSTGRES_HOST_PORT_INPUT" ]]; then
-    POSTGRES_HOST_PORT="$(resolve_host_port "infra/postgres" "$POSTGRES_HOST_PORT" 15433 25433 35433)" || true
+    if ! POSTGRES_HOST_PORT="$POSTGRES_HOST_PORT" REDIS_HOST_PORT="$REDIS_HOST_PORT" docker compose -f "$COMPOSE_FILE" ps --services --status running 2>/dev/null | grep -Fxq "postgres"; then
+      POSTGRES_HOST_PORT="$(resolve_host_port "infra/postgres" "$POSTGRES_HOST_PORT" 15433 25433 35433)" || true
+    fi
   fi
 
   if [[ -z "$REDIS_HOST_PORT_INPUT" ]]; then
-    REDIS_HOST_PORT="$(resolve_host_port "infra/redis" "$REDIS_HOST_PORT" 26380 36380 46380)" || true
+    if ! POSTGRES_HOST_PORT="$POSTGRES_HOST_PORT" REDIS_HOST_PORT="$REDIS_HOST_PORT" docker compose -f "$COMPOSE_FILE" ps --services --status running 2>/dev/null | grep -Fxq "redis"; then
+      REDIS_HOST_PORT="$(resolve_host_port "infra/redis" "$REDIS_HOST_PORT" 26380 36380 46380)" || true
+    fi
   fi
 
   if [[ "$POSTGRES_HOST_PORT" != "$original_postgres_port" ]]; then
@@ -377,7 +382,15 @@ infra_service_external_container_name() {
 start_infra_service() {
   local name="$1"
   local port
+  local compose_name
   port="$(infra_service_port "$name")"
+  compose_name="$(infra_service_compose_name "$name")"
+
+  # Check by docker container status (reliable across Docker Desktop + WSL2)
+  if [[ -n "$compose_name" ]] && POSTGRES_HOST_PORT="$POSTGRES_HOST_PORT" REDIS_HOST_PORT="$REDIS_HOST_PORT" docker compose -f "$COMPOSE_FILE" ps --services --status running 2>/dev/null | grep -Fxq "$compose_name"; then
+    echo "[skip] infra/$name ya esta corriendo (compose)"
+    return 0
+  fi
 
   if [[ -n "$port" ]] && (port_in_use "$port" || host_port_accepts_connections "$port"); then
     echo "[skip] infra/$name ya esta disponible en el puerto $port"

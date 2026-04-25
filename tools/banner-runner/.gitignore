@@ -1,0 +1,14 @@
+node_modules
+dist
+.env
+coverage
+playwright-report
+test-results
+storage/evidence/**
+storage/exports/**
+storage/logs/**
+!storage/evidence/.gitkeep
+!storage/exports/.gitkeep
+!storage/logs/.gitkeep
+prisma/*.db
+prisma/*.db-journal

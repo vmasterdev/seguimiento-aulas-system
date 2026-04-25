@@ -1466,40 +1466,18 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           >
             {moodleSyncLoading && moodleQuickRun?.kind === 'all' ? 'Actualizando Moodle...' : 'Actualizar todo Moodle'}
           </button>
-          <button
-            type="button"
-            onClick={() => void runMoodleQuickSync('participants')}
-            disabled={moodleSyncLoading || !!importingKind}
-          >
-            {moodleSyncLoading && moodleQuickRun?.currentCommand === 'participants'
-              ? 'Extrayendo participantes...'
-              : 'Solo participantes'}
-          </button>
-          <button
-            type="button"
-            onClick={() => void runMoodleQuickSync('activity')}
-            disabled={moodleSyncLoading || !!importingKind}
-          >
-            {moodleSyncLoading && moodleQuickRun?.currentCommand === 'activity' ? 'Extrayendo actividad...' : 'Solo actividad'}
-          </button>
-          <button
-            type="button"
-            onClick={() => void runMoodleQuickSync('attendance')}
-            disabled={moodleSyncLoading || !!importingKind}
-          >
-            {moodleSyncLoading && moodleQuickRun?.currentCommand === 'attendance' ? 'Extrayendo asistencia...' : 'Solo asistencia'}
-          </button>
           <button type="button" className="ghost" onClick={() => void loadOptionsAndOverview(filters)} disabled={loading}>
             {loading ? 'Actualizando...' : 'Refrescar indicadores'}
           </button>
-          <button
-            type="button"
-            className="ghost"
-            onClick={() => void cancelMoodleQuickSync()}
-            disabled={!sidecarStatus?.running}
-          >
-            Cancelar corrida Moodle
-          </button>
+          {sidecarStatus?.running && (
+            <button
+              type="button"
+              className="ghost"
+              onClick={() => void cancelMoodleQuickSync()}
+            >
+              Cancelar corrida
+            </button>
+          )}
         </div>
       </section>
 
@@ -1554,6 +1532,33 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           ) : (
             <span className="inline-note">Todavia no hay periodos RPACA con aulas Moodle listas para la corrida masiva.</span>
           )}
+        </div>
+
+        <div className="analytics-actions">
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => void runMoodleQuickSync('participants')}
+            disabled={moodleSyncLoading || !!importingKind}
+          >
+            {moodleSyncLoading && moodleQuickRun?.currentCommand === 'participants' ? 'Extrayendo...' : 'Solo participantes'}
+          </button>
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => void runMoodleQuickSync('activity')}
+            disabled={moodleSyncLoading || !!importingKind}
+          >
+            {moodleSyncLoading && moodleQuickRun?.currentCommand === 'activity' ? 'Extrayendo...' : 'Solo actividad'}
+          </button>
+          <button
+            type="button"
+            className="ghost"
+            onClick={() => void runMoodleQuickSync('attendance')}
+            disabled={moodleSyncLoading || !!importingKind}
+          >
+            {moodleSyncLoading && moodleQuickRun?.currentCommand === 'attendance' ? 'Extrayendo...' : 'Solo asistencia'}
+          </button>
         </div>
       </section>
 
@@ -1692,13 +1697,13 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             )}
           </div>
           <div className="analytics-actions analytics-actions-wrap advanced-actions">
-            <button type="button" onClick={() => void importLatest('participants')} disabled={!!importingKind}>
+            <button type="button" className="primary" onClick={() => void importLatest('participants')} disabled={!!importingKind}>
               {importingKind === 'participants' ? 'Importando participantes...' : 'Importar ultimos participantes'}
             </button>
-            <button type="button" onClick={() => void importLatest('activity')} disabled={!!importingKind}>
+            <button type="button" className="primary" onClick={() => void importLatest('activity')} disabled={!!importingKind}>
               {importingKind === 'activity' ? 'Importando actividad...' : 'Importar ultima actividad'}
             </button>
-            <button type="button" onClick={() => void importLatest('attendance')} disabled={!!importingKind}>
+            <button type="button" className="primary" onClick={() => void importLatest('attendance')} disabled={!!importingKind}>
               {importingKind === 'attendance' ? 'Importando asistencia...' : 'Importar ultima asistencia'}
             </button>
           </div>
@@ -2286,48 +2291,50 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
               <h3>Cursos a revisar</h3>
               <small>Ordenados por riesgo para seguimiento operativo.</small>
             </div>
-            <table className="analytics-table">
-              <thead>
-                <tr>
-                  <th>NRC</th>
-                  <th>Curso</th>
-                  <th>Programa</th>
-                  <th>Riesgo</th>
-                  <th>Fuente</th>
-                  <th>Total</th>
-                  <th>Fuera lista</th>
-                  <th>No clasificados</th>
-                  <th>Sin actividad</th>
-                  <th>Sin asistencia</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(overview?.alerts.courses ?? []).length ? (
-                  overview?.alerts.courses.map((course) => (
-                    <tr key={`alert-course-${course.nrc}`}>
-                      <td>{course.nrc}</td>
-                      <td>{course.subjectName ?? '-'}</td>
-                      <td>{course.programName ?? '-'}</td>
-                      <td>
-                        <span className={`risk-text risk-${course.riskLevel.toLowerCase()}`}>{course.riskLevel}</span>
-                      </td>
-                      <td>{course.rosterSource === 'BANNER' ? 'Banner' : course.rosterSource === 'MOODLE_PARTICIPANTS' ? 'Moodle' : '-'}</td>
-                      <td>{course.totalAlerts}</td>
-                      <td>{course.outsideRosterActors}</td>
-                      <td>{course.unclassifiedActors}</td>
-                      <td>{course.studentsWithoutActivity}</td>
-                      <td>{course.studentsWithoutAttendance}</td>
-                    </tr>
-                  ))
-                ) : (
+            <div className="table-wrap">
+              <table className="analytics-table">
+                <thead>
                   <tr>
-                    <td colSpan={10} className="empty-table-cell">
-                      No hay cursos con alertas para los filtros actuales.
-                    </td>
+                    <th>NRC</th>
+                    <th>Curso</th>
+                    <th>Programa</th>
+                    <th>Riesgo</th>
+                    <th>Fuente</th>
+                    <th>Total</th>
+                    <th>Fuera lista</th>
+                    <th>No clas.</th>
+                    <th>Sin activ.</th>
+                    <th>Sin asist.</th>
                   </tr>
-                )}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {(overview?.alerts.courses ?? []).length ? (
+                    overview?.alerts.courses.map((course) => (
+                      <tr key={`alert-course-${course.nrc}`}>
+                        <td>{course.nrc}</td>
+                        <td>{course.subjectName ?? '-'}</td>
+                        <td>{course.programName ?? '-'}</td>
+                        <td>
+                          <span className={`risk-text risk-${course.riskLevel.toLowerCase()}`}>{course.riskLevel}</span>
+                        </td>
+                        <td>{course.rosterSource === 'BANNER' ? 'Banner' : course.rosterSource === 'MOODLE_PARTICIPANTS' ? 'Moodle' : '-'}</td>
+                        <td>{course.totalAlerts}</td>
+                        <td>{course.outsideRosterActors}</td>
+                        <td>{course.unclassifiedActors}</td>
+                        <td>{course.studentsWithoutActivity}</td>
+                        <td>{course.studentsWithoutAttendance}</td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={10} className="empty-table-cell">
+                        No hay cursos con alertas para los filtros actuales.
+                      </td>
+                    </tr>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </section>
 
           <section className="analytics-panel analytics-panel-subtle">
@@ -2340,45 +2347,47 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                 Descargar CSV de alertas
               </button>
             </div>
-            <table className="analytics-table">
-              <thead>
-                <tr>
-                  <th>Tipo</th>
-                  <th>NRC</th>
-                  <th>Usuario</th>
-                  <th>Categoria / rol</th>
-                  <th>Detalle</th>
-                </tr>
-              </thead>
-              <tbody>
-                {(overview?.alerts.users ?? []).length ? (
-                  overview?.alerts.users.map((user, index) => (
-                    <tr key={`alert-user-${user.nrc}-${user.fullName}-${index}`}>
-                      <td>{user.kindLabel}</td>
-                      <td>{user.nrc}</td>
-                      <td>
-                        <strong>{user.fullName}</strong>
-                        <div className="table-support">
-                          {user.email ?? '-'}
-                          {user.institutionalId ? ` · ${user.institutionalId}` : ''}
-                        </div>
-                      </td>
-                      <td>{user.rolesLabel ?? user.actorCategory ?? '-'}</td>
-                      <td>
-                        {user.detail}
-                        {user.count > 0 ? <div className="table-support">{user.count} eventos</div> : null}
+            <div className="table-wrap">
+              <table className="analytics-table">
+                <thead>
+                  <tr>
+                    <th>Tipo</th>
+                    <th>NRC</th>
+                    <th>Usuario</th>
+                    <th>Categoria / rol</th>
+                    <th>Detalle</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {(overview?.alerts.users ?? []).length ? (
+                    overview?.alerts.users.map((user, index) => (
+                      <tr key={`alert-user-${user.nrc}-${user.fullName}-${index}`}>
+                        <td>{user.kindLabel}</td>
+                        <td>{user.nrc}</td>
+                        <td>
+                          <strong>{user.fullName}</strong>
+                          <div className="table-support">
+                            {user.email ?? '-'}
+                            {user.institutionalId ? ` · ${user.institutionalId}` : ''}
+                          </div>
+                        </td>
+                        <td>{user.rolesLabel ?? user.actorCategory ?? '-'}</td>
+                        <td>
+                          {user.detail}
+                          {user.count > 0 ? <div className="table-support">{user.count} eventos</div> : null}
+                        </td>
+                      </tr>
+                    ))
+                  ) : (
+                    <tr>
+                      <td colSpan={5} className="empty-table-cell">
+                        No hay usuarios marcados para seguimiento con los filtros actuales.
                       </td>
                     </tr>
-                  ))
-                ) : (
-                  <tr>
-                    <td colSpan={5} className="empty-table-cell">
-                      No hay usuarios marcados para seguimiento con los filtros actuales.
-                    </td>
-                  </tr>
-                )}
-              </tbody>
-            </table>
+                  )}
+                </tbody>
+              </table>
+            </div>
           </section>
         </div>
       </details>
@@ -2423,30 +2432,32 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             <h3>Cursos que mas concentran inasistencia</h3>
             <small>Usalo para escalar priorizacion y acompanamiento.</small>
           </div>
-          <table className="analytics-table">
-            <thead>
-              <tr>
-                <th>NRC</th>
-                <th>Curso</th>
-                <th>Programa</th>
-                <th>Inasistencia</th>
-                <th>Presentes</th>
-                <th>Ausentes</th>
-              </tr>
-            </thead>
-            <tbody>
-              {(overview?.attendance.worstCourses ?? []).map((course) => (
-                <tr key={`worst-${course.nrc}`}>
-                  <td>{course.nrc}</td>
-                  <td>{course.subjectName ?? '-'}</td>
-                  <td>{course.programName ?? '-'}</td>
-                  <td>{formatPercent(course.inattendanceRate)}</td>
-                  <td>{course.presentCount}</td>
-                  <td>{course.absentCount}</td>
+          <div className="table-wrap">
+            <table className="analytics-table">
+              <thead>
+                <tr>
+                  <th>NRC</th>
+                  <th>Curso</th>
+                  <th>Programa</th>
+                  <th>Inasistencia</th>
+                  <th>Presentes</th>
+                  <th>Ausentes</th>
                 </tr>
-              ))}
-            </tbody>
-          </table>
+              </thead>
+              <tbody>
+                {(overview?.attendance.worstCourses ?? []).map((course) => (
+                  <tr key={`worst-${course.nrc}`}>
+                    <td>{course.nrc}</td>
+                    <td>{course.subjectName ?? '-'}</td>
+                    <td>{course.programName ?? '-'}</td>
+                    <td>{formatPercent(course.inattendanceRate)}</td>
+                    <td>{course.presentCount}</td>
+                    <td>{course.absentCount}</td>
+                  </tr>
+                ))}
+              </tbody>
+            </table>
+          </div>
         </section>
 
         <section className="analytics-panel">
@@ -3812,6 +3823,8 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
 
         .table-wrap {
           overflow-x: auto;
+          overflow-y: auto;
+          max-height: 340px;
         }
 
         .data-table {

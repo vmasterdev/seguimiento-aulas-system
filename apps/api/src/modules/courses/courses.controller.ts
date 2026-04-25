@@ -10,6 +10,11 @@ export class CoursesController {
     return this.coursesService.missingTeacherList(query);
   }
 
+  @Get('/banner-teachers/list')
+  async bannerTeachersList(@Query() query: Record<string, unknown>) {
+    return this.coursesService.bannerTeachersList(query);
+  }
+
   @Get('/moodle-followup/list')
   async moodleFollowup(@Query() query: Record<string, unknown>) {
     return this.coursesService.moodleFollowupList(query);
@@ -23,6 +28,11 @@ export class CoursesController {
   @Get('/:id')
   async byId(@Param('id') id: string) {
     return this.coursesService.byId(id);
+  }
+
+  @Patch('/:id/moment')
+  async updateMoment(@Param('id') id: string, @Body() body: unknown) {
+    return this.coursesService.updateMoment(id, body);
   }
 
   @Patch('/:id/manual')

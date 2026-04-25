@@ -38,6 +38,13 @@ const MissingTeacherQuerySchema = z.object({
   offset: z.coerce.number().int().min(0).default(0),
 });
 
+const BannerTeachersQuerySchema = z.object({
+  periodCodes: z.string().trim().optional(),
+  onlyUnresolved: z.coerce.boolean().optional().default(false),
+  limit: z.coerce.number().int().min(1).max(5000).default(200),
+  offset: z.coerce.number().int().min(0).default(0),
+});
+
 const MoodleFollowupQuerySchema = z.object({
   kind: z.enum(['sin_matricula', 'no_encontrado', 'ambos']).optional().default('ambos'),
   periodCodes: z.string().trim().optional(),
@@ -382,6 +389,26 @@ export class CoursesService {
     };
   }
 
+  async updateMoment(id: string, payload: unknown) {
+    const body = parseWithSchema(
+      z.object({ moment: z.string().trim().min(1).max(20) }),
+      payload,
+      'update moment',
+    );
+
+    const course = await this.prisma.course.findUnique({ where: { id }, select: { id: true, nrc: true } });
+    if (!course) throw new NotFoundException('Curso no encontrado.');
+
+    const normalized = normalizeMoment(body.moment);
+    const updated = await this.prisma.course.update({
+      where: { id },
+      data: { moment: normalized },
+      select: { id: true, nrc: true, moment: true },
+    });
+
+    return { ok: true, course: updated };
+  }
+
   async manualUpdate(id: string, payload: unknown) {
     const course = await this.prisma.course.findUnique({
       where: { id },
@@ -638,6 +665,65 @@ export class CoursesService {
         periodCodes: effectivePeriodCodes,
         moment: normalizedMoment ?? null,
         q: query.q ?? null,
+      },
+      items: paged,
+    };
+  }
+
+  async bannerTeachersList(rawQuery: unknown) {
+    const query = parseWithSchema(BannerTeachersQuerySchema, rawQuery, 'banner teachers query');
+    const offset = query.offset ?? 0;
+    const limit = query.limit ?? 200;
+    const periodCodes = this.parseCsvList(query.periodCodes);
+
+    const items = await this.prisma.course.findMany({
+      where: {
+        period: periodCodes.length ? { code: { in: periodCodes } } : undefined,
+      },
+      include: { period: true, teacher: true },
+      orderBy: [{ periodId: 'asc' }, { nrc: 'asc' }],
+    });
+
+    const mapped = items
+      .map((course) => {
+        const bannerStatus = readBannerReviewStatus(course.rawJson);
+        if (bannerStatus !== 'ENCONTRADO') return null;
+        const bannerReview = readBannerReview(course.rawJson) ?? {};
+        const bannerTeacherId = String((bannerReview as Record<string, unknown>).teacherId ?? '').trim() || null;
+        const bannerTeacherName = String((bannerReview as Record<string, unknown>).teacherName ?? '').trim() || null;
+        const bannerResolved = !!course.teacherId;
+        return {
+          id: course.id,
+          nrc: course.nrc,
+          periodCode: course.period.code,
+          subjectName: course.subjectName,
+          programCode: course.programCode,
+          bannerTeacherId,
+          bannerTeacherName,
+          bannerResolved,
+          currentTeacherId: course.teacherId,
+          currentTeacherName: course.teacher?.fullName ?? null,
+          currentTeacherEmail: course.teacher?.email ?? null,
+        };
+      })
+      .filter((item): item is NonNullable<typeof item> => Boolean(item))
+      .filter((item) => !query.onlyUnresolved || !item.bannerResolved);
+
+    const total = mapped.length;
+    const paged = mapped.slice(offset, offset + limit);
+    const uniqueTeacherIds = new Set(mapped.map((i) => i.bannerTeacherId).filter(Boolean));
+    const resolvedCount = mapped.filter((i) => i.bannerResolved).length;
+
+    return {
+      ok: true,
+      total,
+      limit,
+      offset,
+      stats: {
+        totalNrcs: mapped.length,
+        uniqueTeachers: uniqueTeacherIds.size,
+        resolved: resolvedCount,
+        unresolved: mapped.length - resolvedCount,
       },
       items: paged,
     };

@@ -86,7 +86,7 @@ export function ReviewLauncherPanel({
         <span className="badge">Fase: {initialPhase}</span>
       </div>
       <div className="controls" style={{ marginTop: 12 }}>
-        <button type="button" onClick={openChecklistPopup}>
+        <button type="button" className="primary" onClick={openChecklistPopup}>
           Abrir checklist
         </button>
       </div>

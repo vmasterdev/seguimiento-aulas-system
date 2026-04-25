@@ -17,3 +17,5 @@ services:
 
 volumes:
   pgdata:
+    external: true
+    name: infra_pgdata
