@@ -13,6 +13,7 @@ export type PrepareBannerBatchInput = {
   periodCodes: string[];
   source: BannerBatchSource;
   limit?: number;
+  moments?: string[];
 };
 
 export type StartBannerBatchFromSystemOptions = PrepareBannerBatchInput & {
@@ -80,6 +81,10 @@ export type BannerBatchOptions = {
     year: string;
     courseCount: number;
   }>;
+  moments: Array<{
+    code: string;
+    courseCount: number;
+  }>;
   defaults: {
     source: BannerBatchSource;
     selectedPeriodCodes: string[];
@@ -91,11 +96,13 @@ export type BannerBatchPreview = {
   filters: {
     source: BannerBatchSource;
     periodCodes: string[];
+    moments: string[] | null;
     limit: number | null;
   };
   total: number;
   byPeriod: Record<string, number>;
   byYear: Record<string, number>;
+  byMoment: Record<string, number>;
   byBannerStatus: Record<string, number>;
   sample: Array<{
     courseId: string;
@@ -235,11 +242,14 @@ async function collectPreparedRows(input: PrepareBannerBatchInput) {
     throw new Error('Debes seleccionar al menos un periodo para armar el lote Banner.');
   }
 
+  const selectedMoments = [...new Set((input.moments ?? []).map((value) => String(value).trim()).filter(Boolean))];
+
   const allCourses = await fetchAllCourses();
   const filtered = allCourses
     .filter(isRpacaBackedCourse)
     .filter((course) => selectedPeriods.includes(course.period.code))
     .filter((course) => matchesSource(course, input.source))
+    .filter((course) => !selectedMoments.length || selectedMoments.includes(course.moment?.trim() ?? ''))
     .sort((left, right) => {
       const byPeriod = right.period.code.localeCompare(left.period.code);
       if (byPeriod !== 0) return byPeriod;
@@ -286,15 +296,18 @@ function buildPreview(
     periodCodes: string[];
   },
 ): BannerBatchPreview {
+  const selectedMoments = [...new Set((input.moments ?? []).map((value) => String(value).trim()).filter(Boolean))];
   return {
     filters: {
       source: input.source,
       periodCodes: prepared.periodCodes,
+      moments: selectedMoments.length ? selectedMoments : null,
       limit: input.limit ?? null,
     },
     total: prepared.rows.length,
     byPeriod: countBy(prepared.rows, (row) => row.periodCode),
     byYear: countBy(prepared.rows, (row) => row.year),
+    byMoment: countBy(prepared.rows, (row) => row.moment ?? 'SIN_MOMENTO'),
     byBannerStatus: countBy(prepared.rows, (row) => row.bannerReviewStatus ?? 'SIN_DATO'),
     sample: prepared.rows.slice(0, 20),
   };
@@ -344,6 +357,15 @@ export async function getBannerBatchOptions(): Promise<BannerBatchOptions> {
   const latestYear = years[0]?.year ?? null;
   const defaultPeriods = latestYear ? years.find((item) => item.year === latestYear)?.periodCodes ?? [] : [];
 
+  const momentMap = new Map<string, { code: string; courseCount: number }>();
+  for (const course of courses) {
+    const key = course.moment?.trim() || 'SIN_MOMENTO';
+    const current = momentMap.get(key) ?? { code: key, courseCount: 0 };
+    current.courseCount += 1;
+    momentMap.set(key, current);
+  }
+  const moments = [...momentMap.values()].sort((left, right) => right.courseCount - left.courseCount);
+
   return {
     sources: [
       {
@@ -364,6 +386,7 @@ export async function getBannerBatchOptions(): Promise<BannerBatchOptions> {
     ],
     years,
     periods,
+    moments,
     defaults: {
       source: 'ALL',
       selectedPeriodCodes: defaultPeriods,

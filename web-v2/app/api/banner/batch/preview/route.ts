@@ -11,6 +11,9 @@ function asPayload(body: Record<string, unknown>): PrepareBannerBatchInput {
   const periodCodes = Array.isArray(body.periodCodes)
     ? body.periodCodes.map((value) => String(value).trim()).filter(Boolean)
     : [];
+  const moments = Array.isArray(body.moments)
+    ? body.moments.map((value) => String(value).trim()).filter(Boolean)
+    : [];
   const source = String(body.source ?? 'MISSING_TEACHER').trim().toUpperCase() as BannerBatchSource;
   const limit =
     body.limit === undefined || body.limit === null || body.limit === ''
@@ -20,6 +23,7 @@ function asPayload(body: Record<string, unknown>): PrepareBannerBatchInput {
   return {
     periodCodes,
     source,
+    ...(moments.length ? { moments } : {}),
     ...(Number.isFinite(limit) ? { limit } : {}),
   };
 }

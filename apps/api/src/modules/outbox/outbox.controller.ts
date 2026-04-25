@@ -10,6 +10,11 @@ export class OutboxController {
     return this.outboxService.generate(body);
   }
 
+  @Post('/queue-cierre')
+  async queueCierre(@Body() body: unknown) {
+    return this.outboxService.queueCierre(body);
+  }
+
   @Post('/export-eml')
   async export(@Body() body: unknown) {
     return this.outboxService.export(body);

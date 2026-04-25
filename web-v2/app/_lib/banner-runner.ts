@@ -20,7 +20,7 @@ const BANNER_AUTH_BRIDGE_SCRIPT = path.join(SYSTEM_ROOT, 'web-v2', 'scripts', 'b
 const DEV_STACK_ENV_FILE = path.join(SYSTEM_ROOT, 'storage', 'runtime', 'dev-stack', 'stack.env');
 const HOME_DIR = process.env.HOME ?? '';
 const API_SHADOW_RUN_DIR = process.env.API_LINUX_RUN_DIR ?? path.join(HOME_DIR || '/home', 'seguimiento-api-run-20260307');
-const BANNER_FALLBACK_ROOT = path.join(HOME_DIR || '/home', 'banner-docente-runner');
+const BANNER_FALLBACK_ROOT = path.join(SYSTEM_ROOT, 'tools', 'banner-runner');
 const WINDOWS_NODE_CANDIDATE = '/mnt/c/Program Files/nodejs/node.exe';
 const WINDOWS_POWERSHELL_CANDIDATE = '/mnt/c/Windows/System32/WindowsPowerShell/v1.0/powershell.exe';
 const INTERNAL_API_BASE_URL = process.env.INTERNAL_API_BASE_URL ?? process.env.NEXT_PUBLIC_API_BASE_URL ?? 'http://127.0.0.1:3001';
@@ -66,13 +66,10 @@ function getBannerRootCandidates() {
   return uniquePaths([
     configuredRoot,
     process.env.BANNER_PROJECT_ROOT,
+    path.join(SYSTEM_ROOT, 'tools', 'banner-runner'),
     ...getRepoSiblingBannerCandidates(),
     HOME_DIR ? path.join(HOME_DIR, 'banner-docente-runner') : null,
     HOME_DIR ? path.join(HOME_DIR, 'banner-batch-run-current') : null,
-    HOME_DIR ? path.join(HOME_DIR, 'banner-batch-run-20260317-1508') : null,
-    '/mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc',
-    '/mnt/c/Users/Duvan/Documents/banner buscador de docente en nrc - BORRAR',
-    '/mnt/c/Users/Duvan/Documents/ORGANIZAR TODO/banner buscador de docente en nrc - BORRAR',
   ]);
 }
 
@@ -1636,6 +1633,19 @@ export async function confirmBannerAuth() {
     appendLog(pendingAuth.logPath, `\n[END] ${endedAt}\n`);
     appendLog(pendingAuth.logPath, `[STATUS] COMPLETED\n`);
     appendLog(pendingAuth.logPath, `[EXIT_CODE] 0\n`);
+
+    // Sync storageState al sitio que espera el runner Banner (SPAIDEN)
+    try {
+      const bridgeState = getBannerBridgeStorageStateFile();
+      const runnerState = path.join(getBannerProjectRoot(), 'storage', 'auth', 'banner-storage-state.json');
+      if (fs.existsSync(bridgeState)) {
+        fs.mkdirSync(path.dirname(runnerState), { recursive: true });
+        fs.copyFileSync(bridgeState, runnerState);
+        appendLog(pendingAuth.logPath, `[STORAGE_STATE_SYNCED] ${runnerState}\n`);
+      }
+    } catch (syncError) {
+      appendLog(pendingAuth.logPath, `[STORAGE_STATE_SYNC_ERROR] ${syncError instanceof Error ? syncError.message : String(syncError)}\n`);
+    }
 
     return {
       ok: true,

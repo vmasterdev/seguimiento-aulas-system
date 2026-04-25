@@ -255,7 +255,7 @@ export function ImmersionInvitationPanel({ apiBase }: ImmersionInvitationPanelPr
             placeholder="correo.prueba@dominio.edu"
           />
         </label>
-        <button type="button" onClick={() => void prepareInvitation()} disabled={busy || sending}>
+        <button type="button" className="primary" onClick={() => void prepareInvitation()} disabled={busy || sending}>
           {busy ? 'Preparando...' : 'Generar borradores + preview'}
         </button>
         <button type="button" className="btn-next-action" onClick={() => void sendInvitation()} disabled={busy || sending || !generatedIds.length}>
@@ -326,7 +326,7 @@ export function ImmersionInvitationPanel({ apiBase }: ImmersionInvitationPanelPr
                   <td>{item.scoreBands.join(', ')}</td>
                   <td>{item.courseCount}</td>
                   <td>
-                    <button type="button" onClick={() => void loadPreview(item.id)}>
+                    <button type="button" className="primary" onClick={() => void loadPreview(item.id)}>
                       Abrir preview
                     </button>
                   </td>

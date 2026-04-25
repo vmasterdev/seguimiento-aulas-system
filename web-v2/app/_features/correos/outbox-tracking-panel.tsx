@@ -318,10 +318,10 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
       </div>
 
       <div className="controls" style={{ marginTop: 10 }}>
-        <button type="button" onClick={applySearch} disabled={loading}>
+        <button type="button" className="primary" onClick={applySearch} disabled={loading}>
           {loading ? 'Consultando...' : 'Actualizar'}
         </button>
-        <button type="button" onClick={clearFilters} disabled={loading}>
+        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={clearFilters} disabled={loading}>
           Limpiar filtros
         </button>
         <label style={{ minWidth: 280 }}>
@@ -427,13 +427,13 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
 
       {data ? (
         <div className="controls" style={{ marginTop: 10 }}>
-          <button type="button" onClick={() => setPage((prev) => Math.max(1, prev - 1))} disabled={loading || data.page <= 1}>
+          <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setPage((prev) => Math.max(1, prev - 1))} disabled={loading || data.page <= 1}>
             Pagina anterior
           </button>
           <div className="muted" style={{ alignSelf: 'center' }}>
             Pagina {data.page} de {data.pageCount}
           </div>
-          <button type="button" onClick={() => setPage((prev) => Math.min(data.pageCount, prev + 1))} disabled={loading || data.page >= data.pageCount}>
+          <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setPage((prev) => Math.min(data.pageCount, prev + 1))} disabled={loading || data.page >= data.pageCount}>
             Pagina siguiente
           </button>
         </div>
@@ -469,7 +469,7 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
                 <strong>Preview correo</strong>
                 {previewData ? ` | ${previewData.subject}` : ''}
               </div>
-              <button type="button" onClick={() => setPreviewOpen(false)}>
+              <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setPreviewOpen(false)}>
                 Cerrar
               </button>
             </div>

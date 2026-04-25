@@ -220,12 +220,14 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
   const [teacherFilter, setTeacherFilter] = useState('TODOS');
   const [bannerFilter, setBannerFilter] = useState('TODOS');
   const [reviewableFilter, setReviewableFilter] = useState('TODOS');
-  const [expandedId, setExpandedId] = useState<string | null>(null);
+  const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
   const [detailById, setDetailById] = useState<Record<string, CourseDetailResponse>>({});
   const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null);
   const [overrideById, setOverrideById] = useState<Record<string, OverrideFormState>>({});
   const [deletingById, setDeletingById] = useState<Record<string, boolean>>({});
   const [taggingTemporalById, setTaggingTemporalById] = useState<Record<string, boolean>>({});
+  const [momentEditById, setMomentEditById] = useState<Record<string, string>>({});
+  const [savingMomentById, setSavingMomentById] = useState<Record<string, boolean>>({});
   const [previewOpen, setPreviewOpen] = useState(false);
   const [previewLoading, setPreviewLoading] = useState(false);
   const [previewSending, setPreviewSending] = useState(false);
@@ -456,19 +458,32 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
       mergeDetailIntoList(data);
 
       setOverrideById((previous) => {
-        if (previous[courseId]) return previous;
-        const initialPhase = (data.evaluationSummary?.latestPhase === 'EJECUCION' ? 'EJECUCION' : 'ALISTAMIENTO') as
-          | 'ALISTAMIENTO'
-          | 'EJECUCION';
         const scoreByPhase = {
           ALISTAMIENTO: data.evaluations.find((evaluation) => evaluation.phase === 'ALISTAMIENTO')?.score ?? '',
           EJECUCION: data.evaluations.find((evaluation) => evaluation.phase === 'EJECUCION')?.score ?? '',
         };
         const obsByPhase = {
-          ALISTAMIENTO:
-            data.evaluations.find((evaluation) => evaluation.phase === 'ALISTAMIENTO')?.observations ?? '',
+          ALISTAMIENTO: data.evaluations.find((evaluation) => evaluation.phase === 'ALISTAMIENTO')?.observations ?? '',
           EJECUCION: data.evaluations.find((evaluation) => evaluation.phase === 'EJECUCION')?.observations ?? '',
         };
+        const current = previous[courseId];
+        if (current) {
+          // Ya existe: actualiza score y observaciones con los valores confirmados del servidor
+          // (mantiene la fase seleccionada por el usuario)
+          return {
+            ...previous,
+            [courseId]: {
+              ...current,
+              score: scoreByPhase[current.phase] === '' ? '' : String(scoreByPhase[current.phase]),
+              observations: obsByPhase[current.phase],
+              saving: false,
+            },
+          };
+        }
+        // Primera carga: inicializa el formulario
+        const initialPhase = (data.evaluationSummary?.latestPhase === 'EJECUCION' ? 'EJECUCION' : 'ALISTAMIENTO') as
+          | 'ALISTAMIENTO'
+          | 'EJECUCION';
         return {
           ...previous,
           [courseId]: {
@@ -606,12 +621,48 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
     }
   }
 
+  async function saveMoment(course: CourseItem) {
+    const newMoment = (momentEditById[course.id] ?? '').trim();
+    if (!newMoment) return;
+
+    setSavingMomentById((prev) => ({ ...prev, [course.id]: true }));
+    try {
+      const response = await fetch(`${apiBase}/courses/${course.id}/moment`, {
+        method: 'PATCH',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ moment: newMoment }),
+      });
+      const data = (await response.json()) as { ok?: boolean; message?: string | string[] };
+      if (!response.ok) {
+        const text = Array.isArray(data?.message) ? data.message.join('; ') : (data?.message ?? `HTTP ${response.status}`);
+        throw new Error(text);
+      }
+      // Actualizar la lista en memoria con el nuevo momento
+      setItems((prev) =>
+        prev.map((item) => (item.id === course.id ? { ...item, moment: newMoment } : item)),
+      );
+      setMomentEditById((prev) => ({ ...prev, [course.id]: '' }));
+      updateOverrideState(course.id, (s) => ({ ...s, status: `Momento actualizado a ${newMoment}.` }));
+    } catch (error) {
+      updateOverrideState(course.id, (s) => ({
+        ...s,
+        status: `No fue posible actualizar el momento: ${error instanceof Error ? error.message : String(error)}`,
+      }));
+    } finally {
+      setSavingMomentById((prev) => ({ ...prev, [course.id]: false }));
+    }
+  }
+
   async function toggleExpanded(item: CourseItem) {
-    if (expandedId === item.id) {
-      setExpandedId(null);
+    if (expandedIds.has(item.id)) {
+      setExpandedIds((prev) => {
+        const next = new Set(prev);
+        next.delete(item.id);
+        return next;
+      });
       return;
     }
-    setExpandedId(item.id);
+    setExpandedIds((prev) => new Set(prev).add(item.id));
     if (!detailById[item.id]) {
       await loadCourseDetail(item.id);
     }
@@ -788,6 +839,18 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
       }
 
       await loadCourseDetail(course.id);
+
+      if (replicateToGroup) {
+        const originGroupIds = course.selectedSampleGroups?.map((g) => g.id) ?? [];
+        if (originGroupIds.length > 0) {
+          const groupMates = items.filter(
+            (item) =>
+              item.id !== course.id &&
+              item.selectedSampleGroups?.some((g) => originGroupIds.includes(g.id)),
+          );
+          await Promise.all(groupMates.map((mate) => loadCourseDetail(mate.id)));
+        }
+      }
 
       const replicated = data.replication?.replicatedCourses ?? 0;
       let statusMessage = replicateToGroup
@@ -1037,7 +1100,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
           </thead>
           <tbody>
             {filteredItems.map((item) => {
-              const isExpanded = expandedId === item.id;
+              const isExpanded = expandedIds.has(item.id);
               const detail = detailById[item.id];
               const override = overrideById[item.id];
               return (
@@ -1062,10 +1125,23 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                         {item.nrc}
                       </button>
                     </td>
-                    <td>{item.moment ?? '-'}</td>
+                    <td>
+                      {item.moment
+                        ? /^RY/.test(item.moment)
+                          ? <span style={{ display: 'inline-block', padding: '1px 7px', borderRadius: 999, fontSize: 11, fontWeight: 700, background: '#fef3c7', color: '#92400e', border: '1px solid #fcd34d' }}>{item.moment}</span>
+                          : item.moment
+                        : '-'}
+                    </td>
                     <td>{item.programName ?? item.programCode ?? '-'}</td>
                     <td>{item.subjectName ?? '-'}</td>
-                    <td>{item.teacher?.fullName ?? 'Sin docente'}</td>
+                    <td>
+                      <div style={{ fontWeight: 500 }}>{item.teacher?.fullName ?? 'Sin docente'}</div>
+                      {(item.teacher?.sourceId || item.teacher?.documentId) && (
+                        <div style={{ fontSize: 11, color: '#6b7280', fontFamily: 'monospace' }}>
+                          {item.teacher.sourceId ?? item.teacher.documentId}
+                        </div>
+                      )}
+                    </td>
                     <td>{item.bannerReviewStatus ?? '-'}</td>
                     <td>{item.moodleCheck?.status ?? 'SIN_CHECK'}</td>
                     <td>{item.moodleCheck?.detectedTemplate ?? '-'}</td>
@@ -1163,6 +1239,39 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                                 </div>
                               </div>
 
+                              <div className="controls" style={{ marginBottom: 10 }}>
+                                <label>
+                                  Momento actual
+                                  <input
+                                    readOnly
+                                    value={item.moment ?? '-'}
+                                    style={{ width: 100, background: 'var(--n-50)', color: 'var(--n-500)' }}
+                                  />
+                                </label>
+                                <label>
+                                  Nuevo momento
+                                  <input
+                                    value={momentEditById[item.id] ?? ''}
+                                    onChange={(e) =>
+                                      setMomentEditById((prev) => ({ ...prev, [item.id]: e.target.value.toUpperCase() }))
+                                    }
+                                    placeholder="Ej: MD2, MD1, RYC1"
+                                    style={{ width: 120 }}
+                                  />
+                                </label>
+                                <button
+                                  type="button"
+                                  disabled={
+                                    savingMomentById[item.id] ||
+                                    !(momentEditById[item.id] ?? '').trim()
+                                  }
+                                  onClick={() => void saveMoment(item)}
+                                  style={{ background: 'var(--primary)', color: '#fff' }}
+                                >
+                                  {savingMomentById[item.id] ? 'Guardando...' : 'Cambiar momento'}
+                                </button>
+                              </div>
+
                               <div style={{ overflowX: 'auto' }}>
                                 <table>
                                   <thead>
@@ -1245,6 +1354,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                                   onClick={() =>
                                     void saveManualOverride(item, { replicateToGroup: false, resendReport: false })
                                   }
+                                  style={{ background: '#1e40af', color: '#fff' }}
                                 >
                                   {override?.saving ? 'Guardando...' : 'Guardar solo NRC'}
                                 </button>
@@ -1264,6 +1374,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                                       ? 'Aplica ajuste al NRC origen y sus replicas'
                                       : 'Solo disponible para NRC seleccionado en checklist'
                                   }
+                                  style={{ background: '#1d4ed8', color: '#fff' }}
                                 >
                                   {override?.saving ? 'Guardando...' : 'Guardar NRC + replicas'}
                                 </button>
@@ -1288,6 +1399,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                                         : 'Guarda, abre preview y luego confirma el reenvio del reporte'
                                       : 'No disponible para NRC sin docente vinculado'
                                   }
+                                  style={{ background: '#4f46e5', color: '#fff' }}
                                 >
                                   {override?.saving ? 'Guardando...' : 'Guardar + preview + reenviar'}
                                 </button>
@@ -1353,6 +1465,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
             padding: 16,
             zIndex: 1000,
           }}
+          onClick={(e) => { if (e.target === e.currentTarget && !previewSending) closePreviewModal(); }}
         >
           <div
             className="panel"
@@ -1366,13 +1479,28 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
               background: '#fff',
             }}
           >
-            <div className="controls" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
+            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', marginBottom: 8, padding: '4px 0' }}>
               <div>
                 <strong>Preview antes de reenviar</strong>
-                {previewData ? ` | ${previewData.subject}` : ''}
+                {previewData ? ` — ${previewData.subject}` : ''}
               </div>
-              <button type="button" onClick={closePreviewModal} disabled={previewSending}>
-                Cerrar
+              <button
+                type="button"
+                onClick={closePreviewModal}
+                disabled={previewSending}
+                style={{
+                  background: 'transparent',
+                  border: '1px solid #d1d5db',
+                  borderRadius: 6,
+                  padding: '4px 10px',
+                  fontSize: 16,
+                  lineHeight: 1,
+                  cursor: 'pointer',
+                  color: '#374151',
+                }}
+                title="Cerrar"
+              >
+                ✕
               </button>
             </div>
 

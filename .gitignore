@@ -11,10 +11,17 @@ apps/api/dist.bak*
 tools/moodle-sidecar/edge_profile*
 tools/moodle-sidecar/__pycache__
 tools/moodle-sidecar/CURSOS DISTANCIA 4.0.xlsx
+tools/banner-runner/storage/
+tools/banner-runner/prisma/*.db
+tools/banner-runner/dist*/
+tools/banner-runner/*.csv
 storage/archive
 storage/inputs
 storage/outputs
 storage/logs
+storage/runtime
+.env.local
+**/.env.local
 edge_profile_aulas_uniminuto
 *.log
 *.tmp

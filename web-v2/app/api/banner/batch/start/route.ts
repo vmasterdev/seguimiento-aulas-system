@@ -10,6 +10,9 @@ export async function POST(request: NextRequest) {
     const periodCodes = Array.isArray(body.periodCodes)
       ? body.periodCodes.map((value) => String(value).trim()).filter(Boolean)
       : [];
+    const moments = Array.isArray(body.moments)
+      ? body.moments.map((value) => String(value).trim()).filter(Boolean)
+      : [];
     const source = String(body.source ?? 'MISSING_TEACHER').trim().toUpperCase() as BannerBatchSource;
     const limit =
       body.limit === undefined || body.limit === null || body.limit === ''
@@ -24,6 +27,7 @@ export async function POST(request: NextRequest) {
     const result = await startBannerRunFromSystem({
       periodCodes,
       source,
+      ...(moments.length ? { moments } : {}),
       queryName: typeof body.queryName === 'string' ? body.queryName : undefined,
       queryId: typeof body.queryId === 'string' ? body.queryId : undefined,
       resume: body.resume === true,

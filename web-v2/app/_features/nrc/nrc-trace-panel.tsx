@@ -102,7 +102,7 @@ export function NrcTracePanel({ apiBase, initialPeriodCode = '202615' }: NrcTrac
             placeholder="Ej: 15234, Juan Perez, 1001234, PSIC"
           />
         </label>
-        <button onClick={() => void searchTrace()} disabled={loading}>
+        <button className="primary" onClick={() => void searchTrace()} disabled={loading}>
           {loading ? 'Buscando...' : 'Buscar trazabilidad'}
         </button>
       </div>

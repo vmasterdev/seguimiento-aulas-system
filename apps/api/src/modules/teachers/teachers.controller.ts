@@ -1,4 +1,4 @@
-import { BadRequestException, Body, Controller, Get, Inject, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
+import { BadRequestException, Body, Controller, Delete, Get, Inject, Param, Post, Query, UploadedFiles, UseInterceptors } from '@nestjs/common';
 import { AnyFilesInterceptor } from '@nestjs/platform-express';
 import { memoryStorage } from 'multer';
 import { TeachersService } from './teachers.service';
@@ -20,6 +20,40 @@ export class TeachersController {
   @Post('/consolidate-banner-ids')
   async consolidateBannerIds() {
     return this.teachersService.consolidateBannerIdsFromResolvedCourses();
+  }
+
+  @Post('/keep-only')
+  async keepOnly(@Body() body: Record<string, unknown>) {
+    const keepSourceIds = Array.isArray(body.keepSourceIds)
+      ? body.keepSourceIds.map((s) => String(s).trim()).filter(Boolean)
+      : [];
+    const dryRun = body.dryRun !== false;
+    return this.teachersService.keepOnlyBySourceIds(keepSourceIds, dryRun);
+  }
+
+  @Get('/dedup-preview')
+  async dedupPreview() {
+    return this.teachersService.dedupPreview();
+  }
+
+  @Post('/dedup-apply')
+  async dedupApply(@Body() body: Record<string, unknown>) {
+    return this.teachersService.dedupApply({
+      removeOrphans: body.removeOrphans === true,
+    });
+  }
+
+  @Delete('/:id')
+  async deleteOne(@Param('id') id: string) {
+    return this.teachersService.deleteOne(id);
+  }
+
+  @Post('/delete-all')
+  async deleteAll(@Body() body: Record<string, unknown>) {
+    if (body.confirm !== true) {
+      throw new BadRequestException('Se requiere confirm: true para ejecutar esta accion.');
+    }
+    return this.teachersService.deleteAll();
   }
 
   @Post('/import-csv')

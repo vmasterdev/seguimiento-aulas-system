@@ -1,0 +1,42 @@
+{
+  "name": "banner-docente-nrc",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Consulta de NRC en Banner para obtener docentes asignados.",
+  "type": "module",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "dev": "node --import tsx src/cli.ts",
+    "auth": "node --import tsx src/cli.ts auth",
+    "lookup": "node --import tsx src/cli.ts lookup",
+    "spaiden": "node --import tsx src/cli.ts spaiden",
+    "spaiden-batch": "node --import tsx src/cli.ts spaiden-batch",
+    "batch": "node --import tsx src/cli.ts batch",
+    "retry-errors": "node --import tsx src/cli.ts retry-errors",
+    "export": "node --import tsx src/cli.ts export",
+    "prisma:generate": "prisma generate",
+    "prisma:generate:postgres": "prisma generate --schema prisma/schema.postgresql.prisma",
+    "prisma:migrate": "prisma migrate dev --name init",
+    "db:push": "prisma db push",
+    "db:push:postgres": "prisma db push --schema prisma/schema.postgresql.prisma",
+    "test": "vitest run",
+    "test:watch": "vitest"
+  },
+  "dependencies": {
+    "@prisma/client": "^6.5.0",
+    "commander": "^13.1.0",
+    "dotenv": "^16.4.7",
+    "playwright": "^1.51.0",
+    "zod": "^3.24.2"
+  },
+  "devDependencies": {
+    "@esbuild/linux-x64": "0.27.4",
+    "@types/node": "^22.13.10",
+    "prisma": "^6.5.0",
+    "tsx": "^4.19.3",
+    "typescript": "^5.8.2",
+    "vitest": "^3.0.9"
+  }
+}

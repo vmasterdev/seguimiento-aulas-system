@@ -29,10 +29,20 @@ model Teacher {
   documentId String?
   fullName   String
   email      String?
+  email2     String?
   costCenter String?
   coordination String?
   campus     String?
   region     String?
+  escalafon         String?
+  dedicacion        String?
+  tipoContrato      String?
+  fechaInicio       DateTime?
+  fechaFin          DateTime?
+  antiguedadText    String?
+  programaAcademico String?
+  programaCodigo    String?
+  previousEmployment Boolean  @default(false)
   extraJson  Json?
   createdAt  DateTime @default(now())
   updatedAt  DateTime @updatedAt
@@ -182,6 +192,7 @@ model OutboxMessage {
   subject    String
   recipientName String?
   recipientEmail String?
+  cc         String?
   htmlBody   String
   emlPath    String?
   status     String   @default("DRAFT")

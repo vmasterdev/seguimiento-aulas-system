@@ -1,0 +1,87 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum BannerQueryStatus {
+  PENDING
+  RUNNING
+  COMPLETED
+  PARTIAL
+  FAILED
+}
+
+enum BannerResultStatus {
+  ENCONTRADO
+  SIN_DOCENTE
+  NO_ENCONTRADO
+  ERROR
+}
+
+model BannerQuery {
+  id              String            @id @default(cuid())
+  name            String
+  inputPath       String?
+  requestedPeriod String?
+  totalRequested  Int               @default(0)
+  processedCount  Int               @default(0)
+  successCount    Int               @default(0)
+  errorCount      Int               @default(0)
+  status          BannerQueryStatus @default(PENDING)
+  startedAt       DateTime          @default(now())
+  finishedAt      DateTime?
+  createdAt       DateTime          @default(now())
+  updatedAt       DateTime          @updatedAt
+
+  sessions BannerSession[]
+  results  BannerResult[]
+
+  @@map("banner_queries")
+}
+
+model BannerSession {
+  id            String      @id @default(cuid())
+  queryId       String?
+  bannerBaseUrl String?
+  loginUrl      String?
+  success       Boolean?
+  startedAt     DateTime    @default(now())
+  endedAt       DateTime?
+  metadata      Json?
+
+  query   BannerQuery?  @relation(fields: [queryId], references: [id], onDelete: SetNull)
+  results BannerResult[]
+
+  @@map("banner_sessions")
+}
+
+model BannerResult {
+  id             String             @id @default(cuid())
+  queryId        String
+  sessionId      String?
+  nrc            String
+  period         String             @default("")
+  teacherName    String?
+  teacherId      String?
+  programName    String?
+  rawPayload     Json?
+  additionalData Json?
+  status         BannerResultStatus
+  errorMessage   String?
+  checkedAt      DateTime
+  screenshotPath String?
+  htmlPath       String?
+  createdAt      DateTime           @default(now())
+  updatedAt      DateTime           @updatedAt
+
+  query   BannerQuery    @relation(fields: [queryId], references: [id], onDelete: Cascade)
+  session BannerSession? @relation(fields: [sessionId], references: [id], onDelete: SetNull)
+
+  @@unique([queryId, nrc, period])
+  @@index([status])
+  @@map("banner_results")
+}

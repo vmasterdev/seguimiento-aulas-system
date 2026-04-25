@@ -7,6 +7,7 @@ export type MainMenuSection =
   | 'inicio'
   | 'rpaca'
   | 'docentes'
+  | 'banner-docentes'
   | 'review'
   | 'nrc-prioridad'
   | 'nrc-globales'
@@ -14,7 +15,8 @@ export type MainMenuSection =
   | 'correos'
   | 'automatizacion-banner'
   | 'automatizacion-moodle'
-  | 'analitica-moodle';
+  | 'analitica-moodle'
+  | 'reportes';
 
 const ICON_HOME = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -37,6 +39,15 @@ const ICON_USERS = (
     <circle cx="9" cy="7" r="4" />
     <path d="M23 21v-2a4 4 0 00-3-3.87" />
     <path d="M16 3.13a4 4 0 010 7.75" />
+  </svg>
+);
+
+const ICON_USER_SEARCH = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="9" cy="7" r="4" />
+    <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
+    <circle cx="19" cy="11" r="3" />
+    <line x1="21.5" y1="13.5" x2="23" y2="15" />
   </svg>
 );
 
@@ -96,6 +107,16 @@ const ICON_CHART = (
   </svg>
 );
 
+const ICON_REPORT = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M14 2H6a2 2 0 00-2 2v16a2 2 0 002 2h12a2 2 0 002-2V8z" />
+    <polyline points="14 2 14 8 20 8" />
+    <line x1="16" y1="13" x2="8" y2="13" />
+    <line x1="16" y1="17" x2="8" y2="17" />
+    <polyline points="10 9 9 9 8 9" />
+  </svg>
+);
+
 const ICON_CALENDAR = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <rect x="3" y="4" width="18" height="18" rx="2" ry="2" />
@@ -118,11 +139,13 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'Dashboard', section: 'inicio', icon: ICON_HOME, group: 'main' },
   { href: '/rpaca', label: 'Carga RPACA', section: 'rpaca', icon: ICON_UPLOAD, group: 'data' },
   { href: '/docentes', label: 'Docentes', section: 'docentes', icon: ICON_USERS, group: 'data' },
+  { href: '/banner-docentes', label: 'Docentes Banner', section: 'banner-docentes', icon: ICON_USER_SEARCH, group: 'data' },
   { href: '/review', label: 'Revision NRC', section: 'review', icon: ICON_CLIPBOARD, group: 'data' },
   { href: '/nrc-prioridad', label: 'Prioridad NRC', section: 'nrc-prioridad', icon: ICON_CALENDAR, group: 'data' },
   { href: '/nrc-globales', label: 'NRC Globales', section: 'nrc-globales', icon: ICON_GLOBE, group: 'data' },
   { href: '/nrc-trazabilidad', label: 'Trazabilidad', section: 'nrc-trazabilidad', icon: ICON_BRANCH, group: 'data' },
   { href: '/correos', label: 'Correos', section: 'correos', icon: ICON_MAIL, group: 'data' },
+  { href: '/reportes', label: 'Reportes Cierre', section: 'reportes', icon: ICON_REPORT, group: 'data' },
   { href: '/analitica-moodle', label: 'Analitica Moodle', section: 'analitica-moodle', icon: ICON_CHART, group: 'data' },
   { href: '/automatizacion-banner', label: 'Banner', section: 'automatizacion-banner', icon: ICON_ZAP, group: 'automation' },
   { href: '/automatizacion-moodle', label: 'Moodle Sidecar', section: 'automatizacion-moodle', icon: ICON_SETTINGS, group: 'automation' },

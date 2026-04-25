@@ -724,6 +724,7 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
           <div className="toolbar" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
             <button
               type="button"
+              className="primary"
               onClick={() => void saveAllDrafts()}
               disabled={missingLoading || !missingResult?.items?.length || rowsWithDraft === 0}
               style={{ fontSize: '0.8125rem' }}
@@ -825,6 +826,7 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
                     <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border, #f3f4f6)', whiteSpace: 'nowrap' }}>
                       <button
                         type="button"
+                        className="primary"
                         onClick={() => void saveTeacher(item.id)}
                         disabled={!!savingMap[item.id] || !(teacherDrafts[item.id] ?? '').trim()}
                         style={{ fontSize: '0.8rem' }}
