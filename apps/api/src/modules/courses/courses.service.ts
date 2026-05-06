@@ -12,7 +12,7 @@ import { PrismaService } from '../prisma.service';
 import { parseWithSchema } from '../common/zod.util';
 import { resolveProgramValue } from '../common/program.util';
 import { readBannerReview, readBannerReviewStatus } from '../common/banner-review.util';
-import { getCourseReviewExclusionReason, isCourseExcludedFromReview } from '../common/review-eligibility.util';
+import { getCourseReviewExclusionReason, isCourseExcludedFromReview, readEnrolledCount } from '../common/review-eligibility.util';
 
 const CoursesQuerySchema = z.object({
   periodCode: z.string().trim().optional(),
@@ -296,6 +296,7 @@ export class CoursesService {
             latestComputedAt: latestEvaluation?.computedAt ?? null,
             latestReplicatedFromCourseId: latestEvaluation?.replicatedFromCourseId ?? null,
           },
+          enrolledCount: readEnrolledCount(item.rawJson),
           reviewExcludedReason: getCourseReviewExclusionReason({
             rawJson: item.rawJson,
             template: item.moodleCheck?.detectedTemplate ?? item.templateDeclared ?? 'UNKNOWN',
@@ -376,6 +377,7 @@ export class CoursesService {
           ? sourceNrcById.get(evaluation.replicatedFromCourseId) ?? null
           : null,
       })),
+      enrolledCount: readEnrolledCount(course.rawJson),
       reviewExcludedReason: getCourseReviewExclusionReason({
         rawJson: course.rawJson,
         template: course.moodleCheck?.detectedTemplate ?? course.templateDeclared ?? 'UNKNOWN',
@@ -1142,5 +1144,71 @@ export class CoursesService {
       nrc: course.nrc,
       checklistTemporal: this.readChecklistTemporal(root),
     };
+  }
+
+  async rpacaReport(query: unknown): Promise<string> {
+    const q = z.object({
+      periodCode: z.string().trim().optional(),
+      moment: z.string().trim().optional(),
+    }).parse(query ?? {});
+
+    const where: Prisma.CourseWhereInput = {};
+    if (q.periodCode) {
+      const period = await this.prisma.period.findUnique({ where: { code: q.periodCode } });
+      if (period) where.periodId = period.id;
+    }
+    if (q.moment) where.moment = q.moment;
+
+    const courses = await this.prisma.course.findMany({
+      where,
+      orderBy: [{ period: { code: 'asc' } }, { nrc: 'asc' }],
+      select: {
+        nrc: true,
+        subjectName: true,
+        campusCode: true,
+        moment: true,
+        period: { select: { code: true } },
+        moodleCheck: {
+          select: {
+            status: true,
+            detectedTemplate: true,
+            errorCode: true,
+          },
+        },
+      },
+    });
+
+    const templateLabel = (mc: { status: string; detectedTemplate: string | null; errorCode: string | null } | null): string => {
+      if (!mc) return 'NO REGISTRADO';
+      const status = mc.status?.toUpperCase() ?? '';
+      if (status === 'DESCARTADO_NO_EXISTE' || mc.errorCode === 'NO_EXISTE') return 'NO EXISTE EN MOODLE';
+      if (!mc.detectedTemplate) return 'NO REGISTRADO';
+      const t = mc.detectedTemplate.toUpperCase();
+      if (t === 'CRIBA') return 'CRIBA';
+      if (t === 'INNOVAME') return 'INNOVAME';
+      if (t === 'D4') return 'D4 (Distancia 4.0)';
+      if (t === 'VACIO') return 'VACIO';
+      return t;
+    };
+
+    const esc = (s: string | null | undefined) => {
+      const v = s ?? '';
+      if (v.includes(',') || v.includes('"') || v.includes('\n')) return `"${v.replace(/"/g, '""')}"`;
+      return v;
+    };
+
+    const header = 'Periodo,Momento,NRC,Nombre Asignatura,Sede,Plantilla Detectada\n';
+    const rows = courses.map((c) =>
+      [
+        esc(c.period.code),
+        esc(c.moment),
+        esc(c.nrc),
+        esc(c.subjectName),
+        esc(c.campusCode),
+        esc(templateLabel(c.moodleCheck)),
+      ].join(','),
+    );
+
+    return header + rows.join('\n');
   }
 }

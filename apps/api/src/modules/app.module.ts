@@ -13,6 +13,8 @@ import { MoodleUrlResolverAdapterModule } from './moodle-url-resolver-adapter/mo
 import { TeachersModule } from './teachers/teachers.module';
 import { MoodleAnalyticsModule } from './moodle-analytics/moodle-analytics.module';
 import { CoordinatorsModule } from './coordinators/coordinators.module';
+import { CenterDirectorsModule } from './center-directors/center-directors.module';
+import { ScheduleModule } from './schedule/schedule.module';
 import { BannerPeopleSyncModule } from './banner-people-sync/banner-people-sync.module';
 
 @Module({
@@ -29,6 +31,8 @@ import { BannerPeopleSyncModule } from './banner-people-sync/banner-people-sync.
     TeachersModule,
     MoodleAnalyticsModule,
     CoordinatorsModule,
+    CenterDirectorsModule,
+    ScheduleModule,
     BannerPeopleSyncModule,
   ],
   controllers: [HealthController, ReviewController],

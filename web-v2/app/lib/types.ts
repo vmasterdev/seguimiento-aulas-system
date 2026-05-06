@@ -13,6 +13,10 @@ export type ApiStats = {
   pendingClassify: number;
   moodleByStatus: Record<string, number>;
   outboxByStatus: Record<string, number>;
+  modalityByType?: Record<string, number>;
+  virtualCount?: number;
+  virtual100Count?: number;
+  presencialCount?: number;
   generatedAt?: string;
 };
 
@@ -52,6 +56,8 @@ export type CourseRecord = {
     searchQuery?: string | null;
     notes?: string | null;
   } | null;
+  bannerStartDate?: string | null;
+  bannerEndDate?: string | null;
   bannerReviewStatus?: string | null;
   reviewExcluded?: boolean;
   reviewExcludedReason?: string | null;

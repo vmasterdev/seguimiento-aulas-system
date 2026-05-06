@@ -22,24 +22,38 @@ function toBool(value: unknown): boolean {
   return false;
 }
 
-export function scoreAlistamiento(template: string | null | undefined, checklist: BooleanRecord): ScoreResult {
+export type ModalityType = "PRESENCIAL" | "VIRTUAL" | "VIRTUAL_100" | null | undefined;
+
+export function scoreAlistamiento(
+  template: string | null | undefined,
+  checklist: BooleanRecord,
+  modality?: ModalityType,
+): ScoreResult {
   const notes: string[] = [];
   const normalizedTemplate = TemplateSchema.safeParse((template ?? "UNKNOWN").toUpperCase()).success
     ? (template ?? "UNKNOWN").toUpperCase()
     : "UNKNOWN";
+  const isVirtual100 = modality === "VIRTUAL_100";
 
   if (normalizedTemplate === "VACIO") {
     notes.push("Aula vacia: alistamiento no aplica.");
     return { score: 0, notes };
   }
 
-  // Modo manual simplificado para INNOVAME/D4:
-  // 1) plantilla 20
-  // 2) asistencia 10
-  // 3) presentacion 10 (o FP+FN = 5+5)
-  // 4) actualizacion de actividades 10
+  // INNOVAME/D4: plantilla 20 + asistencia 10 + presentacion 10 + actualizacion 10
+  // Cuando VIRTUAL_100 → asistencia 0; los 10 pts se redistribuyen entre los otros tres (3.33 c/u)
   if (normalizedTemplate === "INNOVAME" || normalizedTemplate === "D4") {
     const presentacionOk = toBool(checklist.presentacion) || (toBool(checklist.fp) && toBool(checklist.fn));
+    if (isVirtual100) {
+      const bonus = 10 / 3;
+      const plantillaPts = toBool(checklist.plantilla) ? 20 + bonus : 0;
+      const presentacionPts = presentacionOk ? 10 + bonus : 0;
+      const actualizacionPts = toBool(checklist.actualizacion_actividades ?? checklist.aa) ? 10 + bonus : 0;
+      const score = Number((plantillaPts + presentacionPts + actualizacionPts).toFixed(2));
+      notes.push("Curso 100% virtual: asistencia omitida; puntos redistribuidos.");
+      if (score < 50) notes.push("Faltan items de alistamiento (modo manual).");
+      return { score, notes };
+    }
     const score =
       (toBool(checklist.plantilla) ? 20 : 0) +
       (toBool(checklist.asistencia ?? checklist.asis) ? 10 : 0) +
@@ -50,17 +64,19 @@ export function scoreAlistamiento(template: string | null | undefined, checklist
     return { score, notes };
   }
 
-  // Modo CRIBA vigente:
-  // plantilla 20 + FP 5 + FN 5 + asistencia 10 + componentes CRIBA (10 distribuidos en 9 items activos)
+  // CRIBA: plantilla 20 + FP 5 + FN 5 + asistencia 10 + CRIBA 10
+  // Cuando VIRTUAL_100 → asistencia 0; los 10 pts se redistribuyen al CRIBA (que pasa a valer 20)
   if (normalizedTemplate === "CRIBA") {
     const base =
       (toBool(checklist.plantilla) ? 20 : 0) +
       (toBool(checklist.fp) ? 5 : 0) +
       (toBool(checklist.fn) ? 5 : 0) +
-      (toBool(checklist.asistencia ?? checklist.asis) ? 10 : 0);
-    const unit = 10 / CRIBA_ITEMS.length;
+      (isVirtual100 ? 0 : (toBool(checklist.asistencia ?? checklist.asis) ? 10 : 0));
+    const cribaTotal = isVirtual100 ? 20 : 10;
+    const unit = cribaTotal / CRIBA_ITEMS.length;
     const cribaScore = CRIBA_ITEMS.reduce((acc, key) => acc + (toBool(checklist[`criba_${key.toLowerCase()}`]) ? unit : 0), 0);
     const score = Number((base + cribaScore).toFixed(2));
+    if (isVirtual100) notes.push("Curso 100% virtual: asistencia omitida; puntos redistribuidos a CRIBA.");
     if (score < 50) notes.push("Faltan items CRIBA de alistamiento.");
     return { score, notes };
   }
@@ -75,6 +91,7 @@ export function scoreEjecucion(
     executionPolicy: "APPLIES" | "AUTO_PASS";
     bannerStartDate?: string | null;
     bannerEndDate?: string | null;
+    modality?: ModalityType;
   },
 ): ScoreResult {
   const notes: string[] = [];
@@ -87,20 +104,27 @@ export function scoreEjecucion(
     startDate: options.bannerStartDate,
     endDate: options.bannerEndDate,
   });
+  const isVirtual100 = options.modality === "VIRTUAL_100";
 
   // ingresos acepta valor numerico (0-100 = tasa de cumplimiento) para puntuacion proporcional
   const ingresosRaw = checklist.ingresos;
+  const ingresosFullPts = isVirtual100 ? 15 : 10;
   const ingresosScore =
     typeof ingresosRaw === "number"
-      ? Number(((Math.max(0, Math.min(100, ingresosRaw)) / 100) * 10).toFixed(2))
-      : toBool(ingresosRaw) ? 10 : 0;
+      ? Number(((Math.max(0, Math.min(100, ingresosRaw)) / 100) * ingresosFullPts).toFixed(2))
+      : toBool(ingresosRaw) ? ingresosFullPts : 0;
 
-  const core =
-    (toBool(checklist.acuerdo) ? 10 : 0) +
-    (toBool(checklist.grabaciones) ? 10 : 0) +
-    ingresosScore +
-    (toBool(checklist.calificacion) ? 10 : 0) +
-    (toBool(checklist.asistencia) ? 5 : 0);
+  // VIRTUAL_100: omitir asistencia (5) y grabaciones (10). Redistribuir 15 pts:
+  //   acuerdo 10→15, ingresos 10→15, calificacion 10→15, foro 5 (igual). Total 50.
+  const core = isVirtual100
+    ? (toBool(checklist.acuerdo) ? 15 : 0) +
+      ingresosScore +
+      (toBool(checklist.calificacion) ? 15 : 0)
+    : (toBool(checklist.acuerdo) ? 10 : 0) +
+      (toBool(checklist.grabaciones) ? 10 : 0) +
+      ingresosScore +
+      (toBool(checklist.calificacion) ? 10 : 0) +
+      (toBool(checklist.asistencia) ? 5 : 0);
 
   const forumScore = schedule.isShortCourse
     ? (toBool(checklist.foro_fp) ? 4 : 0) +
@@ -120,6 +144,7 @@ export function scoreEjecucion(
       })();
 
   const score = Number((core + forumScore).toFixed(2));
+  if (isVirtual100) notes.push("Curso 100% virtual: asistencia y grabaciones omitidas; puntos redistribuidos.");
   if (schedule.isShortCourse) {
     notes.push("Curso corto: la ejecucion se ajusto a la duracion real del NRC.");
   }

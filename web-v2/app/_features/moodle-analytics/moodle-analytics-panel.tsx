@@ -197,6 +197,41 @@ type AttendanceDateReportResponse = {
   }>;
 };
 
+type AttendanceStudentReportResponse = {
+  ok: boolean;
+  summary: {
+    selectedDayCount: number;
+    matchedSessionCount: number;
+    courseCount: number;
+    studentCount: number;
+    rowCount: number;
+    presentCount: number;
+    absentCount: number;
+    justifiedCount: number;
+    unknownCount: number;
+    attendanceRate: number | null;
+    inattendanceRate: number | null;
+  };
+  rows: Array<{
+    sessionDay: string;
+    sessionLabel: string;
+    periodCode: string;
+    nrc: string;
+    subjectName: string | null;
+    programName: string | null;
+    campusCode: string | null;
+    teacherName: string | null;
+    studentName: string;
+    studentEmail: string | null;
+    studentId: string | null;
+    statusCode: string | null;
+    statusLabel: string;
+    rawValue: string | null;
+    present: boolean;
+    justified: boolean;
+  }>;
+};
+
 type BannerAutomationImportResponse = {
   ok: boolean;
   result: {
@@ -404,6 +439,7 @@ type FilterState = {
   teacherIds: string[];
   nrcsText: string;
   sessionDay: string;
+  sessionDays: string[];
   moments: string[];
 };
 
@@ -720,9 +756,11 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
   const [sidecarBatchOptions, setSidecarBatchOptions] = useState<SidecarBatchOptionsResponse | null>(null);
   const [overview, setOverview] = useState<AnalyticsOverviewResponse | null>(null);
   const [dateReport, setDateReport] = useState<AttendanceDateReportResponse | null>(null);
+  const [studentReport, setStudentReport] = useState<AttendanceStudentReportResponse | null>(null);
   const [message, setMessage] = useState('');
   const [loading, setLoading] = useState(false);
   const [dateLoading, setDateLoading] = useState(false);
+  const [studentReportLoading, setStudentReportLoading] = useState(false);
   const [importingKind, setImportingKind] = useState<'attendance' | 'activity' | 'participants' | 'banner-enrollment' | null>(null);
   const [moodleSyncLoading, setMoodleSyncLoading] = useState(false);
   const [moodleQuickRun, setMoodleQuickRun] = useState<MoodleQuickRunState | null>(null);
@@ -757,6 +795,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
     teacherIds: [],
     nrcsText: '',
     sessionDay: '',
+    sessionDays: [],
     moments: [],
   });
 
@@ -774,8 +813,15 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
       setOptions(nextOptions);
       setOverview(nextOverview);
       setDateReport(null);
+      setStudentReport(null);
       if (nextFilters.sessionDay && !nextOptions.sessionDays.includes(nextFilters.sessionDay)) {
         setFilters((current) => ({ ...current, sessionDay: '' }));
+      }
+      if (nextFilters.sessionDays.some((day) => !nextOptions.sessionDays.includes(day))) {
+        setFilters((current) => ({
+          ...current,
+          sessionDays: current.sessionDays.filter((day) => nextOptions.sessionDays.includes(day)),
+        }));
       }
     } catch (error) {
       setMessage(`No se pudo cargar la analitica: ${error instanceof Error ? error.message : String(error)}`);
@@ -1322,6 +1368,82 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
     const anchor = document.createElement('a');
     anchor.href = url;
     anchor.download = `reporte_asistencia_${filters.sessionDay}.csv`;
+    anchor.click();
+    URL.revokeObjectURL(url);
+  }
+
+  async function loadStudentAttendanceReport() {
+    if (!filters.sessionDays.length) {
+      setMessage('Selecciona una o varias fechas de asistencia antes de generar el reporte de estudiantes.');
+      return;
+    }
+    try {
+      setStudentReportLoading(true);
+      setMessage('');
+      const params = buildQuery(filters);
+      params.set('sessionDays', filters.sessionDays.join(','));
+      const result = await fetchJson<AttendanceStudentReportResponse>(
+        `${apiBase}/integrations/moodle-analytics/attendance/student-report?${params.toString()}`,
+      );
+      setStudentReport(result);
+      setMessage(`Reporte generado: ${result.summary.rowCount} registros de asistencia.`);
+    } catch (error) {
+      setMessage(`No se pudo generar el reporte de estudiantes: ${error instanceof Error ? error.message : String(error)}`);
+    } finally {
+      setStudentReportLoading(false);
+    }
+  }
+
+  function exportStudentAttendanceCsv() {
+    if (!studentReport?.rows.length) return;
+    const rows = [
+      [
+        'fecha',
+        'sesion',
+        'periodo',
+        'nrc',
+        'curso',
+        'programa',
+        'sede',
+        'docente',
+        'estudiante',
+        'correo',
+        'id_estudiante',
+        'estado',
+        'codigo_estado',
+        'valor_original',
+      ].join(','),
+    ];
+
+    for (const row of studentReport.rows) {
+      rows.push(
+        [
+          row.sessionDay,
+          row.sessionLabel,
+          row.periodCode,
+          row.nrc,
+          row.subjectName ?? '',
+          row.programName ?? '',
+          row.campusCode ?? '',
+          row.teacherName ?? '',
+          row.studentName,
+          row.studentEmail ?? '',
+          row.studentId ?? '',
+          row.statusLabel,
+          row.statusCode ?? '',
+          row.rawValue ?? '',
+        ]
+          .map((value) => escapeCsvCell(value))
+          .join(','),
+      );
+    }
+
+    const suffix = filters.sessionDays.length === 1 ? filters.sessionDays[0] : `${filters.sessionDays.length}_fechas`;
+    const blob = new Blob([`${rows.join('\n')}\n`], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const anchor = document.createElement('a');
+    anchor.href = url;
+    anchor.download = `reporte_asistencia_estudiantes_${suffix}.csv`;
     anchor.click();
     URL.revokeObjectURL(url);
   }
@@ -2147,6 +2269,27 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
               ))}
             </select>
           </label>
+
+          <label className="filter-block">
+            <span>Fechas para reporte de estudiantes</span>
+            <select
+              multiple
+              value={filters.sessionDays}
+              onChange={(event) =>
+                setFilters((current) => ({
+                  ...current,
+                  sessionDays: Array.from(event.target.selectedOptions).map((option) => option.value),
+                }))
+              }
+            >
+              {(options?.sessionDays ?? []).map((day) => (
+                <option key={`student-day-${day}`} value={day}>
+                  {day}
+                </option>
+              ))}
+            </select>
+            <small>{filters.sessionDays.length ? `${filters.sessionDays.length} fechas seleccionadas.` : 'Selecciona una o varias fechas.'}</small>
+          </label>
         </div>
 
         <div className="analytics-actions analytics-actions-spaced">
@@ -2158,6 +2301,12 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           </button>
           <button type="button" className="ghost" onClick={exportDateReportCsv} disabled={!dateReport?.courses.length}>
             Descargar CSV del reporte diario
+          </button>
+          <button type="button" className="primary" onClick={() => void loadStudentAttendanceReport()} disabled={studentReportLoading}>
+            {studentReportLoading ? 'Generando...' : 'Generar reporte estudiantes'}
+          </button>
+          <button type="button" className="ghost" onClick={exportStudentAttendanceCsv} disabled={!studentReport?.rows.length}>
+            Descargar CSV estudiantes
           </button>
         </div>
       </details>
@@ -2502,6 +2651,63 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           <MetricCard label="Asistencia del dia" value={formatPercent(dateReport?.summary.attendanceRate)} tone="warm" />
           <MetricCard label="Inasistencia del dia" value={formatPercent(dateReport?.summary.inattendanceRate)} tone="danger" />
         </div>
+
+        {studentReport ? (
+          <section className="analytics-panel analytics-panel-subtle" style={{ marginTop: 16 }}>
+            <div className="analytics-panel-head">
+              <h3>Reporte de estudiantes por fechas seleccionadas</h3>
+              <small>
+                {studentReport.summary.selectedDayCount} fechas · {studentReport.summary.courseCount} NRC · {studentReport.summary.rowCount} registros
+              </small>
+            </div>
+            <div className="stats-grid analytics-stats-grid analytics-stats-grid-compact">
+              <MetricCard label="Estudiantes" value={studentReport.summary.studentCount} tone="default" />
+              <MetricCard label="Presentes" value={studentReport.summary.presentCount} tone="cool" />
+              <MetricCard label="Ausentes" value={studentReport.summary.absentCount} tone="danger" />
+              <MetricCard label="Justificados" value={studentReport.summary.justifiedCount} tone="warm" />
+              <MetricCard label="Asistencia" value={formatPercent(studentReport.summary.attendanceRate)} tone="cool" />
+              <MetricCard label="Inasistencia" value={formatPercent(studentReport.summary.inattendanceRate)} tone="danger" />
+            </div>
+            <div className="table-wrap" style={{ marginTop: 12 }}>
+              <table className="analytics-table">
+                <thead>
+                  <tr>
+                    <th>Fecha</th>
+                    <th>NRC</th>
+                    <th>Estudiante</th>
+                    <th>Estado</th>
+                    <th>Curso</th>
+                  </tr>
+                </thead>
+                <tbody>
+                  {studentReport.rows.slice(0, 500).map((row, index) => (
+                    <tr key={`student-attendance-${row.sessionDay}-${row.nrc}-${row.studentName}-${index}`}>
+                      <td>
+                        {row.sessionDay}
+                        <div className="table-support">{row.sessionLabel}</div>
+                      </td>
+                      <td>{row.nrc}</td>
+                      <td>
+                        <strong>{row.studentName}</strong>
+                        <div className="table-support">
+                          {row.studentEmail ?? '-'}
+                          {row.studentId ? ` · ${row.studentId}` : ''}
+                        </div>
+                      </td>
+                      <td>{row.statusLabel}</td>
+                      <td>{row.subjectName ?? '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+              {studentReport.rows.length > 500 ? (
+                <div className="table-support" style={{ padding: 10 }}>
+                  Vista limitada a 500 registros. Descarga el CSV para ver el reporte completo.
+                </div>
+              ) : null}
+            </div>
+          </section>
+        ) : null}
 
         <div className="course-report-list">
           {(dateReport?.courses ?? []).length ? (

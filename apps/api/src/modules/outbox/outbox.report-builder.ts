@@ -716,7 +716,6 @@ export function buildCoordinatorHtml(options: CoordinatorReportOptions): string 
   const selectedMomentsLabel = options.moments
     .map((moment) => `${formatMomentLabel(moment)} (${moment})`)
     .join(' | ');
-  const selectedPeriodsLabel = options.periodCodes.join(', ');
   const summaryByPeriod = new Map<
     string,
     { total: number; scoreSum: number; scoredCount: number; excellent: number; good: number; acceptable: number; unsatisfactory: number }
@@ -809,7 +808,12 @@ export function buildCoordinatorHtml(options: CoordinatorReportOptions): string 
       ].join('');
     })
     .join('');
+  const activePeriodsLabel = options.periodCodes
+    .filter((periodCode) => (summaryByPeriod.get(periodCode)?.total ?? 0) > 0)
+    .join(', ');
+  const selectedPeriodsLabel = activePeriodsLabel || options.periodCodes.join(', ');
   const periodRowsHtml = options.periodCodes
+    .filter((periodCode) => (summaryByPeriod.get(periodCode)?.total ?? 0) > 0)
     .map((periodCode, idx) => {
       const row = summaryByPeriod.get(periodCode) ?? {
         total: 0,
@@ -994,8 +998,11 @@ export function buildGlobalHtml(options: GlobalReportOptions): string {
   const selectedMomentsLabel = options.moments
     .map((moment) => `${formatMomentLabel(moment)} (${moment})`)
     .join(' | ');
-  const selectedPeriodsLabel = options.periodCodes.join(', ');
-  const selectedYearsLabel = summarizePeriodYears(options.periodCodes);
+  const activePeriodsForLabel = options.periodSummary
+    .filter((row) => row.total > 0)
+    .map((row) => row.periodCode);
+  const selectedPeriodsLabel = (activePeriodsForLabel.length ? activePeriodsForLabel : options.periodCodes).join(', ');
+  const selectedYearsLabel = summarizePeriodYears(activePeriodsForLabel.length ? activePeriodsForLabel : options.periodCodes);
   const rowsHtml = options.rows
     .map((row, idx) => {
       const background = idx % 2 === 0 ? '#ffffff' : '#f8fbff';
@@ -1013,6 +1020,7 @@ export function buildGlobalHtml(options: GlobalReportOptions): string {
     })
     .join('');
   const periodRowsHtml = options.periodSummary
+    .filter((row) => row.total > 0)
     .map((row, idx) => {
       const background = idx % 2 === 0 ? '#ffffff' : '#f8fbff';
       return [

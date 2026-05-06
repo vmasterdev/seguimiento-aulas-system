@@ -363,13 +363,20 @@ export class EvaluationService {
     }
     const checklistJson = checklist as Prisma.InputJsonObject;
 
+    const courseModality = (course as { modalityType?: string | null }).modalityType as
+      | 'PRESENCIAL'
+      | 'VIRTUAL'
+      | 'VIRTUAL_100'
+      | null
+      | undefined;
     const result =
       payload.phase === 'ALISTAMIENTO'
-        ? scoreAlistamiento(template, checklist)
+        ? scoreAlistamiento(template, checklist, courseModality)
         : scoreEjecucion(checklist, {
             executionPolicy: course.period.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES',
             bannerStartDate: course.bannerStartDate,
             bannerEndDate: course.bannerEndDate,
+            modality: courseModality,
           });
     const executionPolicy = course.period.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES';
     const observations = buildObservations({
@@ -535,13 +542,20 @@ export class EvaluationService {
         }
         const checklistJson = checklist as Prisma.InputJsonObject;
 
+        const replicaModality = (course as { modalityType?: string | null }).modalityType as
+          | 'PRESENCIAL'
+          | 'VIRTUAL'
+          | 'VIRTUAL_100'
+          | null
+          | undefined;
         const result =
           phase === 'ALISTAMIENTO'
-            ? scoreAlistamiento(template, checklist)
+            ? scoreAlistamiento(template, checklist, replicaModality)
             : scoreEjecucion(checklist, {
                 executionPolicy: course.period.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES',
                 bannerStartDate: course.bannerStartDate,
                 bannerEndDate: course.bannerEndDate,
+                modality: replicaModality,
               });
         const executionPolicy = course.period.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES';
         const observations = buildObservations({

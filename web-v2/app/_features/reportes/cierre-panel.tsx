@@ -3,6 +3,53 @@
 import { useState, useMemo, useEffect } from 'react';
 import { fetchJson } from '../../_lib/http';
 
+// Festivos Colombia 2026-2027 (formato YYYY-MM-DD)
+const CO_HOLIDAYS = new Set([
+  // 2026
+  '2026-01-01', '2026-01-12', '2026-03-23', '2026-04-02', '2026-04-03',
+  '2026-05-01', '2026-05-18', '2026-06-08', '2026-06-15', '2026-06-29',
+  '2026-07-20', '2026-08-07', '2026-08-17', '2026-10-12', '2026-11-02',
+  '2026-11-16', '2026-12-08', '2026-12-25',
+  // 2027
+  '2027-01-01', '2027-01-11', '2027-03-22', '2027-03-25', '2027-03-26',
+  '2027-05-01', '2027-05-10', '2027-05-31', '2027-06-07', '2027-07-05',
+  '2027-07-20', '2027-08-07', '2027-08-16', '2027-10-18', '2027-11-01',
+  '2027-11-15', '2027-12-08', '2027-12-25',
+]);
+
+function isBusinessDay(d: Date): boolean {
+  const dow = d.getDay(); // 0=Dom, 6=Sab
+  if (dow === 0 || dow === 6) return false;
+  const iso = `${d.getFullYear()}-${String(d.getMonth() + 1).padStart(2, '0')}-${String(d.getDate()).padStart(2, '0')}`;
+  return !CO_HOLIDAYS.has(iso);
+}
+
+function addBusinessDays(start: Date, days: number): Date {
+  const d = new Date(start);
+  let added = 0;
+  while (added < days) {
+    d.setDate(d.getDate() + 1);
+    if (isBusinessDay(d)) added += 1;
+  }
+  return d;
+}
+
+function uniqueEmails(...emails: Array<string | null | undefined>): string[] {
+  const seen = new Set<string>();
+  const out: string[] = [];
+  for (const e of emails) {
+    const v = (e ?? '').trim().toLowerCase();
+    if (!v || seen.has(v)) continue;
+    seen.add(v);
+    out.push(v);
+  }
+  return out;
+}
+
+function fmtDeadline(d: Date): string {
+  return d.toLocaleDateString('es-CO', { weekday: 'long', day: 'numeric', month: 'long', year: 'numeric' });
+}
+
 type CierrePanelProps = { apiBase: string };
 
 type CourseItem = {
@@ -18,6 +65,7 @@ type CourseItem = {
     id: string;
     fullName: string;
     email?: string | null;
+    email2?: string | null;
     coordination?: string | null;
     campus?: string | null;
   } | null;
@@ -33,6 +81,7 @@ type ReportEntry = {
   teacherId: string;
   teacherName: string;
   teacherEmail: string;
+  teacherEmail2: string;
   coordination: string;
   campus: string;
   courses: CourseItem[];
@@ -131,12 +180,27 @@ function buildTeacherReport(entry: ReportEntry, period: string, moment: string, 
     ? `<p style="margin-top:12px;font-size:12px;color:#374151;">Promedio calculado sobre <strong>${coursesWithData.length}</strong> aula(s) con evaluacion completa.</p>`
     : '';
 
+  const deadlineLabel = fmtDeadline(addBusinessDays(new Date(), 2));
+
+  const comunicadoButton = `<div style="text-align:center;margin:18px 0;">
+    <a href="https://comunicado2026.netlify.app/" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:700;font-size:14px;box-shadow:0 4px 12px rgba(30,64,175,0.3);">
+      📋 Ver comunicado oficial — Items, guias y criterios de revision
+    </a>
+    <div style="margin-top:6px;font-size:11px;color:#6b7280;">comunicado2026.netlify.app · Porque de las aulas, items revisados y guias paso a paso</div>
+  </div>`;
+
   const congratsOrAction = band?.label === 'Excelente' || band?.label === 'Bueno'
     ? `<div class="info-box" style="background:#f0fdf4;border-color:#86efac;border-left-color:#16a34a;">
         <strong>Felicitaciones.</strong> Su desempeno en este momento refleja un compromiso destacado con la calidad del aula virtual. Le invitamos a continuar con estas buenas practicas.
+      </div>
+      <div class="info-box" style="background:#fef2f2;border-color:#fca5a5;border-left-color:#dc2626;margin-top:10px;">
+        <strong>Plazo para subsanaciones:</strong> A partir del envio de este correo cuenta con <strong>dos (2) dias habiles</strong> (sin contar sabados, domingos ni festivos) para realizar las subsanaciones que considere pertinentes. Fecha limite: <strong>${deadlineLabel}</strong>. Pasado este plazo no se aceptaran modificaciones a la evaluacion.
       </div>`
     : `<div class="info-box" style="background:#fff7ed;border-color:#fdba74;border-left-color:#ea580c;">
-        <strong>Oportunidad de mejora.</strong> Le invitamos a revisar los items pendientes en cada aula y gestionar su actualizacion antes del cierre del siguiente momento.
+        <strong>Oportunidad de mejora.</strong> Le invitamos a revisar los items pendientes en cada aula y gestionar su actualizacion.
+      </div>
+      <div class="info-box" style="background:#fef2f2;border-color:#fca5a5;border-left-color:#dc2626;margin-top:10px;">
+        <strong>Plazo para subsanaciones:</strong> A partir del envio de este correo cuenta con <strong>dos (2) dias habiles</strong> (sin contar sabados, domingos ni festivos) para realizar las subsanaciones correspondientes en sus aulas virtuales. Fecha limite: <strong>${deadlineLabel}</strong>. Pasado este plazo no se aceptaran modificaciones a la evaluacion.
       </div>`;
 
   return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Informe Cierre Momento ${moment} - ${entry.teacherName}</title>${BASE_CSS}</head><body>
@@ -184,6 +248,7 @@ function buildTeacherReport(entry: ReportEntry, period: string, moment: string, 
       </div>
       ${band ? `<div style="text-align:center;margin:8px 0 16px 0;">${bandPill(total)}</div>` : ''}
       ${congratsOrAction}
+      ${comunicadoButton}
 
       <div class="section-title">Detalle por Aula</div>
       <table>
@@ -278,6 +343,102 @@ function buildCoordinatorReport(
 }
 
 // ──────────────────────────────────────────────────────────────────────────────
+// REPORTE POR CENTRO UNIVERSITARIO
+// ──────────────────────────────────────────────────────────────────────────────
+function buildCenterReport(
+  campus: string,
+  campusName: string,
+  directorName: string,
+  entries: ReportEntry[],
+  period: string,
+  moment: string,
+  generatedAt: string,
+): string {
+  const withScore = entries.filter(e => e.totalScore !== null);
+  const avg = withScore.length ? withScore.reduce((s, e) => s + (e.totalScore ?? 0), 0) / withScore.length : null;
+  const excelente = withScore.filter(e => (e.totalScore ?? 0) >= 91).length;
+  const bueno = withScore.filter(e => { const s = e.totalScore ?? 0; return s >= 80 && s < 91; }).length;
+  const aceptable = withScore.filter(e => { const s = e.totalScore ?? 0; return s >= 70 && s < 80; }).length;
+  const insatisfactorio = withScore.filter(e => (e.totalScore ?? 0) < 70).length;
+  const totalNrc = entries.reduce((s, e) => s + e.courses.length, 0);
+
+  const byCoord: Record<string, ReportEntry[]> = {};
+  entries.forEach(e => {
+    const k = e.coordination || 'Sin coordinacion';
+    if (!byCoord[k]) byCoord[k] = [];
+    byCoord[k].push(e);
+  });
+
+  const rows = entries.sort((a, b) => (b.totalScore ?? -1) - (a.totalScore ?? -1)).map(e => `
+    <tr>
+      <td><strong>${e.teacherName}</strong><br><span style="font-size:11px;color:#6b7280;">${e.teacherEmail || '-'}</span></td>
+      <td style="font-size:11px;">${e.coordination || '-'}</td>
+      <td style="text-align:center;">${e.courses.length}</td>
+      <td style="text-align:center;">${fmt(e.alistamiento)}</td>
+      <td style="text-align:center;">${fmt(e.ejecucion)}</td>
+      <td style="text-align:center;"><strong>${fmt(e.totalScore)}</strong></td>
+      <td style="text-align:center;">${bandPill(e.totalScore)}</td>
+    </tr>`).join('');
+
+  const centerLabel = campusName ? `${campusName} (${campus})` : campus;
+  const greeting = directorName
+    ? `Estimado(a) Director(a) <strong>${directorName}</strong>,<br><br>`
+    : '';
+
+  return `<!DOCTYPE html><html lang="es"><head><meta charset="UTF-8"><title>Informe Centro ${centerLabel} - Momento ${moment}</title>${BASE_CSS}</head><body>
+  <div class="shell">
+    <div class="top-strip"></div>
+    <div class="hero">
+      <h1>Informe de Centro Universitario &mdash; Momento ${moment}</h1>
+      <div class="sub">Corporacion Universitaria Minuto de Dios &mdash; UNIMINUTO<br>Sistema de Seguimiento de Aulas Virtuales</div>
+      <span class="pill">Periodo ${period} &middot; ${centerLabel}</span>
+    </div>
+    <div class="body">
+      <div class="info-box">
+        ${greeting}A continuacion se presenta el resumen consolidado de la evaluacion del campus virtual de los docentes adscritos al centro <strong>${centerLabel}</strong> para el <strong>Momento ${moment}, Periodo ${period}</strong>.
+      </div>
+
+      <div class="section-title">Resumen del Centro</div>
+      <div class="kpi-row">
+        <div class="kpi blue">
+          <div class="kpi-label">Docentes evaluados</div>
+          <div class="kpi-value">${entries.length}</div>
+          <div class="kpi-meta">${totalNrc} NRC en total</div>
+        </div>
+        <div class="kpi ${avg !== null && avg >= 80 ? 'green' : avg !== null && avg >= 70 ? 'yellow' : 'red'}">
+          <div class="kpi-label">Promedio del centro</div>
+          <div class="kpi-value">${fmt(avg)}</div>
+          <div class="kpi-meta">de 100 puntos</div>
+          ${avg !== null ? scoreBar(avg) : ''}
+        </div>
+        <div class="kpi"><div class="kpi-label">Coordinaciones</div><div class="kpi-value">${Object.keys(byCoord).length}</div><div class="kpi-meta">activas</div></div>
+        <div class="kpi green"><div class="kpi-label">Excelente</div><div class="kpi-value">${excelente}</div><div class="kpi-meta">${withScore.length ? Math.round(excelente / withScore.length * 100) : 0}%</div></div>
+        <div class="kpi blue"><div class="kpi-label">Bueno</div><div class="kpi-value">${bueno}</div><div class="kpi-meta">${withScore.length ? Math.round(bueno / withScore.length * 100) : 0}%</div></div>
+        <div class="kpi yellow"><div class="kpi-label">Aceptable</div><div class="kpi-value">${aceptable}</div><div class="kpi-meta">${withScore.length ? Math.round(aceptable / withScore.length * 100) : 0}%</div></div>
+        <div class="kpi red"><div class="kpi-label">Insatisfactorio</div><div class="kpi-value">${insatisfactorio}</div><div class="kpi-meta">${withScore.length ? Math.round(insatisfactorio / withScore.length * 100) : 0}%</div></div>
+      </div>
+
+      <div class="section-title">Docentes del Centro</div>
+      <table>
+        <thead><tr><th>Docente</th><th>Coordinacion</th><th style="text-align:center;">NRC</th><th style="text-align:center;">Alistamiento</th><th style="text-align:center;">Ejecucion</th><th style="text-align:center;">Total</th><th style="text-align:center;">Banda</th></tr></thead>
+        <tbody>${rows || '<tr><td colspan="7" style="text-align:center;color:#9ca3af;">Sin docentes registrados.</td></tr>'}</tbody>
+      </table>
+
+      ${insatisfactorio > 0 ? `
+      <div class="info-box" style="background:#fff7ed;border-color:#fdba74;border-left-color:#ea580c;margin-top:16px;">
+        <strong>Atencion:</strong> ${insatisfactorio} docente(s) del centro obtuvieron calificacion Insatisfactoria (&lt;70 puntos). Se recomienda contacto directo y acompanamiento antes del siguiente momento.
+      </div>` : ''}
+
+      <div class="info-box" style="margin-top:12px;">
+        Informe generado automaticamente para el centro <strong>${centerLabel}</strong>. Periodo <strong>${period}</strong>, Momento <strong>${moment}</strong>.
+      </div>
+    </div>
+    <div class="footer">UNIMINUTO &mdash; Sistema de Seguimiento de Aulas Virtuales &middot; Generado: ${generatedAt}</div>
+  </div>
+</body></html>`;
+}
+
+// ──────────────────────────────────────────────────────────────────────────────
 // REPORTE DIRECTIVOS
 // ──────────────────────────────────────────────────────────────────────────────
 function buildDirectivosReport(
@@ -312,6 +473,33 @@ function buildDirectivosReport(
       const insC = ws.filter(e => (e.totalScore ?? 0) < 70).length;
       return `<tr>
         <td><strong>${coord}</strong></td>
+        <td style="text-align:center;">${list.length}</td>
+        <td style="text-align:center;">${nrcC}</td>
+        <td style="text-align:center;"><strong>${fmt(avgC)}</strong>${avgC !== null ? scoreBar(avgC) : ''}</td>
+        <td style="text-align:center;">${bandPill(avgC)}</td>
+        <td style="text-align:center;color:#166534;font-weight:700;">${excC}</td>
+        <td style="text-align:center;color:#991b1b;font-weight:700;">${insC}</td>
+      </tr>`;
+    }).join('');
+
+  // Agrupar por centro universitario (campus)
+  const byCenter: Record<string, ReportEntry[]> = {};
+  entries.forEach(e => {
+    const key = e.campus || 'Sin centro';
+    if (!byCenter[key]) byCenter[key] = [];
+    byCenter[key].push(e);
+  });
+
+  const centerRows = Object.entries(byCenter)
+    .sort(([a], [b]) => a.localeCompare(b))
+    .map(([campus, list]) => {
+      const ws = list.filter(e => e.totalScore !== null);
+      const avgC = ws.length ? ws.reduce((s, e) => s + (e.totalScore ?? 0), 0) / ws.length : null;
+      const nrcC = list.reduce((s, e) => s + e.courses.length, 0);
+      const excC = ws.filter(e => (e.totalScore ?? 0) >= 91).length;
+      const insC = ws.filter(e => (e.totalScore ?? 0) < 70).length;
+      return `<tr>
+        <td><strong>${campus}</strong></td>
         <td style="text-align:center;">${list.length}</td>
         <td style="text-align:center;">${nrcC}</td>
         <td style="text-align:center;"><strong>${fmt(avgC)}</strong>${avgC !== null ? scoreBar(avgC) : ''}</td>
@@ -366,6 +554,12 @@ function buildDirectivosReport(
       <table>
         <thead><tr><th>Coordinacion</th><th style="text-align:center;">Docentes</th><th style="text-align:center;">NRC</th><th style="text-align:center;">Promedio</th><th style="text-align:center;">Banda</th><th style="text-align:center;">Excelente</th><th style="text-align:center;">Insatisfactorio</th></tr></thead>
         <tbody>${coordRows || '<tr><td colspan="7" style="text-align:center;color:#9ca3af;">Sin datos.</td></tr>'}</tbody>
+      </table>
+
+      <div class="section-title">Resultados por Centro Universitario</div>
+      <table>
+        <thead><tr><th>Centro</th><th style="text-align:center;">Docentes</th><th style="text-align:center;">NRC</th><th style="text-align:center;">Promedio</th><th style="text-align:center;">Banda</th><th style="text-align:center;">Excelente</th><th style="text-align:center;">Insatisfactorio</th></tr></thead>
+        <tbody>${centerRows || '<tr><td colspan="7" style="text-align:center;color:#9ca3af;">Sin datos.</td></tr>'}</tbody>
       </table>
 
       ${insatisfactorio > 0 ? `
@@ -652,6 +846,17 @@ function buildInsatisfactorioReport(entry: ReportEntry, period: string, moment: 
       <tbody>${rows || '<tr><td colspan="5" style="text-align:center;color:#9ca3af;">Sin aulas.</td></tr>'}</tbody>
     </table>
 
+    <div class="info-box" style="background:#fef2f2;border-color:#fca5a5;border-left-color:#dc2626;margin-top:12px;">
+      <strong>Plazo para subsanaciones:</strong> A partir del envio de este correo cuenta con <strong>dos (2) dias habiles</strong> (sin contar sabados, domingos ni festivos) para realizar las subsanaciones correspondientes en sus aulas virtuales. Fecha limite: <strong>${fmtDeadline(addBusinessDays(new Date(), 2))}</strong>. Pasado este plazo no se aceptaran modificaciones a la evaluacion.
+    </div>
+
+    <div style="text-align:center;margin:18px 0;">
+      <a href="https://comunicado2026.netlify.app/" target="_blank" style="display:inline-block;background:linear-gradient(135deg,#1e40af,#3b82f6);color:#fff;text-decoration:none;padding:14px 28px;border-radius:8px;font-weight:700;font-size:14px;box-shadow:0 4px 12px rgba(30,64,175,0.3);">
+        📋 Ver comunicado oficial — Items, guias y criterios de revision
+      </a>
+      <div style="margin-top:6px;font-size:11px;color:#6b7280;">comunicado2026.netlify.app · Porque de las aulas, items revisados y guias paso a paso</div>
+    </div>
+
     <div class="section-title">Plan de Mejora &mdash; Acciones Inmediatas</div>
     <div class="info-box" style="background:#fff7ed;border-color:#fdba74;border-left-color:#ea580c;">
       Para alcanzar el nivel minimo en el proximo momento de evaluacion, se recomienda ejecutar las siguientes acciones de manera prioritaria:
@@ -692,6 +897,7 @@ function buildInsatisfactorioReport(entry: ReportEntry, period: string, moment: 
 // COMPONENT
 // ──────────────────────────────────────────────────────────────────────────────
 type Coordinator = { id: string; programId: string; programKey: string; fullName: string; email: string };
+type CenterDirector = { id: string; campusCode: string; campusName: string | null; fullName: string; email: string; region: string | null };
 
 type CierreQueueItem = {
   recipientName: string;
@@ -736,6 +942,8 @@ export function CierrePanel({ apiBase }: CierrePanelProps) {
   const [message, setMessage] = useState('');
   const [courses, setCourses] = useState<CourseItem[]>([]);
   const [coordinators, setCoordinators] = useState<Coordinator[]>([]);
+  const [centerDirectors, setCenterDirectors] = useState<CenterDirector[]>([]);
+  const [sendingCenterId, setSendingCenterId] = useState<string | null>(null);
   const [period, setPeriod] = useState('');
   const [moment, setMoment] = useState('MD1');
   const [previewHtml, setPreviewHtml] = useState<string | null>(null);
@@ -833,18 +1041,24 @@ export function CierrePanel({ apiBase }: CierrePanelProps) {
     setSendingDocentes(true);
     setSendResult('');
     try {
-      const items: CierreQueueItem[] = entries
-        .filter(e => e.teacherEmail)
-        .map(e => ({
-          recipientName: e.teacherName,
-          recipientEmail: e.teacherEmail || null,
-          teacherId: e.teacherId,
-          subject: `[UNIMINUTO] Informe de Cierre Momento ${moment} — Periodo ${period}`,
-          htmlBody: buildTeacherReport(e, displayPeriod, moment, generatedAt),
-        }));
+      const items: CierreQueueItem[] = [];
+      for (const e of entries) {
+        const recipients = uniqueEmails(e.teacherEmail, e.teacherEmail2);
+        if (!recipients.length) continue;
+        const html = buildTeacherReport(e, displayPeriod, moment, generatedAt);
+        for (const r of recipients) {
+          items.push({
+            recipientName: e.teacherName,
+            recipientEmail: r,
+            teacherId: e.teacherId,
+            subject: `[UNIMINUTO] Informe de Cierre Momento ${moment} — Periodo ${period}`,
+            htmlBody: html,
+          });
+        }
+      }
       if (!items.length) { setSendResult('Sin docentes con correo registrado.'); return; }
       const result = await queueAndSend('DOCENTE', items);
-      setSendResult(`Docentes: ${result.sentCount} enviados${result.failedCount ? `, ${result.failedCount} fallidos` : ''}${result.skippedCount ? `, ${result.skippedCount} omitidos (duplicado)` : ''}.`);
+      setSendResult(`Docentes: ${result.sentCount} correos enviados a ${entries.filter(e => uniqueEmails(e.teacherEmail, e.teacherEmail2).length > 0).length} docentes${result.failedCount ? `, ${result.failedCount} fallidos` : ''}.`);
     } catch (err) {
       setSendResult(`Error al enviar: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -900,21 +1114,82 @@ export function CierrePanel({ apiBase }: CierrePanelProps) {
     }
   }
 
+  async function sendCenterReport(director: CenterDirector) {
+    if (!director.email?.trim()) { setSendResult('Director sin correo registrado.'); return; }
+    const list = entriesByCenter.get(director.campusCode) ?? [];
+    if (!list.length) { setSendResult(`Sin docentes para ${director.campusCode}.`); return; }
+    setSendingCenterId(director.id);
+    setSendResult('');
+    try {
+      const campusLabel = director.campusName ?? director.campusCode;
+      const html = buildCenterReport(
+        director.campusCode,
+        director.campusName ?? '',
+        director.fullName,
+        list,
+        displayPeriod,
+        moment,
+        generatedAt,
+      );
+      const result = await queueAndSend('GLOBAL', [{
+        recipientName: director.fullName,
+        recipientEmail: director.email.trim(),
+        subject: `[UNIMINUTO] Informe Centro ${campusLabel} — Momento ${moment} — ${period}`,
+        htmlBody: html,
+      }]);
+      setSendResult(`Centro ${campusLabel}: ${result.sentCount > 0 ? 'enviado' : 'no enviado'}.`);
+    } catch (err) {
+      setSendResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
+    } finally {
+      setSendingCenterId(null);
+    }
+  }
+
+  async function sendAllCenterReports() {
+    if (!centerDirectors.length) { setSendResult('Sin directores registrados.'); return; }
+    setSendResult('');
+    let sent = 0;
+    for (const d of centerDirectors) {
+      const list = entriesByCenter.get(d.campusCode) ?? [];
+      if (!list.length || !d.email?.trim()) continue;
+      try {
+        const html = buildCenterReport(d.campusCode, d.campusName ?? '', d.fullName, list, displayPeriod, moment, generatedAt);
+        const result = await queueAndSend('GLOBAL', [{
+          recipientName: d.fullName,
+          recipientEmail: d.email.trim(),
+          subject: `[UNIMINUTO] Informe Centro ${d.campusName ?? d.campusCode} — Momento ${moment} — ${period}`,
+          htmlBody: html,
+        }]);
+        if (result.sentCount > 0) sent += 1;
+      } catch {
+        // continua con el siguiente
+      }
+    }
+    setSendResult(`Centros: ${sent} reporte(s) enviado(s) de ${centerDirectors.length} director(es).`);
+  }
+
   async function sendInsatisfactorioReports() {
     setSendingInsatisfactorio(true);
     setSendResult('');
     try {
-      const targets = entries.filter(e => e.totalScore !== null && e.totalScore < 70 && e.teacherEmail);
+      const targets = entries.filter(e => e.totalScore !== null && e.totalScore < 70 && uniqueEmails(e.teacherEmail, e.teacherEmail2).length > 0);
       if (!targets.length) { setSendResult('Sin docentes insatisfactorios con correo registrado.'); return; }
-      const items: CierreQueueItem[] = targets.map(e => ({
-        recipientName: e.teacherName,
-        recipientEmail: e.teacherEmail || null,
-        teacherId: e.teacherId,
-        subject: `[UNIMINUTO] Plan de Mejora — Campus Virtual Momento ${moment} — ${period}`,
-        htmlBody: buildInsatisfactorioReport(e, displayPeriod, moment, generatedAt),
-      }));
+      const items: CierreQueueItem[] = [];
+      for (const e of targets) {
+        const recipients = uniqueEmails(e.teacherEmail, e.teacherEmail2);
+        const html = buildInsatisfactorioReport(e, displayPeriod, moment, generatedAt);
+        for (const r of recipients) {
+          items.push({
+            recipientName: e.teacherName,
+            recipientEmail: r,
+            teacherId: e.teacherId,
+            subject: `[UNIMINUTO] Plan de Mejora — Campus Virtual Momento ${moment} — ${period}`,
+            htmlBody: html,
+          });
+        }
+      }
       const result = await queueAndSend('DOCENTE', items);
-      setSendResult(`Plan de mejora: ${result.sentCount} notificaciones enviadas${result.failedCount ? `, ${result.failedCount} fallidas` : ''}.`);
+      setSendResult(`Plan de mejora: ${result.sentCount} correos enviados a ${targets.length} docentes${result.failedCount ? `, ${result.failedCount} fallidos` : ''}.`);
     } catch (err) {
       setSendResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
     } finally {
@@ -1080,13 +1355,15 @@ export function CierrePanel({ apiBase }: CierrePanelProps) {
     try {
       setLoading(true);
       setMessage('');
-      const [data, coordData] = await Promise.all([
+      const [data, coordData, dirData] = await Promise.all([
         fetchJson<{ items: CourseItem[] }>(`${apiBase}/courses?limit=5000`),
         fetchJson<{ items: Coordinator[] }>(`${apiBase}/coordinators?limit=500`).catch(() => ({ items: [] as Coordinator[] })),
+        fetchJson<{ items: CenterDirector[] }>(`${apiBase}/center-directors?limit=500`).catch(() => ({ items: [] as CenterDirector[] })),
       ]);
       const items = data.items ?? [];
       setCourses(items);
       setCoordinators(coordData.items ?? []);
+      setCenterDirectors(dirData.items ?? []);
       // Auto-detectar el periodo más reciente para el registro de correos
       if (items.length) {
         const codes = [...new Set(items.map(c => c.period?.code).filter(Boolean))] as string[];
@@ -1120,6 +1397,7 @@ export function CierrePanel({ apiBase }: CierrePanelProps) {
           teacherId: c.teacherId,
           teacherName: c.teacher?.fullName ?? 'Docente sin nombre',
           teacherEmail: c.teacher?.email ?? '',
+          teacherEmail2: c.teacher?.email2 ?? '',
           coordination: c.teacher?.coordination ?? 'Sin coordinacion',
           campus: c.teacher?.campus ?? '-',
           courses: [],
@@ -1162,6 +1440,16 @@ export function CierrePanel({ apiBase }: CierrePanelProps) {
   const coordinations = useMemo(() => {
     const s = new Set(entries.map(e => e.coordination));
     return [...s].sort();
+  }, [entries]);
+
+  const entriesByCenter = useMemo(() => {
+    const map = new Map<string, ReportEntry[]>();
+    for (const e of entries) {
+      const key = e.campus || 'Sin centro';
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(e);
+    }
+    return map;
   }, [entries]);
 
   const generatedAt = new Date().toLocaleString('es-CO', { dateStyle: 'long', timeStyle: 'short' });
@@ -1417,22 +1705,25 @@ ${BASE_CSS}
                         </button>
                         <button
                           type="button"
-                          disabled={sendingTeacherReport === entry.teacherId || !entry.teacherEmail}
-                          style={{ background: '#16a34a', color: '#fff', fontSize: 11, opacity: entry.teacherEmail ? 1 : 0.45 }}
-                          title={entry.teacherEmail ? `Enviar a ${entry.teacherEmail}` : 'Sin correo registrado'}
+                          disabled={sendingTeacherReport === entry.teacherId || uniqueEmails(entry.teacherEmail, entry.teacherEmail2).length === 0}
+                          style={{ background: '#16a34a', color: '#fff', fontSize: 11, opacity: uniqueEmails(entry.teacherEmail, entry.teacherEmail2).length > 0 ? 1 : 0.45 }}
+                          title={uniqueEmails(entry.teacherEmail, entry.teacherEmail2).join(' + ') || 'Sin correo registrado'}
                           onClick={async () => {
-                            if (!entry.teacherEmail) return;
+                            const recipients = uniqueEmails(entry.teacherEmail, entry.teacherEmail2);
+                            if (!recipients.length) return;
                             setSendingTeacherReport(entry.teacherId);
                             setSendResult('');
                             try {
-                              const result = await queueAndSend('DOCENTE', [{
+                              const html = buildTeacherReport(entry, displayPeriod, moment, generatedAt);
+                              const items = recipients.map((r) => ({
                                 recipientName: entry.teacherName,
-                                recipientEmail: entry.teacherEmail,
+                                recipientEmail: r,
                                 teacherId: entry.teacherId,
                                 subject: `[UNIMINUTO] Informe de Cierre — Campus Virtual Momento ${moment} — ${displayPeriod}`,
-                                htmlBody: buildTeacherReport(entry, displayPeriod, moment, generatedAt),
-                              }]);
-                              setSendResult(`${entry.teacherName}: ${result.sentCount > 0 ? 'enviado' : 'no enviado'}.`);
+                                htmlBody: html,
+                              }));
+                              const result = await queueAndSend('DOCENTE', items);
+                              setSendResult(`${entry.teacherName}: ${result.sentCount}/${recipients.length} correos enviados.`);
                             } catch (err) {
                               setSendResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
                             } finally {
@@ -1440,7 +1731,7 @@ ${BASE_CSS}
                             }
                           }}
                         >
-                          {sendingTeacherReport === entry.teacherId ? 'Enviando...' : 'Enviar'}
+                          {sendingTeacherReport === entry.teacherId ? 'Enviando...' : `Enviar (${uniqueEmails(entry.teacherEmail, entry.teacherEmail2).length})`}
                         </button>
                       </td>
                     </tr>
@@ -1556,8 +1847,94 @@ ${BASE_CSS}
             </table>
           </div>
 
+          {/* REPORTE POR CENTRO UNIVERSITARIO */}
+          <div className="subtitle" style={{ marginTop: 20 }}>5. Reportes por Centro Universitario</div>
+          <div className="actions">
+            Informe consolidado por centro universitario, dirigido al director de centro. Incluye todos los docentes del centro y sus calificaciones.
+          </div>
+          <div style={{ marginTop: 10 }}>
+            {centerDirectors.length === 0 ? (
+              <div className="muted" style={{ fontSize: 12 }}>
+                No hay directores de centro registrados. Agregalos en{' '}
+                <a href="/centros-universitarios" style={{ color: '#1e40af', textDecoration: 'underline' }}>Centros Universitarios</a>.
+              </div>
+            ) : (
+              <>
+                <div style={{ marginBottom: 10 }}>
+                  <button
+                    type="button"
+                    className="primary"
+                    style={{ background: '#16a34a', color: '#fff' }}
+                    onClick={() => void sendAllCenterReports()}
+                  >
+                    Enviar a todos los directores ({centerDirectors.filter((d) => (entriesByCenter.get(d.campusCode) ?? []).length > 0 && d.email).length})
+                  </button>
+                </div>
+                <table className="table">
+                  <thead>
+                    <tr>
+                      <th>Centro</th>
+                      <th>Director</th>
+                      <th style={{ textAlign: 'center' }}>Docentes</th>
+                      <th style={{ textAlign: 'center' }}>Promedio</th>
+                      <th>Acciones</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {centerDirectors.map((d) => {
+                      const list = entriesByCenter.get(d.campusCode) ?? [];
+                      const ws = list.filter((e) => e.totalScore !== null);
+                      const avg = ws.length ? ws.reduce((s, e) => s + (e.totalScore ?? 0), 0) / ws.length : null;
+                      const label = d.campusName ?? d.campusCode;
+                      const html = buildCenterReport(d.campusCode, d.campusName ?? '', d.fullName, list, displayPeriod, moment, generatedAt);
+                      return (
+                        <tr key={d.id}>
+                          <td><strong>{label}</strong> <span className="muted" style={{ fontSize: 11 }}>({d.campusCode})</span></td>
+                          <td>{d.fullName}<br /><span style={{ fontSize: 11, color: '#6b7280' }}>{d.email}</span></td>
+                          <td style={{ textAlign: 'center' }}>{list.length}</td>
+                          <td style={{ textAlign: 'center' }}>{avg !== null ? avg.toFixed(1) : '—'}</td>
+                          <td>
+                            <button type="button" onClick={() => openPreview(html, `Informe centro ${label}`)}>Preview</button>{' '}
+                            <button
+                              type="button"
+                              className="primary"
+                              disabled={sendingCenterId === d.id || !list.length}
+                              style={{ background: '#16a34a', color: '#fff' }}
+                              onClick={() => void sendCenterReport(d)}
+                            >
+                              {sendingCenterId === d.id ? 'Enviando...' : 'Enviar'}
+                            </button>
+                          </td>
+                        </tr>
+                      );
+                    })}
+                    {/* Centros sin director */}
+                    {[...entriesByCenter.keys()]
+                      .filter((c) => !centerDirectors.some((d) => d.campusCode === c))
+                      .map((c) => {
+                        const list = entriesByCenter.get(c) ?? [];
+                        const ws = list.filter((e) => e.totalScore !== null);
+                        const avg = ws.length ? ws.reduce((s, e) => s + (e.totalScore ?? 0), 0) / ws.length : null;
+                        return (
+                          <tr key={`pending-${c}`} style={{ background: '#fef3c7' }}>
+                            <td><strong>{c}</strong></td>
+                            <td className="muted" style={{ fontSize: 11 }}>— sin director registrado —</td>
+                            <td style={{ textAlign: 'center' }}>{list.length}</td>
+                            <td style={{ textAlign: 'center' }}>{avg !== null ? avg.toFixed(1) : '—'}</td>
+                            <td>
+                              <a href="/centros-universitarios" style={{ fontSize: 11, color: '#854d0e', textDecoration: 'underline' }}>Asignar director</a>
+                            </td>
+                          </tr>
+                        );
+                      })}
+                  </tbody>
+                </table>
+              </>
+            )}
+          </div>
+
           {/* REPORTE DIRECTIVOS */}
-          <div className="subtitle" style={{ marginTop: 20 }}>5. Reportes para Directivos</div>
+          <div className="subtitle" style={{ marginTop: 20 }}>6. Reportes para Directivos</div>
           <div className="actions">
             Informe ejecutivo consolidado con KPIs institucionales, distribucion por coordinacion y analisis de bandas. Personalizable por audiencia.
           </div>

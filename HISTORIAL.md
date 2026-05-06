@@ -1054,4 +1054,168 @@ Botón "Filtros" muestra contador `Filtros (N)` cuando hay activos. Botón "Limp
 
 ---
 
-*Última actualización: 25 de abril de 2026*
+---
+
+## Sesión 25 de abril de 2026 (continuación) — Reorganización UI docentes + push GitHub
+
+### 47. Soporte para docentes que regresan a la institución
+
+**Problema:** Un docente que ya trabajó antes en UNIMINUTO y regresa no debe contar como NUEVO. Necesita marcarse manualmente.
+
+**Schema:** `apps/api/prisma/schema.prisma`
+- Campo nuevo `previousEmployment Boolean @default(false)` en model Teacher
+
+**API (`apps/api/src/modules/teachers/teachers.service.ts`):**
+- `UpsertTeacherSchema` extendido con `previousEmployment: z.boolean().optional()` + 8 campos contractuales adicionales (escalafon, dedicacion, tipoContrato, fechaInicio, fechaFin, antiguedadText, programaAcademico, programaCodigo)
+- `upsertOne()` ahora persiste todos estos campos en create + update
+- Helper `parseDateLocal()` interno para procesar strings de fecha desde el form
+
+**Frontend (`web-v2/app/_features/docentes/teachers-management-panel.tsx`):**
+- `classifyTeacher(fechaInicio, previousEmployment)` actualizado: si `previousEmployment === true`, devuelve `ANTIGUO` desde el primer día sin importar la fecha de inicio.
+- Tabla y modal usan ese flag al calcular el badge.
+- Filtro por Estado del docente respeta la nueva lógica.
+
+**Resultado:** docente regresado al sistema con flag activo aparece directamente como ANTIGUO. Política de evaluación correcta (insatisfactorio → evento significativo, no plan de inducción).
+
+---
+
+### 48. Match automático coordinador → docente en tabla y modal
+
+**Archivo:** `web-v2/app/_features/docentes/teachers-management-panel.tsx`
+
+Nuevas helpers globales:
+- `normalizeMatchKey(value)` — normaliza string (sin tildes, sólo alfanumérico, mayúsculas)
+- `findCoordinatorMatch(teacher, coordinators)` — cruza por:
+  1. `programaCodigo` exacto
+  2. `costCenter` exacto
+  3. `coordination` con prefix-match en cualquier dirección
+
+**UI:**
+- Nueva columna **Coordinador** en la tabla principal entre Coordinación y Sede
+  - Verde con nombre y correo si hay match
+  - Amarillo con "sin coordinador" si no hay
+- Modal "Ver ficha":
+  - Bloque verde "Coordinador asignado" cuando hay match
+  - Bloque amarillo de aviso cuando no hay coordinador para esa coordinación
+
+---
+
+### 49. Reorganización completa secciones del panel `/docentes`
+
+**Problema:** Antes había 7 secciones (1, 1.1, 2, 2.1, 2.5, 2.8, 3) muchas con propósito similar — formulario manual permanentemente visible aunque no se use, secciones de mantenimiento mezcladas.
+
+**Archivo:** `web-v2/app/_features/docentes/teachers-management-panel.tsx`
+
+**Estructura nueva:**
+
+| # | Sección | Comportamiento |
+|---|---|---|
+| 0) | Traer nombres y correos desde Banner | igual |
+| 1) | Tabla de docentes | igual + filtros + columna coordinador |
+| 1.1) | Tabla de coordinadores | igual |
+| 2) | Agregar / Editar docente | **colapsable** — botón principal "+ Agregar docente nuevo" o muestra "Editando: NOMBRE" cuando hay edit en curso |
+| 2.1) | Agregar / Editar coordinador | **colapsable** — mismo patrón |
+| 3) | Importar y mantenimiento | **toggle único** que muestra/oculta 3.1 (depuración), 3.2 (limpiar lote Banner), 3.3 (importar CSV/Excel) |
+
+**Estados nuevos:**
+- `showTeacherForm`, `showCoordinatorForm`, `showMaintenance` — controlan visibilidad de cada bloque
+- Al iniciar edición desde tabla o modal, el form se abre automáticamente
+- Botón "Cancelar edición" rojo en modo edit
+
+**Form expandido (sección 2):**
+
+Tres bloques visualmente diferenciados con título azul institucional:
+
+1. **Identidad** — id, sourceId, cédula, nombre, correo, correo2
+2. **Ubicación y programa** — sede, región, centro costo, coordinación, programa académico, código programa
+3. **Vinculación contractual** — escalafón (select), dedicación (select), tipo contrato (select), fecha inicio (date picker), fecha fin (date picker), antigüedad (texto libre)
+4. **Historial (caja amarilla):** checkbox "Ya trabajó antes en UNIMINUTO (regreso a la institución)" con explicación
+
+Botones al final: "Crear docente" / "Guardar cambios" según modo + Cancelar.
+
+**Form coordinador (sección 2.1):** mismos campos previos pero ahora colapsable.
+
+---
+
+### 50. Botón "Editar este docente" en modal Ver ficha
+
+**Archivo:** `web-v2/app/_features/docentes/teachers-management-panel.tsx`
+
+El modal ahora tiene un botón al final que:
+1. Carga todos los datos del docente al `form` state (incluidos los 9 campos nuevos)
+2. Activa `editingTeacherId` y `showTeacherForm`
+3. Cierra el modal
+4. Hace `window.scrollTo` al inicio para que el usuario vea el formulario
+
+Permite editar sin cerrar manualmente la ficha y buscar el botón "Editar" en la fila.
+
+---
+
+### 51. .gitignore actualizado y runtime files removidos del repo
+
+**Archivo:** `.gitignore`
+
+Líneas nuevas:
+```
+storage/runtime
+.env.local
+**/.env.local
+```
+
+**Removidos del index** (vía `git rm --cached`):
+- `storage/runtime/dev-stack/api.log`, `web.log`, `worker.log`
+- `storage/runtime/dev-stack/api.pid`, `web.pid`, `worker.pid`
+- `storage/runtime/dev-stack/stack.env`
+- `storage/runtime/banner/runner-config.json`
+- `storage/outputs/banner-runs/runner-state.json`
+- `web-v2/.env.local`
+
+Estos archivos ahora son locales y nunca van al repo. Cada desarrollador genera los suyos al arrancar el stack.
+
+---
+
+### 52. Push a GitHub origin/main
+
+**Commit:** `baa187a` — "feat: Banner SPAIDEN, datos enriquecidos docentes, mantenimiento UI"
+
+**URL:** https://github.com/vmasterdev/seguimiento-aulas-system/commit/baa187a
+
+Incluye toda la sesión: cambios #39-51.
+
+---
+
+## Estado actual del sistema (snapshot 25-abr-2026)
+
+### Datos en BD
+- 245 docentes con todos los campos contractuales
+- 245/245 con nombre y correo desde Banner SPAIDEN
+- IDs Banner correctamente vinculados
+- Bandas calificación: 91-100/80-90/70-79/0-69
+
+### Flujos operativos validados
+1. Sincronización SPAIDEN end-to-end (login → guardar sesión → traer datos)
+2. Limpieza de procesos Edge cuando perfil bloqueado
+3. Importación CSV enriquecido con 17 columnas
+4. Edición de cualquier campo de docente desde el panel
+5. Reportes cierre con bandas correctas y envío individual/masivo
+6. Detección automática NUEVO/ANTIGUO/SIN_CONTRATO
+7. Match coordinador↔docente por programa
+
+### Reglas institucionales codificadas
+- **NUEVO:** contratado en año actual + nunca trabajó antes en UNIMINUTO
+- **ANTIGUO:** fecha_inicio en años anteriores O `previousEmployment === true`
+- **NUEVO insatisfactorio:** plan de inducción (sin sanción)
+- **ANTIGUO insatisfactorio:** evento significativo en hoja de vida
+- **Transición NUEVO → ANTIGUO:** ≥8 semanas en institución + completar un momento de evaluación
+
+### Próximos pasos sugeridos para futura sesión / otra IA
+- Implementar generación automática de "evento significativo" para ANTIGUOS insatisfactorios
+- Crear vista de reporte cruzada Coordinación × Escalafón × Promedio
+- Agregar alertas de fin de contrato a un dashboard ejecutivo
+- KPI de retención M1 → M2 por coordinación
+- Exportador de "lista de inducción" (NUEVOS sin haber pasado momento)
+- Extensión navegador para búsqueda rápida de NRCs (planeada pero no implementada)
+
+---
+
+*Última actualización: 25 de abril de 2026 — Commit baa187a en origin/main*

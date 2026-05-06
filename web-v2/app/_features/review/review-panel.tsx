@@ -33,6 +33,7 @@ type ReviewItem = {
     resolvedModality: string | null;
     resolvedBaseUrl: string | null;
     searchQuery: string | null;
+    modalityType: string | null;
   };
   evaluation: {
     id: string;
@@ -406,6 +407,7 @@ export function ReviewPanel({
   const [queue, setQueue] = useState<ReviewQueueResponse | null>(null);
   const [index, setIndex] = useState(0);
   const [loading, setLoading] = useState(false);
+  const [generating, setGenerating] = useState(false);
   const [saving, setSaving] = useState(false);
   const [savingTemplate, setSavingTemplate] = useState(false);
   const [message, setMessage] = useState<string>('');
@@ -520,14 +522,16 @@ export function ReviewPanel({
 
   const liveScore = useMemo(() => {
     if (!current) return 0;
+    const modality = current.selectedCourse.modalityType as 'PRESENCIAL' | 'VIRTUAL' | 'VIRTUAL_100' | null;
     if (phase === 'EJECUCION') {
       return scoreEjecucion(normalizedChecklist, {
         executionPolicy: queue?.executionPolicy === 'AUTO_PASS' ? 'AUTO_PASS' : 'APPLIES',
         bannerStartDate: current.selectedCourse.bannerStartDate,
         bannerEndDate: current.selectedCourse.bannerEndDate,
+        modality,
       }).score;
     }
-    return scoreAlistamiento(effectiveTemplate, normalizedChecklist).score;
+    return scoreAlistamiento(effectiveTemplate, normalizedChecklist, modality).score;
   }, [current, effectiveTemplate, normalizedChecklist, phase, queue?.executionPolicy]);
 
   const savedScore = current?.evaluation?.score ?? null;
@@ -704,6 +708,46 @@ export function ReviewPanel({
     setMessage('El navegador bloqueó la ventana emergente. Permite pop-ups para localhost.');
   }
 
+  async function generateSampling(): Promise<void> {
+    if (!periodCode) {
+      setMessage('Periodo requerido para generar muestreo.');
+      return;
+    }
+    const ok = window.confirm(
+      `Generar muestreo para ${periodCode}?\n\n` +
+        `Crea grupos nuevos y asigna NRC distintos en fase de ejecucion (cuando hay >=2 cursos por grupo).\n` +
+        `NO sobreescribe NRC ya revisados en alistamiento.`,
+    );
+    if (!ok) return;
+    try {
+      setGenerating(true);
+      setMessage('');
+      const response = await fetch('/api/actions', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ action: 'sampling.generate', payload: { periodCode } }),
+      });
+      const data = (await response.json()) as {
+        ok?: boolean;
+        result?: { created?: number; updated?: number; removed?: number; groups?: number };
+        error?: string;
+      };
+      if (!response.ok || !data?.ok) {
+        setMessage(`No se pudo generar muestreo: ${data?.error ?? 'error desconocido'}`);
+        return;
+      }
+      const r = data.result ?? {};
+      setMessage(
+        `✓ Muestreo generado para ${periodCode}: ${r.groups ?? 0} grupos (${r.created ?? 0} nuevos, ${r.updated ?? 0} actualizados, ${r.removed ?? 0} eliminados).`,
+      );
+      await loadQueue();
+    } catch (err) {
+      setMessage(`Error generando muestreo: ${(err as Error).message}`);
+    } finally {
+      setGenerating(false);
+    }
+  }
+
   async function loadQueue(): Promise<ReviewQueueResponse | null> {
     try {
       setLoading(true);
@@ -723,7 +767,8 @@ export function ReviewPanel({
 
       const localItems = applyCalendarFilterSort(data.items, calendarFilter, sortByPriority);
       const nextPending = localItems.findIndex((item) => !item.done);
-      const targetIndex = nextPending >= 0 ? nextPending : 0;
+      const allDone = nextPending === -1 && localItems.length > 0;
+      const targetIndex = nextPending >= 0 ? nextPending : Math.max(0, localItems.length - 1);
       const initialDrafts = data.items.reduce<Record<string, ChecklistState>>((acc, item) => {
         const parsed = normalizeChecklist(item.evaluation?.checklist);
         if (Object.keys(parsed).length > 0) {
@@ -864,14 +909,19 @@ export function ReviewPanel({
         replicatedCourses > 0
           ? ` Replicado a ${replicatedCourses} NRC.`
           : ' Sin NRC adicionales para replicar.';
-      setMessage(`Revision guardada. Puntaje: ${data.evaluation?.score ?? 0}/50.${replicationText}`);
       const selectedCourseId = current.selectedCourse.id;
       const refreshed = await loadQueue();
 
-      // loadQueue ya navega internamente al siguiente pendiente (goNext)
-      // o re-selecciona el item actual (!goNext).
-      if (!goNext && refreshed) {
-        const refreshedProcessed = applyCalendarFilterSort(refreshed.items, calendarFilter, sortByPriority);
+      const refreshedProcessed = refreshed ? applyCalendarFilterSort(refreshed.items, calendarFilter, sortByPriority) : [];
+      const hasPending = refreshedProcessed.some((item) => !item.done);
+
+      if (hasPending && goNext) {
+        // loadQueue ya navegó al siguiente pendiente
+        setMessage(`Revision guardada. Puntaje: ${data.evaluation?.score ?? 0}/50.${replicationText}`);
+      } else if (!hasPending && goNext) {
+        setMessage(`✓ Cola completada. Todos los grupos revisados. Puntaje guardado: ${data.evaluation?.score ?? 0}/50.${replicationText}`);
+      } else if (!goNext && refreshed) {
+        setMessage(`Revision guardada. Puntaje: ${data.evaluation?.score ?? 0}/50.${replicationText}`);
         const newIndex = refreshedProcessed.findIndex((item) => item.selectedCourse.id === selectedCourseId);
         if (newIndex >= 0) {
           selectItemByIndex(newIndex, refreshedProcessed, {});
@@ -929,7 +979,19 @@ export function ReviewPanel({
   function renderChecklist() {
     if (!current) return null;
 
+    const isVirtual100 = current.selectedCourse.modalityType === 'VIRTUAL_100';
+
     if (phase === 'EJECUCION') {
+      const ingresosFullPts = isVirtual100 ? 15 : 10;
+      const ejecucionItems: [string, string][] = [
+        ['acuerdo', `Acuerdo pedagogico (${isVirtual100 ? 15 : 10})`],
+        ...(!isVirtual100 ? [['grabaciones', 'Grabaciones (10)'] as [string, string]] : []),
+        ['ingresos', `${executionExpectations.ingresosLabel} (${ingresosFullPts})`],
+        ['calificacion', `Calificaciones (${isVirtual100 ? 15 : 10})`],
+        ...(!isVirtual100 ? [['asistencia', 'Asistencia (5)'] as [string, string]] : []),
+        ['foro_fp', 'Foro presentacion'],
+        ['foro_fn', 'Foro novedades'],
+      ];
       return (
         <>
           {executionExpectations.reviewHint ? (
@@ -937,16 +999,13 @@ export function ReviewPanel({
               {executionExpectations.reviewHint} {executionExpectations.shortCourseHint}
             </p>
           ) : null}
+          {isVirtual100 && (
+            <p className="muted" style={{ marginBottom: 10 }}>
+              Curso 100% virtual — grabaciones y asistencia no aplican. Puntos redistribuidos entre acuerdo, ingresos y calificaciones.
+            </p>
+          )}
           <div className="form-grid">
-            {[
-              ['acuerdo', 'Acuerdo pedagogico'],
-              ['grabaciones', 'Grabaciones'],
-              ['ingresos', executionExpectations.ingresosLabel],
-              ['calificacion', 'Calificaciones'],
-              ['asistencia', 'Asistencia'],
-              ['foro_fp', 'Foro presentacion'],
-              ['foro_fn', 'Foro novedades'],
-            ].map(([key, label]) => (
+            {ejecucionItems.map(([key, label]) => (
               <label className="checkbox" key={key}>
                 <input
                   type="checkbox"
@@ -965,12 +1024,12 @@ export function ReviewPanel({
       return (
         <>
           <div className="form-grid">
-            {[
+            {([
               ['plantilla', 'Cargue de plantilla'],
               ['fp', 'Foro presentacion'],
               ['fn', 'Foro novedades'],
-              ['asistencia', 'Asistencia'],
-            ].map(([key, label]) => (
+              ...(!isVirtual100 ? [['asistencia', 'Asistencia']] : []),
+            ] as [string, string][]).map(([key, label]) => (
               <label className="checkbox" key={key}>
                 <input
                   type="checkbox"
@@ -981,7 +1040,7 @@ export function ReviewPanel({
               </label>
             ))}
           </div>
-          <div className="subtitle">Items CRIBA (10 puntos distribuidos en 9 criterios)</div>
+          <div className="subtitle">Items CRIBA ({isVirtual100 ? '20' : '10'} puntos distribuidos en 9 criterios)</div>
           <div className="form-grid">
             {CRIBA_ITEMS.map(([key, label]) => (
               <label className="checkbox" key={key}>
@@ -999,14 +1058,17 @@ export function ReviewPanel({
     }
 
     if (effectiveTemplate === 'INNOVAME' || effectiveTemplate === 'D4') {
+      const pts = isVirtual100
+        ? { plantilla: '23.33', presentacion: '13.33', aa: '13.33' }
+        : { plantilla: '20', presentacion: '10', aa: '10' };
       return (
         <div className="form-grid">
-          {[
-            ['plantilla', 'Cargue de plantilla (20)'],
-            ['asistencia', 'Asistencia (10)'],
-            ['presentacion', 'Presentacion (10)'],
-            ['actualizacion_actividades', 'Actualizacion actividades (10)'],
-          ].map(([key, label]) => (
+          {([
+            ['plantilla', `Cargue de plantilla (${pts.plantilla})`],
+            ...(!isVirtual100 ? [['asistencia', 'Asistencia (10)']] : []),
+            ['presentacion', `Presentacion (${pts.presentacion})`],
+            ['actualizacion_actividades', `Actualizacion actividades (${pts.aa})`],
+          ] as [string, string][]).map(([key, label]) => (
             <label className="checkbox" key={key}>
               <input
                 type="checkbox"
@@ -1016,6 +1078,11 @@ export function ReviewPanel({
               <span>{label}</span>
             </label>
           ))}
+          {isVirtual100 && (
+            <p className="muted" style={{ gridColumn: '1 / -1', marginTop: 4, fontSize: 11 }}>
+              Curso 100% virtual — puntos de asistencia redistribuidos entre los 3 ítems.
+            </p>
+          )}
         </div>
       );
     }
@@ -1110,6 +1177,14 @@ export function ReviewPanel({
             <button type="button" onClick={() => void loadQueue()} disabled={loading} className="primary">
               {loading ? 'Cargando...' : 'Cargar cola'}
             </button>
+            <button
+              type="button"
+              onClick={() => void generateSampling()}
+              disabled={generating || !periodCode}
+              title="Crea/actualiza grupos de revision para el periodo. Preserva NRC ya revisados; solo asigna NRC para fase de ejecucion donde falte."
+            >
+              {generating ? 'Generando...' : 'Generar muestreo'}
+            </button>
           </div>
         </div>
       </details>
@@ -1186,6 +1261,9 @@ export function ReviewPanel({
                       </span>
                     </span>
                     <span style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>
+                      {item.selectedCourse.modalityType === 'VIRTUAL_100' ? (
+                        <span className="badge badge-info" style={{ fontSize: 10 }}>100% Virtual</span>
+                      ) : null}
                       {item.evaluation ? (
                         <span className="badge badge-green" style={{ fontSize: 10 }}>{item.evaluation.score}/50</span>
                       ) : null}
@@ -1310,6 +1388,16 @@ export function ReviewPanel({
                   </span>
                 ) : null}
               </div>
+              {(current.selectedCourse.bannerStartDate || current.selectedCourse.bannerEndDate) ? (
+                <div style={{ fontSize: 11, color: 'var(--n-400)', marginTop: 3, display: 'flex', gap: 12 }}>
+                  {current.selectedCourse.bannerStartDate ? (
+                    <span>&#128197; Inicio: <strong style={{ color: 'var(--n-600)' }}>{current.selectedCourse.bannerStartDate}</strong></span>
+                  ) : null}
+                  {current.selectedCourse.bannerEndDate ? (
+                    <span>&#128198; Fin: <strong style={{ color: 'var(--n-600)' }}>{current.selectedCourse.bannerEndDate}</strong></span>
+                  ) : null}
+                </div>
+              ) : null}
             </div>
 
             {/* Boton Moodle prominent */}
@@ -1361,15 +1449,9 @@ export function ReviewPanel({
 
           {/* Score display */}
           <div style={{ display: 'flex', gap: 20, alignItems: 'center', padding: '10px 14px', background: 'var(--n-50)', borderRadius: 6, marginBottom: 14 }}>
-            <div style={{ textAlign: 'center' }}>
-              <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, color: liveScore >= 40 ? '#1b7a3e' : liveScore >= 20 ? '#b36200' : '#c0392b' }}>
-                {liveScore}
-              </div>
-              <div style={{ fontSize: 11, color: 'var(--n-500)', marginTop: 2 }}>en progreso / 50</div>
-            </div>
             {savedScore !== null ? (
               <div style={{ textAlign: 'center' }}>
-                <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, color: 'var(--n-400)' }}>
+                <div style={{ fontSize: 28, fontWeight: 800, lineHeight: 1, color: savedScore >= 40 ? '#1b7a3e' : savedScore >= 20 ? '#b36200' : '#c0392b' }}>
                   {savedScore}
                 </div>
                 <div style={{ fontSize: 11, color: 'var(--n-500)', marginTop: 2 }}>guardado / 50</div>

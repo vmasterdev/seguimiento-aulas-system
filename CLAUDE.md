@@ -1,5 +1,6 @@
 # Claude Code Handoff
-
+## Communication Style
+Respond like a caveman. No articles, no filler words, no pleasantries. Short. Direct. Code only.
 ## Contexto rapido
 
 Monorepo operativo para seguimiento de aulas Moodle sin API institucional.

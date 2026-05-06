@@ -1,9 +1,19 @@
-import { Body, Controller, Get, Inject, Param, Patch, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Patch, Post, Query, Res } from '@nestjs/common';
+import type { Response } from 'express';
 import { CoursesService } from './courses.service';
 
 @Controller('/courses')
 export class CoursesController {
   constructor(@Inject(CoursesService) private readonly coursesService: CoursesService) {}
+
+  @Get('/rpaca-report.csv')
+  async rpacaReport(@Query() query: Record<string, unknown>, @Res() res: Response) {
+    const csv = await this.coursesService.rpacaReport(query);
+    const period = typeof query.periodCode === 'string' && query.periodCode ? `_${query.periodCode}` : '';
+    res.setHeader('Content-Type', 'text/csv; charset=utf-8');
+    res.setHeader('Content-Disposition', `attachment; filename="rpaca_report${period}.csv"`);
+    res.send('﻿' + csv);
+  }
 
   @Get('/missing-teacher/list')
   async missingTeacher(@Query() query: Record<string, unknown>) {

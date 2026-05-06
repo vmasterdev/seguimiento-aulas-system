@@ -26,13 +26,13 @@ const ImportBodySchema = z.object({
   modality: z.string().trim().optional(),
   semester: z.coerce.number().int().min(1).max(2).optional(),
   executionPolicy: z.enum(['APPLIES', 'AUTO_PASS']).optional(),
-  preserveTeacherAssignment: z.coerce.boolean().optional().default(true),
-  createOnly: z.coerce.boolean().optional().default(false),
+  preserveTeacherAssignment: z.preprocess((v) => v === 'true' || v === true ? true : v === 'false' || v === false ? false : v, z.boolean()).optional().default(true),
+  createOnly: z.preprocess((v) => v === 'true' || v === true ? true : v === 'false' || v === false ? false : v, z.boolean()).optional().default(false),
 });
 
 const ImportTeachersBodySchema = z.object({
   sheetName: z.string().trim().optional(),
-  includeCoordinators: z.coerce.boolean().optional().default(true),
+  includeCoordinators: z.preprocess((v) => v === 'true' || v === true ? true : v === 'false' || v === false ? false : v, z.boolean()).optional().default(true),
 });
 
 const NRC_KEYS = ['nrc', 'id_nrc', 'codigo_nrc'];
@@ -72,6 +72,16 @@ const START_DATE_KEYS = ['fecha_inicial_1', 'fecha_inicio', 'start_date', 'fecha
 const END_DATE_KEYS = ['fecha_final_1', 'fecha_fin', 'end_date', 'fecha_final'];
 const SALON_KEYS = ['salon'];
 const SALON1_KEYS = ['salon1'];
+const EDIFICIO_KEYS = ['edificio', 'edif'];
+const HORA_INICIO_KEYS = ['hi', 'hora_inicio', 'hora_inicial'];
+const HORA_FIN_KEYS = ['hf', 'hora_fin', 'hora_final'];
+const DIA_L_KEYS = ['l', 'lunes'];
+const DIA_M_KEYS = ['m', 'martes'];
+const DIA_I_KEYS = ['i', 'miercoles', 'miércoles'];
+const DIA_J_KEYS = ['j', 'jueves'];
+const DIA_V_KEYS = ['v', 'viernes'];
+const DIA_S_KEYS = ['s', 'sabado', 'sábado'];
+const DIA_D_KEYS = ['d', 'domingo'];
 const TEMPLATE_KEYS = ['tipo_aula', 'plantilla', 'template'];
 const D4_KEYS = ['d4', 'd4_flag', 'distancia_4_0'];
 const COORDINATOR_PROGRAM_KEYS = ['id', 'programa', 'centrocosto', 'responsable'];
@@ -120,8 +130,16 @@ function pickValue(row: Record<string, string>, candidates: string[]): string {
   }
 
   const keys = Object.keys(row);
+  // Case-insensitive exact match
   for (const candidate of candidates) {
-    const fuzzyKey = keys.find((key) => key.includes(candidate));
+    const exactKey = keys.find((key) => key.trim().toLowerCase() === candidate.toLowerCase());
+    if (exactKey && row[exactKey]) return row[exactKey];
+  }
+
+  // Fuzzy: only if candidate is longer than 2 chars (avoid single-letter false matches)
+  for (const candidate of candidates) {
+    if (candidate.length <= 2) continue;
+    const fuzzyKey = keys.find((key) => key.toLowerCase().includes(candidate.toLowerCase()));
     if (fuzzyKey && row[fuzzyKey]) return row[fuzzyKey];
   }
 
@@ -360,8 +378,8 @@ export class ImportService {
     const importStartedAt = new Date();
     const importStartedAtIso = importStartedAt.toISOString();
     const importId = `rpaca_${importStartedAt.toISOString().replace(/[:.]/g, '-')}`;
-    const preserveTeacherAssignment = body.preserveTeacherAssignment ?? true;
-    const createOnly = body.createOnly ?? false;
+    const preserveTeacherAssignment = body.preserveTeacherAssignment === false ? false : true;
+    const createOnly = body.createOnly === true;
 
     let totalRows = 0;
     let createdCourses = 0;
@@ -548,6 +566,31 @@ export class ImportService {
             : (teacherIdCandidate || null);
           if (teacherPreserved) preservedTeacherAssignments += 1;
 
+          const edificio = (pickValue(row, EDIFICIO_KEYS) || '').toString().trim().toUpperCase() || null;
+          const horaInicio = pickValue(row, HORA_INICIO_KEYS) || null;
+          const horaFin = pickValue(row, HORA_FIN_KEYS) || null;
+          const diaL = (pickValue(row, DIA_L_KEYS) || '').toString().trim();
+          const diaM = (pickValue(row, DIA_M_KEYS) || '').toString().trim();
+          const diaI = (pickValue(row, DIA_I_KEYS) || '').toString().trim();
+          const diaJ = (pickValue(row, DIA_J_KEYS) || '').toString().trim();
+          const diaV = (pickValue(row, DIA_V_KEYS) || '').toString().trim();
+          const diaS = (pickValue(row, DIA_S_KEYS) || '').toString().trim();
+          const diaD = (pickValue(row, DIA_D_KEYS) || '').toString().trim();
+          const dias = [
+            diaL ? 'L' : '_',
+            diaM ? 'M' : '_',
+            diaI ? 'I' : '_',
+            diaJ ? 'J' : '_',
+            diaV ? 'V' : '_',
+            diaS ? 'S' : '_',
+            diaD ? 'D' : '_',
+          ].join('');
+          const hasAnyDay = dias.replace(/_/g, '').length > 0;
+          const isVirtu = edificio?.startsWith('VIRTU') || false;
+          const modalityType: 'PRESENCIAL' | 'VIRTUAL' | 'VIRTUAL_100' = isVirtu
+            ? hasAnyDay ? 'VIRTUAL' : 'VIRTUAL_100'
+            : 'PRESENCIAL';
+
           const courseData = {
             nrc,
             periodId: period.id,
@@ -561,6 +604,11 @@ export class ImportService {
             bannerEndDate,
             salon: pickValue(row, SALON_KEYS) || null,
             salon1: pickValue(row, SALON1_KEYS) || null,
+            edificio,
+            horaInicio: horaInicio ? String(horaInicio) : null,
+            horaFin: horaFin ? String(horaFin) : null,
+            dias: hasAnyDay || isVirtu ? dias : null,
+            modalityType,
             templateDeclared,
             d4FlagLegacy,
             rawJson: this.buildCourseRawJson({

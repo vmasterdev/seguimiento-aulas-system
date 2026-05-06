@@ -490,16 +490,22 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
               onChange={(event) => setRpacaFiles(Array.from(event.target.files ?? []))}
               id="rpaca-file-input"
             />
-            <span
-              role="button"
-              tabIndex={0}
-              onClick={() => document.getElementById('rpaca-file-input')?.click()}
-              onKeyDown={(e) => e.key === 'Enter' && document.getElementById('rpaca-file-input')?.click()}
-              style={{ cursor: 'pointer', textDecoration: 'underline', userSelect: 'none' }}
-            >
+            <span style={{ cursor: 'pointer', textDecoration: 'underline', userSelect: 'none' }}>
               Elegir CSV
             </span>
           </label>
+          <button
+            type="button"
+            className="btn-secondary"
+            style={{ fontWeight: 600 }}
+            onClick={() => {
+              const params = new URLSearchParams();
+              if (selectedPeriodCodes.length === 1) params.set('periodCode', selectedPeriodCodes[0]);
+              window.open(`${apiBase}/courses/rpaca-report.csv?${params.toString()}`, '_blank');
+            }}
+          >
+            Descargar reporte
+          </button>
           <button
             type="button"
             className="btn-primary"

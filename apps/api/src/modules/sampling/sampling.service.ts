@@ -71,6 +71,34 @@ export class SamplingService {
     return courses[index];
   }
 
+  private pickRepresentativeForPhase<T extends { id: string; nrc: string; templateDeclared?: string | null; evaluations: Array<{ phase: string; checklist: unknown; computedAt: Date; [key: string]: unknown }> }>(
+    courses: T[],
+    key: string,
+    seed: string,
+    phase: 'ALISTAMIENTO' | 'EJECUCION',
+    excludeCourseId: string | null,
+  ): T {
+    const phaseEvalCount = (course: T) =>
+      course.evaluations.filter((e) => e.phase === phase && hasSavedEvaluation(e.checklist)).length;
+
+    const reusable = courses
+      .filter((course) => phaseEvalCount(course) > 0)
+      .sort((left, right) => {
+        const diff = phaseEvalCount(right) - phaseEvalCount(left);
+        if (diff !== 0) return diff;
+        return left.nrc.localeCompare(right.nrc);
+      });
+
+    if (reusable.length) return reusable[0];
+
+    const eligibles = excludeCourseId && courses.length > 1
+      ? courses.filter((c) => c.id !== excludeCourseId)
+      : courses;
+    const pool = eligibles.length ? eligibles : courses;
+    const index = buildDeterministicIndex(`${seed}:${phase}`, [key], pool.length);
+    return pool[index];
+  }
+
   private async reconcileGroupEvaluations<T extends { id: string; evaluations: Array<{
     phase: string;
     checklist: unknown;
@@ -198,9 +226,17 @@ export class SamplingService {
       groups.set(key, current);
     }
 
-    await this.prisma.sampleGroup.deleteMany({ where: { periodId: period.id } });
+    const existingGroups = await this.prisma.sampleGroup.findMany({
+      where: { periodId: period.id },
+    });
+    const existingByKey = new Map<string, typeof existingGroups[number]>();
+    for (const g of existingGroups) {
+      const familyKey = [g.teacherId, g.programCode, g.moment, getTemplateReplicationFamily(g.template)].join('|');
+      existingByKey.set(familyKey, g);
+    }
 
     let created = 0;
+    let updated = 0;
     let reusedGroups = 0;
     let reusedEvaluations = 0;
     const preview: Array<Record<string, string>> = [];
@@ -208,9 +244,39 @@ export class SamplingService {
     for (const [key, courses] of groups.entries()) {
       if (!courses.length) continue;
       const [teacherId, programCode, moment] = key.split('|');
-      const selected = this.pickRepresentativeCourse(courses, key, seed);
+      const existing = existingByKey.get(key);
+
+      if (existing) {
+        // Preservar selectedCourseId. Solo completar selectedCourseIdEjecucion si falta.
+        if (!existing.selectedCourseIdEjecucion) {
+          const ejecPick = this.pickRepresentativeForPhase(courses, key, seed, 'EJECUCION', existing.selectedCourseId);
+          await this.prisma.sampleGroup.update({
+            where: { id: existing.id },
+            data: { selectedCourseIdEjecucion: ejecPick.id },
+          });
+          updated += 1;
+          if (preview.length < 30) {
+            preview.push({
+              teacherId,
+              programCode,
+              moment,
+              modality: period.modality,
+              template: existing.template,
+              alisNrc: courses.find((c) => c.id === existing.selectedCourseId)?.nrc ?? '',
+              ejecNrc: ejecPick.nrc,
+              status: 'updated-ejec',
+            });
+          }
+        }
+        existingByKey.delete(key);
+        continue;
+      }
+
+      // Grupo nuevo: pickea ALIS y EJEC distintos si hay >=2 cursos
+      const alisPick = this.pickRepresentativeForPhase(courses, key, seed, 'ALISTAMIENTO', null);
+      const ejecPick = this.pickRepresentativeForPhase(courses, key, seed, 'EJECUCION', alisPick.id);
       const selectedTemplate = normalizeTemplate(
-        selected.moodleCheck?.detectedTemplate ?? selected.templateDeclared ?? 'UNKNOWN',
+        alisPick.moodleCheck?.detectedTemplate ?? alisPick.templateDeclared ?? 'UNKNOWN',
       );
 
       await this.prisma.sampleGroup.create({
@@ -221,12 +287,13 @@ export class SamplingService {
           moment,
           modality: period.modality,
           template: selectedTemplate,
-          selectedCourseId: selected.id,
+          selectedCourseId: alisPick.id,
+          selectedCourseIdEjecucion: ejecPick.id,
           selectionSeed: seed,
         },
       });
 
-      const reconciliation = await this.reconcileGroupEvaluations(selected, courses);
+      const reconciliation = await this.reconcileGroupEvaluations(alisPick, courses);
       created += 1;
       reusedGroups += reconciliation.groupsReused;
       reusedEvaluations += reconciliation.reusedEvaluations;
@@ -237,9 +304,18 @@ export class SamplingService {
           moment,
           modality: period.modality,
           template: selectedTemplate,
-          selectedNrc: selected.nrc,
+          alisNrc: alisPick.nrc,
+          ejecNrc: ejecPick.nrc,
+          status: 'created',
         });
       }
+    }
+
+    // Eliminar grupos que ya no aplican (teacher/programa quedó sin cursos elegibles)
+    let removed = 0;
+    for (const [, stale] of existingByKey) {
+      await this.prisma.sampleGroup.delete({ where: { id: stale.id } });
+      removed += 1;
     }
 
     return {
@@ -249,6 +325,8 @@ export class SamplingService {
       candidateCourses: reviewableCandidates.length,
       groups: groups.size,
       created,
+      updated,
+      removed,
       reusedGroups,
       reusedEvaluations,
       preview,
@@ -352,6 +430,7 @@ export class SamplingService {
               resolvedModality: course.moodleCheck?.resolvedModality ?? null,
               resolvedBaseUrl: course.moodleCheck?.resolvedBaseUrl ?? null,
               searchQuery: course.moodleCheck?.searchQuery ?? null,
+              modalityType: course.modalityType ?? null,
             },
             evaluation: evaluation
               ? {
@@ -416,25 +495,42 @@ export class SamplingService {
             },
           },
         },
+        selectedCourseEjecucion: {
+          include: {
+            teacher: true,
+            moodleCheck: true,
+            evaluations: {
+              where: { phase: params.phase },
+              take: 1,
+            },
+          },
+        },
       },
       orderBy: [{ createdAt: 'asc' }],
     });
 
+    const pickForPhase = (group: typeof groups[number]) =>
+      params.phase === 'EJECUCION' && group.selectedCourseEjecucion
+        ? group.selectedCourseEjecucion
+        : group.selectedCourse;
+
     const items = groups
-      .filter((group) => group.selectedCourse)
+      .filter((group) => pickForPhase(group))
       .filter(
-        (group) =>
-          !isCourseExcludedFromReview({
-            rawJson: group.selectedCourse?.rawJson,
+        (group) => {
+          const sel = pickForPhase(group);
+          return !isCourseExcludedFromReview({
+            rawJson: sel?.rawJson,
             template:
-              group.selectedCourse?.moodleCheck?.detectedTemplate ??
-              group.selectedCourse?.templateDeclared ??
+              sel?.moodleCheck?.detectedTemplate ??
+              sel?.templateDeclared ??
               group.template,
-            moodleCheck: group.selectedCourse?.moodleCheck,
-          }),
+            moodleCheck: sel?.moodleCheck,
+          });
+        },
       )
       .map((group) => {
-        const selected = group.selectedCourse!;
+        const selected = pickForPhase(group)!;
         const evaluation = selected.evaluations[0] ?? null;
         const checklist = parseChecklist(evaluation?.checklist);
         const done = !!evaluation && hasSavedEvaluation(evaluation.checklist);
@@ -470,6 +566,7 @@ export class SamplingService {
             resolvedModality: selected.moodleCheck?.resolvedModality ?? null,
             resolvedBaseUrl: selected.moodleCheck?.resolvedBaseUrl ?? null,
             searchQuery: selected.moodleCheck?.searchQuery ?? null,
+            modalityType: selected.modalityType ?? null,
           },
           evaluation: evaluation
             ? {
@@ -522,20 +619,32 @@ export class SamplingService {
             },
           },
         },
+        selectedCourseEjecucion: {
+          include: {
+            moodleCheck: true,
+            evaluations: {
+              where: { phase: params.phase },
+              take: 1,
+            },
+          },
+        },
       },
     });
 
     const reviewedNrcInPeriod = progressGroups.reduce((acc, group) => {
+      const sel = params.phase === 'EJECUCION' && group.selectedCourseEjecucion
+        ? group.selectedCourseEjecucion
+        : group.selectedCourse;
       if (
         isCourseExcludedFromReview({
-          rawJson: group.selectedCourse?.rawJson,
-          template: group.selectedCourse?.moodleCheck?.detectedTemplate ?? group.selectedCourse?.templateDeclared ?? 'UNKNOWN',
-          moodleCheck: group.selectedCourse?.moodleCheck,
+          rawJson: sel?.rawJson,
+          template: sel?.moodleCheck?.detectedTemplate ?? sel?.templateDeclared ?? 'UNKNOWN',
+          moodleCheck: sel?.moodleCheck,
         })
       ) {
         return acc;
       }
-      const evaluation = group.selectedCourse?.evaluations[0];
+      const evaluation = sel?.evaluations[0];
       const done = !!evaluation && hasSavedEvaluation(evaluation.checklist);
       return done ? acc + 1 : acc;
     }, 0);

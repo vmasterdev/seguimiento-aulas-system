@@ -8,11 +8,17 @@ export type MainMenuSection =
   | 'rpaca'
   | 'docentes'
   | 'banner-docentes'
+  | 'centros-universitarios'
+  | 'aulas-estandar'
+  | 'horarios'
+  | 'recargos-nocturnos'
+  | 'metricas-uso'
   | 'review'
   | 'nrc-prioridad'
   | 'nrc-globales'
   | 'nrc-trazabilidad'
   | 'correos'
+  | 'bienestar'
   | 'automatizacion-banner'
   | 'automatizacion-moodle'
   | 'analitica-moodle'
@@ -140,11 +146,17 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/rpaca', label: 'Carga RPACA', section: 'rpaca', icon: ICON_UPLOAD, group: 'data' },
   { href: '/docentes', label: 'Docentes', section: 'docentes', icon: ICON_USERS, group: 'data' },
   { href: '/banner-docentes', label: 'Docentes Banner', section: 'banner-docentes', icon: ICON_USER_SEARCH, group: 'data' },
+  { href: '/centros-universitarios', label: 'Centros Universitarios', section: 'centros-universitarios', icon: ICON_USERS, group: 'data' },
+  { href: '/horarios', label: 'Horarios', section: 'horarios', icon: ICON_CALENDAR, group: 'data' },
+  { href: '/aulas-estandar', label: 'Aulas estandar', section: 'aulas-estandar', icon: ICON_CLIPBOARD, group: 'data' },
+  { href: '/recargos-nocturnos', label: 'Recargos nocturnos', section: 'recargos-nocturnos', icon: ICON_REPORT, group: 'data' },
+  { href: '/metricas-uso', label: 'Metricas de uso', section: 'metricas-uso', icon: ICON_REPORT, group: 'data' },
   { href: '/review', label: 'Revision NRC', section: 'review', icon: ICON_CLIPBOARD, group: 'data' },
   { href: '/nrc-prioridad', label: 'Prioridad NRC', section: 'nrc-prioridad', icon: ICON_CALENDAR, group: 'data' },
   { href: '/nrc-globales', label: 'NRC Globales', section: 'nrc-globales', icon: ICON_GLOBE, group: 'data' },
   { href: '/nrc-trazabilidad', label: 'Trazabilidad', section: 'nrc-trazabilidad', icon: ICON_BRANCH, group: 'data' },
   { href: '/correos', label: 'Correos', section: 'correos', icon: ICON_MAIL, group: 'data' },
+  { href: '/bienestar', label: 'Bienestar', section: 'bienestar', icon: ICON_USERS, group: 'data' },
   { href: '/reportes', label: 'Reportes Cierre', section: 'reportes', icon: ICON_REPORT, group: 'data' },
   { href: '/analitica-moodle', label: 'Analitica Moodle', section: 'analitica-moodle', icon: ICON_CHART, group: 'data' },
   { href: '/automatizacion-banner', label: 'Banner', section: 'automatizacion-banner', icon: ICON_ZAP, group: 'automation' },

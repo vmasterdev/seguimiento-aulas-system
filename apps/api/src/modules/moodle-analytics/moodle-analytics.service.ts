@@ -36,6 +36,10 @@ const AttendanceDateReportSchema = FiltersSchema.extend({
   sessionDay: z.string().trim().regex(/^\d{4}-\d{2}-\d{2}$/),
 });
 
+const AttendanceStudentReportSchema = FiltersSchema.extend({
+  sessionDays: z.string().trim().min(1),
+});
+
 type AnalyticsFilters = {
   periodCodes: string[];
   programCodes: string[];
@@ -180,6 +184,27 @@ export class MoodleAnalyticsService {
   private percentage(value: number, total: number) {
     if (!total) return null;
     return Number(((value / total) * 100).toFixed(1));
+  }
+
+  private parseDateList(value: string | undefined) {
+    return this.parseCsvList(value).filter((item) => /^\d{4}-\d{2}-\d{2}$/.test(item));
+  }
+
+  private attendanceStatusLabel(statusCode: string | null | undefined) {
+    switch (statusCode) {
+      case 'A':
+        return 'Presente';
+      case 'N':
+        return 'Ausente';
+      case 'J':
+        return 'Justificado';
+      case 'P':
+        return 'Pendiente';
+      case '?':
+        return 'No tomada';
+      default:
+        return 'Sin estado';
+    }
   }
 
   private normalizedKeys(values: Array<string | null | undefined>) {
@@ -2563,6 +2588,107 @@ export class MoodleAnalyticsService {
     };
   }
 
+  async attendanceStudentReport(rawQuery: unknown) {
+    const query = parseWithSchema(AttendanceStudentReportSchema, rawQuery, 'attendance student report');
+    const filters: AnalyticsFilters = {
+      periodCodes: this.parseCsvList(query.periodCodes),
+      programCodes: this.parseCsvList(query.programCodes),
+      campusCodes: this.parseCsvList(query.campusCodes),
+      teacherIds: this.parseCsvList(query.teacherIds),
+      nrcs: this.parseCsvList(query.nrcs),
+      moments: this.parseCsvList(query.moments),
+    };
+    const sessionDays = this.parseDateList(query.sessionDays);
+    if (!sessionDays.length) {
+      throw new BadRequestException('Debes seleccionar al menos una fecha de asistencia valida.');
+    }
+
+    const reports = await this.latestAttendanceSnapshots(filters);
+    const reportMap = new Map(reports.map((report) => [report.id, report]));
+    const sessions = reports.length
+      ? await this.prisma.moodleAttendanceSession.findMany({
+          where: {
+            reportId: { in: reports.map((report) => report.id) },
+            sessionDay: { in: sessionDays },
+          },
+          orderBy: [{ sessionDay: 'asc' }, { reportId: 'asc' }, { columnIndex: 'asc' }],
+        })
+      : [];
+
+    const entries = sessions.length
+      ? await this.prisma.moodleAttendanceEntry.findMany({
+          where: {
+            sessionId: { in: sessions.map((session) => session.id) },
+          },
+          include: {
+            record: true,
+          },
+        })
+      : [];
+
+    const sessionsById = new Map(sessions.map((session) => [session.id, session]));
+    const rows = entries
+      .map((entry) => {
+        const session = sessionsById.get(entry.sessionId);
+        if (!session) return null;
+        const report = reportMap.get(session.reportId);
+        if (!report) return null;
+        const meta = this.courseMeta(report.course);
+        return {
+          sessionDay: session.sessionDay ?? '',
+          sessionLabel: session.sessionLabel,
+          periodCode: meta.periodCode,
+          nrc: meta.nrc,
+          subjectName: meta.subjectName,
+          programName: meta.programName,
+          campusCode: meta.campusCode,
+          teacherName: meta.teacherName,
+          studentName: entry.record.fullName,
+          studentEmail: entry.record.email,
+          studentId: entry.record.institutionalId,
+          statusCode: entry.statusCode,
+          statusLabel: this.attendanceStatusLabel(entry.statusCode),
+          rawValue: entry.rawValue,
+          present: entry.statusCode === 'A',
+          justified: entry.statusCode === 'J',
+        };
+      })
+      .filter((row): row is NonNullable<typeof row> => !!row)
+      .sort(
+        (left, right) =>
+          left.sessionDay.localeCompare(right.sessionDay) ||
+          left.periodCode.localeCompare(right.periodCode) ||
+          left.nrc.localeCompare(right.nrc) ||
+          left.studentName.localeCompare(right.studentName) ||
+          left.sessionLabel.localeCompare(right.sessionLabel),
+      );
+
+    const presentCount = rows.filter((row) => row.statusCode === 'A').length;
+    const absentCount = rows.filter((row) => row.statusCode === 'N').length;
+    const justifiedCount = rows.filter((row) => row.statusCode === 'J').length;
+    const unknownCount = rows.length - presentCount - absentCount - justifiedCount;
+    const tracked = presentCount + absentCount + justifiedCount;
+
+    return {
+      ok: true,
+      filters: { ...filters, sessionDays },
+      summary: {
+        selectedDayCount: sessionDays.length,
+        matchedSessionCount: sessions.length,
+        courseCount: new Set(rows.map((row) => `${row.periodCode}::${row.nrc}`)).size,
+        studentCount: new Set(rows.map((row) => `${row.periodCode}::${row.nrc}::${this.normalizeNameKey(row.studentEmail || row.studentId || row.studentName)}`)).size,
+        rowCount: rows.length,
+        presentCount,
+        absentCount,
+        justifiedCount,
+        unknownCount,
+        attendanceRate: this.percentage(presentCount, tracked),
+        inattendanceRate: this.percentage(absentCount, tracked),
+      },
+      rows,
+    };
+  }
+
   async teacherAccessReport(rawQuery: unknown) {
     const query = parseWithSchema(FiltersSchema, rawQuery, 'teacher access report');
     const filters: AnalyticsFilters = {
@@ -2846,10 +2972,17 @@ export class MoodleAnalyticsService {
       const updatedChecklist: Record<string, unknown> = { ...existingChecklist, ingresos: ingresosValue };
 
       const executionPolicy = (dbCourse.period?.executionPolicy ?? 'APPLIES') as 'APPLIES' | 'AUTO_PASS';
+      const courseModalityForScore = (dbCourse as { modalityType?: string | null }).modalityType as
+        | 'PRESENCIAL'
+        | 'VIRTUAL'
+        | 'VIRTUAL_100'
+        | null
+        | undefined;
       const { score: newScore, notes } = scoreEjecucion(updatedChecklist as Record<string, string | number | boolean | null | undefined>, {
         executionPolicy,
         bannerStartDate: dbCourse.bannerStartDate ?? null,
         bannerEndDate: dbCourse.bannerEndDate ?? null,
+        modality: courseModalityForScore,
       });
 
       const missingItems: string[] = [];

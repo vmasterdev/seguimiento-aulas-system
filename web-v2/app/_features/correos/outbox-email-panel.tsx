@@ -320,10 +320,10 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       Array.isArray(data.moments) && data.moments.length
         ? ` | Momentos: ${data.moments.join(', ')}`
         : '';
-    const periodsNote =
-      Array.isArray(data.periodCodes) && data.periodCodes.length
-        ? ` | Periodos: ${data.periodCodes.join(', ')}`
-        : '';
+    const activePeriodCodes = Array.isArray(data.previewItems) && data.previewItems.length
+      ? [...new Set((data.previewItems as Array<{ periodCodes?: string[] }>).flatMap((item) => item.periodCodes ?? []))]
+      : (Array.isArray(data.periodCodes) ? data.periodCodes : []);
+    const periodsNote = activePeriodCodes.length ? ` | Periodos: ${activePeriodCodes.join(', ')}` : '';
     setMessage(`Borradores generados: ${data.created ?? 0}${momentsNote}${periodsNote}`);
     return data;
   }
@@ -647,14 +647,13 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       </div>
 
       {message ? <div className="message">{message}</div> : null}
-      {result ? <div className="log-box">{JSON.stringify(result, null, 2)}</div> : null}
 
       {audience === 'COORDINADOR' && generatedPreviewItems.length ? (
-        <div style={{ marginTop: 14 }}>
-          <div className="actions" style={{ marginBottom: 8 }}>
-            Borradores generados para coordinaciones seleccionadas. Abre uno, revisa el preview y luego envialo.
-          </div>
-          <div className="badges">
+        <div style={{ marginTop: 20, borderTop: '1px solid #e5e7eb', paddingTop: 16 }}>
+          <p style={{ margin: '0 0 10px', fontSize: '0.875rem', color: '#374151', fontWeight: 600 }}>
+            Borradores generados — selecciona uno para ver el preview:
+          </p>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 8, margin: '8px 0' }}>
             {generatedPreviewItems.map((item) => {
               const active = activeGeneratedPreviewId === item.id;
               return (
@@ -665,20 +664,25 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
                   onClick={() => void loadPreview(item.id)}
                   style={{
                     cursor: 'pointer',
-                    border: active ? '1px solid #0057a4' : '1px solid #d4d7dd',
+                    border: active ? '2px solid #0057a4' : '1px solid #d4d7dd',
                     background: active ? '#e8f0fb' : '#fff',
                     color: active ? '#0a3e74' : '#334155',
-                    fontWeight: active ? 700 : 600,
+                    fontWeight: active ? 700 : 500,
+                    fontSize: '0.8125rem',
+                    padding: '6px 10px',
+                    textAlign: 'left',
+                    lineHeight: 1.4,
                   }}
                 >
-                  {item.programId ?? 'COORD'} | {item.recipientName}
+                  {item.programId ?? 'COORD'}<br />
+                  <span style={{ fontWeight: 400, color: '#6b7280', fontSize: '0.75rem' }}>{item.recipientName}</span>
                 </button>
               );
             })}
           </div>
 
-          {previewLoading ? <div className="message">Cargando preview...</div> : null}
-          {previewError ? <div className="message">No fue posible cargar el preview: {previewError}</div> : null}
+          {previewLoading ? <div className="message" style={{ marginTop: 12 }}>Cargando preview...</div> : null}
+          {previewError ? <div className="message" style={{ marginTop: 12 }}>No fue posible cargar el preview: {previewError}</div> : null}
 
           {previewData ? (
             <div className="panel" style={{ marginTop: 12 }}>

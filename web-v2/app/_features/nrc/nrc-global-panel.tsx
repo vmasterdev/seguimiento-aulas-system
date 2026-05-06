@@ -63,6 +63,7 @@ type CourseItem = {
     participantsDetected: boolean | null;
     updatedAt: string | null;
   };
+  enrolledCount?: number | null;
   evaluationSummary?: EvaluationSummary | null;
 };
 
@@ -78,6 +79,8 @@ type NrcGlobalPanelProps = {
 };
 
 type CourseDetailResponse = CourseItem & {
+  bannerStartDate?: string | null;
+  bannerEndDate?: string | null;
   evaluations: Array<{
     id: string;
     phase: string;
@@ -220,11 +223,17 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
   const [teacherFilter, setTeacherFilter] = useState('TODOS');
   const [bannerFilter, setBannerFilter] = useState('TODOS');
   const [reviewableFilter, setReviewableFilter] = useState('TODOS');
+  const [templateFilter, setTemplateFilter] = useState('TODOS');
+  const [participantsFilter, setParticipantsFilter] = useState('TODOS');
+  const [enrolledFilter, setEnrolledFilter] = useState('TODOS');
   const [expandedIds, setExpandedIds] = useState<Set<string>>(new Set());
+  const [selectedIds, setSelectedIds] = useState<Set<string>>(new Set());
   const [detailById, setDetailById] = useState<Record<string, CourseDetailResponse>>({});
   const [loadingDetailId, setLoadingDetailId] = useState<string | null>(null);
   const [overrideById, setOverrideById] = useState<Record<string, OverrideFormState>>({});
   const [deletingById, setDeletingById] = useState<Record<string, boolean>>({});
+  const [batchDeactivating, setBatchDeactivating] = useState(false);
+  const [bannerVerifying, setBannerVerifying] = useState(false);
   const [taggingTemporalById, setTaggingTemporalById] = useState<Record<string, boolean>>({});
   const [momentEditById, setMomentEditById] = useState<Record<string, string>>({});
   const [savingMomentById, setSavingMomentById] = useState<Record<string, boolean>>({});
@@ -299,6 +308,17 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
     [items],
   );
 
+  const templates = useMemo(
+    () =>
+      [
+        'TODOS',
+        ...Array.from(new Set(items.map((item) => item.moodleCheck?.detectedTemplate ?? '-'))).sort((a, b) =>
+          a.localeCompare(b, 'es'),
+        ),
+      ],
+    [items],
+  );
+
   const filteredItems = useMemo(() => {
     const normalizedTeacherIdQuery = teacherIdQuery.trim().toLowerCase();
     const normalizedTeacherNameQuery = normalizeText(teacherNameQuery);
@@ -336,6 +356,14 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
         if (bannerFilter !== 'TODOS' && bannerFilter !== 'SIN_DATO' && item.bannerReviewStatus !== bannerFilter) return false;
         if (reviewableFilter === 'SOLO_REVISABLES' && item.reviewExcluded) return false;
         if (reviewableFilter === 'SOLO_EXCLUIDOS' && !item.reviewExcluded) return false;
+        if (templateFilter !== 'TODOS' && (item.moodleCheck?.detectedTemplate ?? '-') !== templateFilter) return false;
+        if (participantsFilter === 'SIN_PARTICIPANTES' && typeof item.moodleSidecarMetrics?.participants === 'number' && item.moodleSidecarMetrics.participants > 0) return false;
+        if (participantsFilter === 'SIN_PARTICIPANTES' && item.moodleSidecarMetrics?.participants == null) {
+          // null/undefined = sin dato; mostrar como sin participantes
+        }
+        if (participantsFilter === 'CON_PARTICIPANTES' && (item.moodleSidecarMetrics?.participants == null || item.moodleSidecarMetrics.participants <= 0)) return false;
+        if (enrolledFilter === 'SIN_INSCRITOS' && typeof item.enrolledCount === 'number' && item.enrolledCount > 0) return false;
+        if (enrolledFilter === 'CON_INSCRITOS' && (item.enrolledCount == null || item.enrolledCount <= 0)) return false;
         return true;
       })
       .sort((left, right) => {
@@ -345,7 +373,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
         return left.item.nrc.localeCompare(right.item.nrc, 'es');
       })
       .map(({ item }) => item);
-  }, [bannerFilter, campusFilter, items, momentFilter, periodFilter, programFilter, query, reviewableFilter, semesterFilter, teacherFilter, teacherIdQuery, teacherNameQuery]);
+  }, [bannerFilter, campusFilter, enrolledFilter, items, momentFilter, participantsFilter, periodFilter, programFilter, query, reviewableFilter, semesterFilter, teacherFilter, teacherIdQuery, teacherNameQuery, templateFilter]);
 
   const totalWithTeacher = useMemo(() => items.filter((item) => item.teacherId).length, [items]);
   const totalWithoutTeacher = useMemo(() => items.filter((item) => !item.teacherId).length, [items]);
@@ -897,6 +925,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
       'template',
       'participantes_sidecar',
       'participantes_detectados',
+      'inscritos_genesis',
       'score_alistamiento',
       'score_ejecucion',
       'checklist_selected',
@@ -926,6 +955,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
             : item.moodleSidecarMetrics.participantsDetected
               ? 'SI'
               : 'NO',
+          item.enrolledCount ?? '',
           item.evaluationSummary?.alistamientoScore ?? '',
           item.evaluationSummary?.ejecucionScore ?? '',
           item.selectedForChecklist ? 'SI' : 'NO',
@@ -964,6 +994,9 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
           <span className="badge">Cursos con participantes visibles: {filteredParticipantsCourses}</span>
           <span className="badge">Total estudiantes visibles: {filteredParticipants}</span>
           <span className="badge">Resultado filtro: {filteredItems.length}</span>
+          {selectedIds.size > 0 && (
+            <span className="badge" style={{ background: '#2563eb', color: '#fff' }}>Seleccionados: {selectedIds.size}</span>
+          )}
         </div>
       </div>
 
@@ -1068,12 +1101,204 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
             <option value="SOLO_EXCLUIDOS">Solo excluidos</option>
           </select>
         </label>
+        <label>
+          Plantilla
+          <select value={templateFilter} onChange={(event) => setTemplateFilter(event.target.value)}>
+            {templates.map((t) => (
+              <option key={t} value={t}>{t}</option>
+            ))}
+          </select>
+        </label>
+        <label>
+          Participantes Moodle
+          <select value={participantsFilter} onChange={(event) => setParticipantsFilter(event.target.value)}>
+            <option value="TODOS">Todos</option>
+            <option value="SIN_PARTICIPANTES">Sin participantes</option>
+            <option value="CON_PARTICIPANTES">Con participantes</option>
+          </select>
+        </label>
+        <label>
+          Inscritos Genesis
+          <select value={enrolledFilter} onChange={(event) => setEnrolledFilter(event.target.value)}>
+            <option value="TODOS">Todos</option>
+            <option value="SIN_INSCRITOS">Sin inscritos (0)</option>
+            <option value="CON_INSCRITOS">Con inscritos</option>
+          </select>
+        </label>
         <button type="button" onClick={exportCsv} disabled={!filteredItems.length}>
           Descargar CSV
         </button>
         <button type="button" onClick={exportTxt} disabled={!filteredItems.length}>
           Descargar NRC
         </button>
+        <button
+          type="button"
+          style={{ background: '#b91c1c', color: '#fff', fontWeight: 600 }}
+          disabled={!filteredItems.length || batchDeactivating}
+          onClick={async () => {
+            const pool = selectedIds.size > 0
+              ? filteredItems.filter((item) => selectedIds.has(item.id))
+              : filteredItems;
+            const revisable = pool.filter((item) => !item.reviewExcluded);
+            if (!revisable.length) {
+              setMessage('No hay cursos revisables en la seleccion actual para desactivar.');
+              return;
+            }
+            const label = selectedIds.size > 0 ? 'seleccionados' : 'del filtro actual';
+            const reason = window.prompt(
+              `Se van a desactivar ${revisable.length} cursos revisables ${label}.\n\nEscribe la razon de desactivacion:`,
+              'Curso vacio: sin contenido, sin participantes ni inscritos en Genesis.',
+            );
+            if (!reason) return;
+            try {
+              setBatchDeactivating(true);
+              setMessage(`Desactivando ${revisable.length} cursos...`);
+              const response = await fetch(`${apiBase}/courses/deactivate-batch`, {
+                method: 'POST',
+                headers: { 'Content-Type': 'application/json' },
+                body: JSON.stringify({
+                  courseIds: revisable.map((item) => item.id),
+                  reason,
+                  confirm: true,
+                }),
+              });
+              const data = (await response.json()) as {
+                ok?: boolean;
+                deactivated?: number;
+                failed?: number;
+                message?: string | string[];
+              };
+              if (!response.ok) {
+                const text = Array.isArray(data?.message) ? data.message.join('; ') : (data?.message ?? `HTTP ${response.status}`);
+                throw new Error(text);
+              }
+              setMessage(`Desactivados: ${data.deactivated ?? 0}. Fallidos: ${data.failed ?? 0}.`);
+              setSelectedIds(new Set());
+              const refreshed = await fetchJson<CoursesListResponse>(`${apiBase}/courses?limit=5000`);
+              setItems(refreshed.items ?? []);
+            } catch (error) {
+              setMessage(`Error al desactivar lote: ${error instanceof Error ? error.message : String(error)}`);
+            } finally {
+              setBatchDeactivating(false);
+            }
+          }}
+        >
+          {batchDeactivating
+            ? 'Desactivando...'
+            : selectedIds.size > 0
+              ? `Desactivar seleccionados (${filteredItems.filter((i) => selectedIds.has(i.id) && !i.reviewExcluded).length})`
+              : `Desactivar filtrados (${filteredItems.filter((i) => !i.reviewExcluded).length})`}
+        </button>
+        {selectedIds.size > 0 && (
+          <button
+            type="button"
+            style={{ background: '#6b7280', color: '#fff' }}
+            onClick={() => setSelectedIds(new Set())}
+          >
+            Deseleccionar todo
+          </button>
+        )}
+        {selectedIds.size > 0 && (
+          <button
+            type="button"
+            style={{ background: '#1e40af', color: '#fff', fontWeight: 600 }}
+            disabled={bannerVerifying || batchDeactivating}
+            onClick={async () => {
+              const selected = filteredItems.filter((item) => selectedIds.has(item.id));
+              if (!selected.length) {
+                setMessage('No hay cursos seleccionados para re-verificar.');
+                return;
+              }
+              if (!window.confirm(
+                `Se van a enviar ${selected.length} NRC a la automatizacion Banner para re-verificarlos.\n\n` +
+                'Asegurate de tener una sesion de Banner activa en Automatizacion > Banner.\n\n' +
+                '¿Continuar?'
+              )) return;
+              try {
+                setBannerVerifying(true);
+                setMessage(`Enviando ${selected.length} NRC a Banner para re-verificacion...`);
+                const response = await fetch('/api/banner/followup/start', {
+                  method: 'POST',
+                  headers: { 'Content-Type': 'application/json' },
+                  body: JSON.stringify({
+                    courseIds: selected.map((item) => item.id),
+                    queryName: 'reverificar-nrc-globales',
+                    workers: 1,
+                  }),
+                });
+                const data = (await response.json()) as {
+                  ok?: boolean;
+                  message?: string | string[];
+                  result?: { batch?: { total?: number } };
+                };
+                if (!response.ok) {
+                  const text = Array.isArray(data?.message) ? data.message.join('; ') : (data?.message ?? `HTTP ${response.status}`);
+                  throw new Error(text);
+                }
+                const total = data.result?.batch?.total ?? selected.length;
+                setMessage(
+                  `Lote Banner iniciado con ${total} NRC. ` +
+                  'Ve a Automatizacion > Banner para monitorear el progreso. ' +
+                  'Al terminar, importa los resultados y recarga esta pagina.'
+                );
+              } catch (error) {
+                setMessage(`Error al enviar a Banner: ${error instanceof Error ? error.message : String(error)}`);
+              } finally {
+                setBannerVerifying(false);
+              }
+            }}
+          >
+            {bannerVerifying ? 'Enviando a Banner...' : `Re-verificar en Banner (${selectedIds.size})`}
+          </button>
+        )}
+        {selectedIds.size === 1 && (() => {
+          const item = filteredItems.find((i) => selectedIds.has(i.id));
+          if (!item) return null;
+          return (
+            <button
+              type="button"
+              style={{ background: '#0e7490', color: '#fff', fontWeight: 600 }}
+              disabled={bannerVerifying || batchDeactivating}
+              onClick={async () => {
+                try {
+                  setBannerVerifying(true);
+                  setMessage(`Buscando NRC ${item.nrc} (periodo ${item.period.code}) directamente en Banner...`);
+                  const response = await fetch('/api/banner/actions', {
+                    method: 'POST',
+                    headers: { 'Content-Type': 'application/json' },
+                    body: JSON.stringify({
+                      action: 'start',
+                      payload: {
+                        command: 'lookup',
+                        nrc: item.nrc,
+                        period: item.period.code,
+                        queryName: 'lookup-nrc-globales',
+                      },
+                    }),
+                  });
+                  const data = (await response.json()) as {
+                    ok?: boolean;
+                    message?: string | string[];
+                  };
+                  if (!response.ok) {
+                    const text = Array.isArray(data?.message) ? data.message.join('; ') : (data?.message ?? `HTTP ${response.status}`);
+                    throw new Error(text);
+                  }
+                  setMessage(
+                    `Busqueda del NRC ${item.nrc} iniciada en Banner. ` +
+                    'Ve a Automatizacion > Banner para ver el resultado.'
+                  );
+                } catch (error) {
+                  setMessage(`Error al buscar en Banner: ${error instanceof Error ? error.message : String(error)}`);
+                } finally {
+                  setBannerVerifying(false);
+                }
+              }}
+            >
+              {bannerVerifying ? 'Buscando...' : `Buscar NRC ${item.nrc} en Banner`}
+            </button>
+          );
+        })()}
       </div>
 
       {loading ? <div className="message">Cargando listado global...</div> : null}
@@ -1083,6 +1308,20 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
         <table>
           <thead>
             <tr>
+              <th style={{ width: 32 }}>
+                <input
+                  type="checkbox"
+                  checked={filteredItems.length > 0 && filteredItems.every((item) => selectedIds.has(item.id))}
+                  onChange={(event) => {
+                    if (event.target.checked) {
+                      setSelectedIds(new Set(filteredItems.map((item) => item.id)));
+                    } else {
+                      setSelectedIds(new Set());
+                    }
+                  }}
+                  title="Seleccionar / deseleccionar todos"
+                />
+              </th>
               <th>Periodo</th>
               <th>NRC</th>
               <th>Momento</th>
@@ -1092,7 +1331,8 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
               <th>Banner</th>
               <th>Moodle</th>
               <th>Plantilla</th>
-              <th>Participantes</th>
+              <th>Particip.</th>
+              <th>Inscritos</th>
               <th>Calificacion</th>
               <th>Checklist</th>
               <th>Revision</th>
@@ -1105,7 +1345,22 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
               const override = overrideById[item.id];
               return (
                 <Fragment key={item.id}>
-                  <tr>
+                  <tr style={selectedIds.has(item.id) ? { background: 'rgba(37, 99, 235, 0.08)' } : undefined}>
+                    <td>
+                      <input
+                        type="checkbox"
+                        checked={selectedIds.has(item.id)}
+                        onChange={(event) => {
+                          const next = new Set(selectedIds);
+                          if (event.target.checked) {
+                            next.add(item.id);
+                          } else {
+                            next.delete(item.id);
+                          }
+                          setSelectedIds(next);
+                        }}
+                      />
+                    </td>
                     <td>{item.period.code}</td>
                     <td>
                       <button
@@ -1146,6 +1401,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                     <td>{item.moodleCheck?.status ?? 'SIN_CHECK'}</td>
                     <td>{item.moodleCheck?.detectedTemplate ?? '-'}</td>
                     <td>{item.moodleSidecarMetrics?.participants ?? '-'}</td>
+                    <td>{item.enrolledCount ?? '-'}</td>
                     <td>{formatPhaseScore(item)}</td>
                     <td>
                       {item.selectedForChecklist ? (
@@ -1176,7 +1432,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                   </tr>
                   {isExpanded ? (
                     <tr>
-                      <td colSpan={13}>
+                      <td colSpan={15}>
                         <div
                           style={{
                             background: 'rgba(255,255,255,0.9)',
@@ -1203,6 +1459,16 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
                                 <span className="badge">
                                   Participantes sidecar: {detail.moodleSidecarMetrics?.participants ?? '-'}
                                 </span>
+                                {detail.bannerStartDate ? (
+                                  <span className="badge">
+                                    Inicio Banner: {detail.bannerStartDate}
+                                  </span>
+                                ) : null}
+                                {detail.bannerEndDate ? (
+                                  <span className="badge">
+                                    Fin Banner: {detail.bannerEndDate}
+                                  </span>
+                                ) : null}
                               </div>
 
                               {detail.selectedSampleGroups?.length ? (

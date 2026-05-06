@@ -483,6 +483,11 @@ sync_api_linux_shadow() {
   fi
   rsync -a --delete "$ROOT_DIR/apps/api/prisma/" "$API_LINUX_RUN_DIR/prisma/"
   rsync -a --delete "$ROOT_DIR/apps/api/scripts/" "$API_LINUX_RUN_DIR/scripts/"
+  # Regenerate Prisma client in shadow dir to match current schema
+  if [[ -d "$API_LINUX_RUN_DIR/node_modules" ]]; then
+    echo "[prisma] generating client in shadow dir"
+    (cd "$API_LINUX_RUN_DIR" && npx prisma generate --schema=prisma/schema.prisma 2>&1 | tail -3) || true
+  fi
 }
 
 build_worker_runtime() {

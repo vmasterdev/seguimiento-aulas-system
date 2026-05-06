@@ -75,6 +75,43 @@ model Coordinator {
   @@index([programKey])
 }
 
+model StandardClassroom {
+  id              String   @id @default(cuid())
+  template        String
+  subjectName     String
+  subjectKey      String
+  alphanumericCode String?
+  backupUrl       String?
+  notes           String?
+  createdAt       DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+
+  @@unique([template, subjectKey])
+  @@index([template])
+  @@index([subjectKey])
+}
+
+model SystemSetting {
+  key       String   @id
+  value     String
+  updatedAt DateTime @updatedAt
+}
+
+model CenterDirector {
+  id         String   @id @default(cuid())
+  campusCode String   @unique
+  campusName String?
+  fullName   String
+  email      String
+  region     String?
+  createdAt  DateTime @default(now())
+  updatedAt  DateTime @updatedAt
+
+  outbox     OutboxMessage[]
+
+  @@index([campusCode])
+}
+
 model Course {
   id              String   @id @default(cuid())
   nrc             String
@@ -93,6 +130,11 @@ model Course {
   d4FlagLegacy    Boolean  @default(false)
   bannerStartDate String?
   bannerEndDate   String?
+  edificio        String?
+  horaInicio      String?
+  horaFin         String?
+  dias            String?
+  modalityType    String?
   rawJson         Json?
   createdAt       DateTime @default(now())
   updatedAt       DateTime @updatedAt
@@ -104,10 +146,12 @@ model Course {
   bannerEnrollmentReports BannerEnrollmentReport[]
   evaluations     Evaluation[]
   selectedInGroups SampleGroup[] @relation("SelectedCourse")
+  selectedInGroupsEjecucion SampleGroup[] @relation("SelectedCourseEjecucion")
 
   @@unique([nrc, periodId])
   @@index([periodId, nrc])
   @@index([teacherId])
+  @@index([modalityType])
 }
 
 model MoodleCheck {
@@ -149,6 +193,9 @@ model SampleGroup {
   selectedCourseId String?
   selectedCourse   Course? @relation("SelectedCourse", fields: [selectedCourseId], references: [id])
 
+  selectedCourseIdEjecucion String?
+  selectedCourseEjecucion   Course? @relation("SelectedCourseEjecucion", fields: [selectedCourseIdEjecucion], references: [id])
+
   selectionSeed String
   createdAt DateTime @default(now())
 
@@ -182,6 +229,8 @@ model OutboxMessage {
   teacher    Teacher? @relation(fields: [teacherId], references: [id])
   coordinatorId String?
   coordinator Coordinator? @relation(fields: [coordinatorId], references: [id])
+  centerDirectorId String?
+  centerDirector CenterDirector? @relation(fields: [centerDirectorId], references: [id])
 
   programCode String?
   periodId    String
@@ -203,6 +252,7 @@ model OutboxMessage {
   @@index([periodId, phase, moment, status])
   @@index([teacherId, status])
   @@index([coordinatorId, status])
+  @@index([centerDirectorId, status])
   @@index([audience, recipientEmail])
 }
 

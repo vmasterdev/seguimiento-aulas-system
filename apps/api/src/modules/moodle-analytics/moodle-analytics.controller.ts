@@ -40,6 +40,11 @@ export class MoodleAnalyticsController {
     return this.analyticsService.attendanceDateReport(query);
   }
 
+  @Get('/attendance/student-report')
+  async attendanceStudentReport(@Query() query: Record<string, unknown>) {
+    return this.analyticsService.attendanceStudentReport(query);
+  }
+
   @Get('/teacher-access-report')
   async teacherAccessReport(@Query() query: Record<string, unknown>) {
     return this.analyticsService.teacherAccessReport(query);
