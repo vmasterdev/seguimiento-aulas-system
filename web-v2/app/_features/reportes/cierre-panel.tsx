@@ -966,6 +966,13 @@ export function CierrePanel({ apiBase }: CierrePanelProps) {
     { label: 'Dirección de Docencia', email: '' },
   ]);
   const [excludedFromInsatisf, setExcludedFromInsatisf] = useState<Set<string>>(new Set());
+  const [significantEventCutoffDate, setSignificantEventCutoffDate] = useState<string>(() => {
+    try {
+      const saved = localStorage.getItem(`significant-event-cutoff-${moment}`);
+      if (saved) return saved;
+    } catch {}
+    return new Date().toISOString().slice(0, 10);
+  });
   const [extraDirectivosRecipients, setExtraDirectivosRecipients] = useState<Array<{ label: string; email: string }>>(() => {
     try {
       const saved = localStorage.getItem('directivos-extra-recipients');
@@ -2096,6 +2103,61 @@ ${BASE_CSS}
                     style={{ background: '#b91c1c' }}
                   >
                     {sendingInsatisfactorio ? 'Enviando...' : `Notificar a todos (${insatisfactorios.filter(e => e.teacherEmail).length} con email)`}
+                  </button>
+                  <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 8px', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 6 }}>
+                    <label style={{ fontSize: 11.5, fontWeight: 600, color: '#7c2d12' }} htmlFor="cutoff-date-input">
+                      Fecha corte del momento:
+                    </label>
+                    <input
+                      id="cutoff-date-input"
+                      type="date"
+                      value={significantEventCutoffDate}
+                      onChange={(e) => {
+                        setSignificantEventCutoffDate(e.target.value);
+                        try { localStorage.setItem(`significant-event-cutoff-${moment}`, e.target.value); } catch {}
+                      }}
+                      style={{ fontSize: 12, padding: '3px 6px', border: '1px solid #d97706', borderRadius: 4 }}
+                      title="Fecha de cierre oficial del momento. Se usa para calcular antiguedad >=90 dias de cada docente."
+                    />
+                  </div>
+                  <button
+                    className="primary"
+                    onClick={async () => {
+                      if (!significantEventCutoffDate) {
+                        alert('Define la fecha de corte del momento antes de registrar.');
+                        return;
+                      }
+                      try {
+                        const res = await fetch(`${apiBase}/outbox/significant-events/backfill`, {
+                          method: 'POST',
+                          headers: { 'Content-Type': 'application/json' },
+                          body: JSON.stringify({
+                            periodCode: period,
+                            moment,
+                            phase: 'CIERRE',
+                            cutoffDate: new Date(significantEventCutoffDate + 'T00:00:00.000Z').toISOString(),
+                            tenureDays: 90,
+                            teachers: insatisfactorios.map(e => ({
+                              teacherId: e.teacherId,
+                              totalScore: e.totalScore,
+                              alistamientoScore: e.alistamiento,
+                              ejecucionScore: e.ejecucion,
+                              coordination: e.coordination,
+                              campus: e.campus,
+                            })),
+                          }),
+                        });
+                        if (!res.ok) throw new Error(`HTTP ${res.status}`);
+                        const json = await res.json();
+                        alert(`Eventos significativos registrados (corte ${significantEventCutoffDate}): ${json.created} creados, ${json.updated} actualizados, ${json.skipped} omitidos. Ve al modulo "Eventos Significativos" para gestionar firma/entrega/cargue.`);
+                      } catch (err) {
+                        alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
+                      }
+                    }}
+                    style={{ background: '#7c2d12' }}
+                    title="Registra estos docentes en la tabla de Eventos Significativos para hacer seguimiento de firma, entrega y cargue en Subdireccion de Docencia."
+                  >
+                    Registrar eventos significativos ({insatisfactorios.length})
                   </button>
                   {(() => {
                     const byCoord = new Map<string, ReportEntry[]>();

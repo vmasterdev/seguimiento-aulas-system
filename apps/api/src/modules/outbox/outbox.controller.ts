@@ -1,4 +1,4 @@
-import { Body, Controller, Get, Inject, Param, Post, Query } from '@nestjs/common';
+import { Body, Controller, Get, Inject, Param, Patch, Post, Query } from '@nestjs/common';
 import { OutboxService } from './outbox.service';
 
 @Controller('/outbox')
@@ -58,6 +58,39 @@ export class OutboxController {
   @Get()
   async list(@Query('periodCode') periodCode?: string, @Query('status') status?: string) {
     return this.outboxService.list(periodCode, status);
+  }
+
+  @Post('/significant-events/backfill')
+  async significantEventsBackfill(@Body() body: unknown) {
+    return this.outboxService.significantEventsBackfill(body);
+  }
+
+  @Get('/significant-events')
+  async significantEventsList(
+    @Query('periodCode') periodCode?: string,
+    @Query('moment') moment?: string,
+    @Query('phase') phase?: string,
+    @Query('signed') signed?: string,
+    @Query('delivered') delivered?: string,
+    @Query('archived') archived?: string,
+    @Query('resolved') resolved?: string,
+    @Query('search') search?: string,
+  ) {
+    return this.outboxService.significantEventsList({
+      periodCode,
+      moment,
+      phase,
+      signed,
+      delivered,
+      archived,
+      resolved,
+      search,
+    });
+  }
+
+  @Patch('/significant-events/:id')
+  async significantEventsUpdate(@Param('id') id: string, @Body() body: unknown) {
+    return this.outboxService.significantEventsUpdate(id, body);
   }
 
   @Get('/tracking')

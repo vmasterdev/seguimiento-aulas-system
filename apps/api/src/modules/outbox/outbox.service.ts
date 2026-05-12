@@ -30,6 +30,7 @@ import {
   formatScoreForPhase,
   matchCoordinatorCourse,
   summarizeGlobalRows,
+  summarizeTeacherAggregates,
   toScoreBand,
   toScoreBandForPhase,
 } from './outbox.report-builder';
@@ -266,6 +267,22 @@ export class OutboxService {
     periodSummary: GlobalPeriodSummaryRow[];
     momentSummary: GlobalMomentSummaryRow[];
     recipientsCount: number;
+    teacherAggregates?: import('./outbox.types').GlobalTeacherAggregates;
+    significantEvents?: Array<{
+      teacherName: string;
+      coordination: string | null;
+      campus: string | null;
+      periodCode: string;
+      moment: string;
+      totalScore: number | null;
+      resolvedScore: number | null;
+      isNewTeacher: boolean;
+      tenureDays: number | null;
+      signed: boolean;
+      delivered: boolean;
+      archived: boolean;
+      resolved: boolean;
+    }>;
   }) {
     return buildGlobalHtml(options);
   }
@@ -622,6 +639,38 @@ export class OutboxService {
       selectedPeriodCodes,
       effectiveMoments,
     );
+    const teacherAggregates = summarizeTeacherAggregates(
+      rows,
+      message.phase as GeneratePayload['phase'],
+    );
+
+    const sigEvents = await this.prisma.significantEvent.findMany({
+      where: {
+        moment: { in: ['MD1', '1', 'CIERRE_MD1'] },
+      },
+      include: {
+        teacher: { select: { fullName: true } },
+      },
+      orderBy: [{ resolved: 'asc' }, { totalScore: 'asc' }],
+    });
+    const significantEventsBlock = sigEvents.length
+      ? sigEvents.map((ev) => ({
+          teacherName: ev.teacher?.fullName ?? 'Docente sin nombre',
+          coordination: ev.coordination,
+          campus: ev.campus,
+          periodCode: ev.periodCode,
+          moment: ev.moment,
+          totalScore: ev.totalScore,
+          resolvedScore: ev.resolvedScore,
+          isNewTeacher: ev.isNewTeacher,
+          tenureDays: ev.tenureDays,
+          signed: ev.signed,
+          delivered: ev.delivered,
+          archived: ev.archived,
+          resolved: ev.resolved,
+        }))
+      : undefined;
+
     const recipientEmail = message.recipientEmail?.trim() || null;
     const recipientName =
       message.recipientName?.trim() ||
@@ -645,6 +694,8 @@ export class OutboxService {
       periodSummary: summary.periodSummary,
       momentSummary: summary.momentSummary,
       recipientsCount,
+      teacherAggregates,
+      significantEvents: significantEventsBlock,
     });
 
     return {
@@ -716,6 +767,7 @@ export class OutboxService {
         fullName: true,
         costCenter: true,
         coordination: true,
+        campus: true,
       },
     });
     const teacherByIdentifier = new Map<
@@ -725,6 +777,7 @@ export class OutboxService {
         fullName: string;
         costCenter: string | null;
         coordination: string | null;
+        campus: string | null;
       }
     >();
     for (const teacher of teachers) {
@@ -738,6 +791,7 @@ export class OutboxService {
             fullName: teacher.fullName,
             costCenter: teacher.costCenter,
             coordination: teacher.coordination,
+            campus: teacher.campus,
           });
         }
       }
@@ -762,6 +816,9 @@ export class OutboxService {
           .find((teacher): teacher is NonNullable<typeof teacher> => Boolean(teacher));
         const teacherName =
           mappedTeacher?.fullName ?? course.teacher?.fullName ?? 'Docente sin identificar';
+        const teacherKey =
+          (mappedTeacher?.id ?? course.teacherId ?? identifiers[0] ?? teacherName) || 'SIN_DOCENTE';
+        const campusValue = mappedTeacher?.campus ?? null;
         const coordinationName = mappedTeacher?.coordination ?? mappedTeacher?.costCenter ?? null;
         const coordinationLabel = coordinationName?.trim() || 'SIN_COORDINACION';
         const coordinationKey = normalizeProgramKey(coordinationLabel);
@@ -771,12 +828,15 @@ export class OutboxService {
           periodCode: course.period.code,
           periodLabel: course.period.label ?? null,
           teacherName,
+          teacherKey,
+          campus: campusValue?.trim() ? campusValue.trim() : null,
           nrc: course.nrc,
           subject: course.subjectName ?? '-',
           moment: course.moment ?? '-',
           status: course.moodleCheck?.status ?? 'SIN_CHECK',
           template: course.moodleCheck?.detectedTemplate ?? course.templateDeclared ?? 'UNKNOWN',
           score: evaluation?.score ?? null,
+          replicated: Boolean(evaluation?.replicatedFromCourseId),
           coordinationKey,
           coordinationName: coordinationLabel,
         };
@@ -1362,6 +1422,7 @@ export class OutboxService {
       };
     }
     const summary = this.summarizeGlobalRows(rows, payload.phase, selectedPeriodCodes, effectiveMoments);
+    const teacherAggregates = summarizeTeacherAggregates(rows, payload.phase);
     const momentLabel = effectiveMoments.join('+');
     const subject = `[Seguimiento Aulas] GLOBAL ${payload.phase} ${effectiveMoments
       .map((moment) => formatMomentLabel(moment))
@@ -1389,6 +1450,7 @@ export class OutboxService {
       periodSummary: summary.periodSummary,
       momentSummary: summary.momentSummary,
       recipientsCount,
+      teacherAggregates,
     });
 
     await this.prisma.outboxMessage.deleteMany({
@@ -3100,5 +3162,332 @@ foreach ($item in $payload) {
         };
       }),
     };
+  }
+
+  // ─────────────────────────────────────────────────────────────────────────
+  // Eventos significativos
+  // ─────────────────────────────────────────────────────────────────────────
+
+  async significantEventsBackfill(rawPayload: unknown) {
+    const payload = (rawPayload ?? {}) as {
+      periodCode?: string;
+      moment?: string;
+      phase?: string;
+      cutoffDate?: string;
+      tenureDays?: number;
+      teachers?: Array<{
+        teacherId: string;
+        totalScore?: number | null;
+        alistamientoScore?: number | null;
+        ejecucionScore?: number | null;
+        coordination?: string | null;
+        campus?: string | null;
+      }>;
+    };
+
+    if (!payload.periodCode || !payload.moment || !payload.phase) {
+      throw new Error('periodCode, moment y phase son obligatorios.');
+    }
+    const teachers = Array.isArray(payload.teachers) ? payload.teachers : [];
+    if (!teachers.length) {
+      return { ok: true, created: 0, updated: 0, skipped: 0, message: 'Sin docentes en la lista.' };
+    }
+
+    const cutoff = payload.cutoffDate ? new Date(payload.cutoffDate) : new Date();
+    const tenureDays = Number.isFinite(payload.tenureDays) ? Number(payload.tenureDays) : 90;
+
+    const teacherIds = teachers.map((t) => t.teacherId).filter(Boolean);
+    const teacherDb = await this.prisma.teacher.findMany({
+      where: { id: { in: teacherIds } },
+      select: {
+        id: true,
+        fullName: true,
+        coordination: true,
+        costCenter: true,
+        campus: true,
+        fechaInicio: true,
+        previousEmployment: true,
+      },
+    });
+    const byId = new Map(teacherDb.map((t) => [t.id, t]));
+
+    let created = 0;
+    let updated = 0;
+    let skipped = 0;
+
+    for (const item of teachers) {
+      const t = byId.get(item.teacherId);
+      if (!t) {
+        skipped += 1;
+        continue;
+      }
+
+      const fechaInicio = t.fechaInicio ?? null;
+      const days =
+        fechaInicio != null
+          ? Math.floor((cutoff.getTime() - new Date(fechaInicio).getTime()) / (1000 * 60 * 60 * 24))
+          : null;
+      const isNewTeacher = !t.previousEmployment && (days == null || days < tenureDays);
+
+      const existing = await this.prisma.significantEvent.findUnique({
+        where: {
+          teacherId_periodCode_moment_phase: {
+            teacherId: item.teacherId,
+            periodCode: payload.periodCode,
+            moment: payload.moment,
+            phase: payload.phase,
+          },
+        },
+      });
+
+      const data = {
+        totalScore: item.totalScore ?? null,
+        alistamientoScore: item.alistamientoScore ?? null,
+        ejecucionScore: item.ejecucionScore ?? null,
+        coordination: t.coordination ?? t.costCenter ?? item.coordination ?? null,
+        campus: t.campus ?? item.campus ?? null,
+        isNewTeacher,
+        tenureDays: days,
+        fechaInicio,
+      };
+
+      if (existing) {
+        await this.prisma.significantEvent.update({
+          where: { id: existing.id },
+          data,
+        });
+        updated += 1;
+      } else {
+        await this.prisma.significantEvent.create({
+          data: {
+            teacherId: item.teacherId,
+            periodCode: payload.periodCode,
+            moment: payload.moment,
+            phase: payload.phase,
+            ...data,
+          },
+        });
+        created += 1;
+      }
+    }
+
+    return {
+      ok: true,
+      created,
+      updated,
+      skipped,
+      total: teachers.length,
+      cutoffDate: cutoff.toISOString(),
+      tenureDays,
+    };
+  }
+
+  async significantEventsList(query: {
+    periodCode?: string;
+    moment?: string;
+    phase?: string;
+    signed?: string;
+    delivered?: string;
+    archived?: string;
+    resolved?: string;
+    search?: string;
+  }) {
+    const where: Record<string, unknown> = {};
+    if (query.periodCode) where.periodCode = query.periodCode;
+    if (query.moment) where.moment = query.moment;
+    if (query.phase) where.phase = query.phase;
+    if (query.signed === 'true') where.signed = true;
+    if (query.signed === 'false') where.signed = false;
+    if (query.delivered === 'true') where.delivered = true;
+    if (query.delivered === 'false') where.delivered = false;
+    if (query.archived === 'true') where.archived = true;
+    if (query.archived === 'false') where.archived = false;
+    if (query.resolved === 'true') where.resolved = true;
+    if (query.resolved === 'false') where.resolved = false;
+
+    await this.recomputeSignificantEventScores(where);
+
+    const events = await this.prisma.significantEvent.findMany({
+      where,
+      include: {
+        teacher: {
+          select: {
+            id: true,
+            fullName: true,
+            email: true,
+            email2: true,
+            coordination: true,
+            campus: true,
+            fechaInicio: true,
+            previousEmployment: true,
+          },
+        },
+      },
+      orderBy: [{ periodCode: 'desc' }, { moment: 'asc' }, { generatedAt: 'desc' }],
+    });
+
+    const search = query.search?.trim().toLowerCase() ?? '';
+    const filtered = search
+      ? events.filter((event) => {
+          const haystack = [
+            event.teacher?.fullName,
+            event.teacher?.email,
+            event.coordination,
+            event.campus,
+            event.periodCode,
+            event.moment,
+          ]
+            .filter(Boolean)
+            .map((value) => String(value).toLowerCase())
+            .join(' ');
+          return haystack.includes(search);
+        })
+      : events;
+
+    return {
+      total: filtered.length,
+      items: filtered.map((event) => ({
+        id: event.id,
+        teacherId: event.teacherId,
+        teacherName: event.teacher?.fullName ?? 'Docente sin nombre',
+        teacherEmail: event.teacher?.email ?? null,
+        coordination: event.coordination,
+        campus: event.campus,
+        periodCode: event.periodCode,
+        moment: event.moment,
+        phase: event.phase,
+        totalScore: event.totalScore,
+        alistamientoScore: event.alistamientoScore,
+        ejecucionScore: event.ejecucionScore,
+        isNewTeacher: event.isNewTeacher,
+        tenureDays: event.tenureDays,
+        fechaInicio: event.fechaInicio,
+        signed: event.signed,
+        signedAt: event.signedAt,
+        signedNotes: event.signedNotes,
+        delivered: event.delivered,
+        deliveredAt: event.deliveredAt,
+        deliveryNotes: event.deliveryNotes,
+        archived: event.archived,
+        archivedAt: event.archivedAt,
+        archivedFolder: event.archivedFolder,
+        resolved: event.resolved,
+        resolvedAt: event.resolvedAt,
+        resolvedScore: event.resolvedScore,
+        notes: event.notes,
+        generatedAt: event.generatedAt,
+        updatedAt: event.updatedAt,
+      })),
+    };
+  }
+
+  private async recomputeSignificantEventScores(where: Record<string, unknown>) {
+    const events = await this.prisma.significantEvent.findMany({
+      where,
+      select: { id: true, teacherId: true, periodCode: true, moment: true },
+    });
+    if (!events.length) return;
+
+    const periodCodes = [...new Set(events.map((e) => e.periodCode))];
+    const periods = await this.prisma.period.findMany({
+      where: { code: { in: periodCodes } },
+      select: { id: true, code: true },
+    });
+    const periodIdByCode = new Map(periods.map((p) => [p.code, p.id]));
+
+    const RESOLVED_THRESHOLD = 70;
+
+    for (const event of events) {
+      const periodId = periodIdByCode.get(event.periodCode);
+      if (!periodId) continue;
+
+      const courses = await this.prisma.course.findMany({
+        where: {
+          teacherId: event.teacherId,
+          periodId,
+          moment: event.moment,
+        },
+        include: { evaluations: true },
+      });
+
+      if (!courses.length) continue;
+
+      let alSum = 0;
+      let ejSum = 0;
+      let alCount = 0;
+      let ejCount = 0;
+
+      for (const course of courses) {
+        const al = course.evaluations.find((e) => e.phase === 'ALISTAMIENTO');
+        const ej = course.evaluations.find((e) => e.phase === 'EJECUCION');
+        if (al?.score != null) {
+          alSum += al.score;
+          alCount += 1;
+        }
+        if (ej?.score != null) {
+          ejSum += ej.score;
+          ejCount += 1;
+        }
+      }
+
+      const alAvg = alCount > 0 ? alSum / alCount : 0;
+      const ejAvg = ejCount > 0 ? ejSum / ejCount : 0;
+      const newTotal = alAvg + ejAvg;
+      const isResolved = newTotal >= RESOLVED_THRESHOLD;
+
+      await this.prisma.significantEvent.update({
+        where: { id: event.id },
+        data: {
+          totalScore: newTotal,
+          alistamientoScore: alAvg,
+          ejecucionScore: ejAvg,
+          resolved: isResolved,
+          resolvedAt: isResolved ? new Date() : null,
+          resolvedScore: isResolved ? newTotal : null,
+        },
+      });
+    }
+  }
+
+  async significantEventsUpdate(id: string, rawPayload: unknown) {
+    const payload = (rawPayload ?? {}) as {
+      signed?: boolean;
+      signedNotes?: string | null;
+      delivered?: boolean;
+      deliveryNotes?: string | null;
+      archived?: boolean;
+      archivedFolder?: string | null;
+      notes?: string | null;
+    };
+
+    const now = new Date();
+    const data: Record<string, unknown> = {};
+
+    if (payload.signed !== undefined) {
+      data.signed = Boolean(payload.signed);
+      data.signedAt = payload.signed ? now : null;
+    }
+    if (payload.signedNotes !== undefined) data.signedNotes = payload.signedNotes ?? null;
+
+    if (payload.delivered !== undefined) {
+      data.delivered = Boolean(payload.delivered);
+      data.deliveredAt = payload.delivered ? now : null;
+    }
+    if (payload.deliveryNotes !== undefined) data.deliveryNotes = payload.deliveryNotes ?? null;
+
+    if (payload.archived !== undefined) {
+      data.archived = Boolean(payload.archived);
+      data.archivedAt = payload.archived ? now : null;
+    }
+    if (payload.archivedFolder !== undefined) data.archivedFolder = payload.archivedFolder ?? null;
+
+    if (payload.notes !== undefined) data.notes = payload.notes ?? null;
+
+    const updated = await this.prisma.significantEvent.update({
+      where: { id },
+      data,
+    });
+
+    return { ok: true, event: updated };
   }
 }

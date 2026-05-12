@@ -22,7 +22,8 @@ export type MainMenuSection =
   | 'automatizacion-banner'
   | 'automatizacion-moodle'
   | 'analitica-moodle'
-  | 'reportes';
+  | 'reportes'
+  | 'eventos-significativos';
 
 const ICON_HOME = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -158,6 +159,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/correos', label: 'Correos', section: 'correos', icon: ICON_MAIL, group: 'data' },
   { href: '/bienestar', label: 'Bienestar', section: 'bienestar', icon: ICON_USERS, group: 'data' },
   { href: '/reportes', label: 'Reportes Cierre', section: 'reportes', icon: ICON_REPORT, group: 'data' },
+  { href: '/eventos-significativos', label: 'Eventos Significativos', section: 'eventos-significativos', icon: ICON_REPORT, group: 'data' },
   { href: '/analitica-moodle', label: 'Analitica Moodle', section: 'analitica-moodle', icon: ICON_CHART, group: 'data' },
   { href: '/automatizacion-banner', label: 'Banner', section: 'automatizacion-banner', icon: ICON_ZAP, group: 'automation' },
   { href: '/automatizacion-moodle', label: 'Moodle Sidecar', section: 'automatizacion-moodle', icon: ICON_SETTINGS, group: 'automation' },

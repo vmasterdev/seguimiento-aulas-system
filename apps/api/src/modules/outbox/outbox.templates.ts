@@ -6,7 +6,7 @@ export const BASE_REPORT_STYLE = `<style>
       color: #1f2937;
     }
     .shell {
-      max-width: 780px;
+      max-width: 1280px;
       margin: 28px auto;
       background: #ffffff;
       border-radius: 16px;

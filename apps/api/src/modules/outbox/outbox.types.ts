@@ -72,12 +72,15 @@ export type CourseCoordinationRow = {
   periodCode: string;
   periodLabel: string | null;
   teacherName: string;
+  teacherKey: string;
+  campus: string | null;
   nrc: string;
   subject: string;
   moment: string;
   status: string;
   template: string;
   score: number | null;
+  replicated: boolean;
   coordinationKey: string;
   coordinationName: string;
 };
@@ -111,4 +114,33 @@ export type GlobalMomentSummaryRow = {
   good: number;
   acceptable: number;
   unsatisfactory: number;
+};
+
+export type GlobalProgramCampusRow = {
+  coordination: string;
+  campus: string;
+  uniqueTeachers: number;
+  unsatisfactoryTeachers: number;
+  unsatisfactoryCourses: number;
+  recurrentTeachers: number;
+};
+
+export type GlobalUnsatisfactoryTeacherRow = {
+  teacherKey: string;
+  teacherName: string;
+  coordination: string;
+  campus: string;
+  unsatisfactoryCourses: number;
+  totalCourses: number;
+  unsatisfactoryMomentsCount: number;
+  recurrent: boolean;
+  replicatedCount: number;
+};
+
+export type GlobalTeacherAggregates = {
+  uniqueTeachers: number;
+  uniqueUnsatisfactoryTeachers: number;
+  uniqueRecurrentTeachers: number;
+  programCampusRows: GlobalProgramCampusRow[];
+  unsatisfactoryTeacherRows: GlobalUnsatisfactoryTeacherRow[];
 };

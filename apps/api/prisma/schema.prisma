@@ -50,6 +50,7 @@ model Teacher {
   courses     Course[]
   sampleGroups SampleGroup[]
   outbox      OutboxMessage[]
+  significantEvents SignificantEvent[]
 
   @@index([sourceId])
   @@index([documentId])
@@ -461,4 +462,49 @@ model BannerEnrollmentRecord {
   @@index([fullName])
   @@index([email])
   @@index([institutionalId])
+}
+
+model SignificantEvent {
+  id              String   @id @default(cuid())
+  teacherId       String
+  teacher         Teacher  @relation(fields: [teacherId], references: [id], onDelete: Cascade)
+
+  periodCode      String
+  moment          String
+  phase           String
+  totalScore      Float?
+  alistamientoScore Float?
+  ejecucionScore  Float?
+  coordination    String?
+  campus          String?
+
+  isNewTeacher    Boolean  @default(false)
+  tenureDays      Int?
+  fechaInicio     DateTime?
+
+  signed          Boolean  @default(false)
+  signedAt        DateTime?
+  signedNotes     String?
+
+  delivered       Boolean  @default(false)
+  deliveredAt     DateTime?
+  deliveryNotes   String?
+
+  archived        Boolean  @default(false)
+  archivedAt      DateTime?
+  archivedFolder  String?
+
+  resolved        Boolean  @default(false)
+  resolvedAt      DateTime?
+  resolvedScore   Float?
+
+  generatedAt     DateTime @default(now())
+  updatedAt       DateTime @updatedAt
+  notes           String?
+
+  @@unique([teacherId, periodCode, moment, phase])
+  @@index([periodCode, moment])
+  @@index([phase])
+  @@index([signed, delivered, archived])
+  @@index([resolved])
 }

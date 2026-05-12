@@ -5,7 +5,10 @@ import type {
   GeneratePayload,
   GlobalMomentSummaryRow,
   GlobalPeriodSummaryRow,
+  GlobalProgramCampusRow,
   GlobalSummaryRow,
+  GlobalTeacherAggregates,
+  GlobalUnsatisfactoryTeacherRow,
 } from './outbox.types';
 import { escapeHtml, formatMomentLabel } from './outbox.utils';
 
@@ -63,6 +66,22 @@ type GlobalReportOptions = {
   periodSummary: GlobalPeriodSummaryRow[];
   momentSummary: GlobalMomentSummaryRow[];
   recipientsCount: number;
+  teacherAggregates?: GlobalTeacherAggregates;
+  significantEvents?: Array<{
+    teacherName: string;
+    coordination: string | null;
+    campus: string | null;
+    periodCode: string;
+    moment: string;
+    totalScore: number | null;
+    resolvedScore: number | null;
+    isNewTeacher: boolean;
+    tenureDays: number | null;
+    signed: boolean;
+    delivered: boolean;
+    archived: boolean;
+    resolved: boolean;
+  }>;
 };
 
 type WorkshopInvitationOptions = {
@@ -504,6 +523,117 @@ export function summarizeGlobalRows(
   };
 }
 
+export function summarizeTeacherAggregates(
+  rows: CourseCoordinationRow[],
+  phase: GeneratePayload['phase'],
+): GlobalTeacherAggregates {
+  const { phaseUpper } = getPhaseMeta(phase);
+
+  type TeacherStat = {
+    teacherKey: string;
+    teacherName: string;
+    coordination: string;
+    campus: string;
+    totalCourses: number;
+    unsatisfactoryCourses: number;
+    replicatedCount: number;
+    unsatisfactoryMoments: Set<string>;
+  };
+
+  const teacherStats = new Map<string, TeacherStat>();
+
+  for (const row of rows) {
+    const key = row.teacherKey || row.teacherName || 'SIN_DOCENTE';
+    const stat = teacherStats.get(key) ?? {
+      teacherKey: key,
+      teacherName: row.teacherName,
+      coordination: row.coordinationName,
+      campus: row.campus?.trim() || 'SIN_CU',
+      totalCourses: 0,
+      unsatisfactoryCourses: 0,
+      replicatedCount: 0,
+      unsatisfactoryMoments: new Set<string>(),
+    };
+
+    stat.totalCourses += 1;
+    const band = toScoreBandForPhase(row.score, phaseUpper);
+    if (band === 'INSATISFACTORIO') {
+      stat.unsatisfactoryCourses += 1;
+      stat.unsatisfactoryMoments.add(row.moment);
+      if (row.replicated) stat.replicatedCount += 1;
+    }
+    teacherStats.set(key, stat);
+  }
+
+  const unsatisfactoryTeacherRows: GlobalUnsatisfactoryTeacherRow[] = [];
+  let uniqueUnsatisfactoryTeachers = 0;
+  let uniqueRecurrentTeachers = 0;
+
+  const programCampusMap = new Map<string, GlobalProgramCampusRow>();
+
+  for (const stat of teacherStats.values()) {
+    const isUnsat = stat.unsatisfactoryCourses > 0;
+    const recurrent = stat.unsatisfactoryMoments.size > 1;
+    if (isUnsat) {
+      uniqueUnsatisfactoryTeachers += 1;
+      if (recurrent) uniqueRecurrentTeachers += 1;
+      unsatisfactoryTeacherRows.push({
+        teacherKey: stat.teacherKey,
+        teacherName: stat.teacherName,
+        coordination: stat.coordination,
+        campus: stat.campus,
+        unsatisfactoryCourses: stat.unsatisfactoryCourses,
+        totalCourses: stat.totalCourses,
+        unsatisfactoryMomentsCount: stat.unsatisfactoryMoments.size,
+        recurrent,
+        replicatedCount: stat.replicatedCount,
+      });
+    }
+
+    const pcKey = `${stat.coordination}::${stat.campus}`;
+    const pc = programCampusMap.get(pcKey) ?? {
+      coordination: stat.coordination,
+      campus: stat.campus,
+      uniqueTeachers: 0,
+      unsatisfactoryTeachers: 0,
+      unsatisfactoryCourses: 0,
+      recurrentTeachers: 0,
+    };
+    pc.uniqueTeachers += 1;
+    if (isUnsat) {
+      pc.unsatisfactoryTeachers += 1;
+      pc.unsatisfactoryCourses += stat.unsatisfactoryCourses;
+      if (recurrent) pc.recurrentTeachers += 1;
+    }
+    programCampusMap.set(pcKey, pc);
+  }
+
+  const programCampusRows = [...programCampusMap.values()]
+    .filter((row) => row.unsatisfactoryTeachers > 0)
+    .sort(
+      (a, b) =>
+        b.unsatisfactoryTeachers - a.unsatisfactoryTeachers ||
+        a.coordination.localeCompare(b.coordination, 'es') ||
+        a.campus.localeCompare(b.campus, 'es'),
+    );
+
+  unsatisfactoryTeacherRows.sort(
+    (a, b) =>
+      Number(b.recurrent) - Number(a.recurrent) ||
+      b.unsatisfactoryCourses - a.unsatisfactoryCourses ||
+      a.coordination.localeCompare(b.coordination, 'es') ||
+      a.teacherName.localeCompare(b.teacherName, 'es'),
+  );
+
+  return {
+    uniqueTeachers: teacherStats.size,
+    uniqueUnsatisfactoryTeachers,
+    uniqueRecurrentTeachers,
+    programCampusRows,
+    unsatisfactoryTeacherRows,
+  };
+}
+
 export function buildTeacherHtml(options: TeacherReportOptions): string {
   const { phaseUpper, phaseLabel, scoreScale } = getPhaseMeta(options.phase);
   const selectedCount = options.rows.filter((row) => row.resultType === 'REVISADO').length;
@@ -599,7 +729,10 @@ export function buildTeacherHtml(options: TeacherReportOptions): string {
   ].join('');
 
   return [
-    '<html><head>',
+    '<!DOCTYPE html><html lang="es"><head>',
+    '<meta charset="UTF-8">',
+    '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
     BASE_REPORT_STYLE,
     extraStyle,
     '</head><body>',
@@ -894,7 +1027,10 @@ export function buildCoordinatorHtml(options: CoordinatorReportOptions): string 
   ].join('');
 
   return [
-    '<html><head>',
+    '<!DOCTYPE html><html lang="es"><head>',
+    '<meta charset="UTF-8">',
+    '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
     BASE_REPORT_STYLE,
     extraStyle,
     '</head><body>',
@@ -1057,18 +1193,187 @@ export function buildGlobalHtml(options: GlobalReportOptions): string {
       ].join('');
     })
     .join('');
+  const insatisfactorioThreshold = (scoreScale * 0.7).toFixed(1);
   const summaryNotes = [
-    `<li><strong>Periodos incluidos:</strong> ${escapeHtml(selectedPeriodsLabel)}.</li>`,
-    `<li><strong>Momentos consolidados:</strong> ${escapeHtml(selectedMomentsLabel)}.</li>`,
-    `<li><strong>Escala de fase:</strong> ${scoreScale} puntos maximos para ${escapeHtml(
-      phaseLabel,
-    ).toLowerCase()}.</li>`,
-    `<li><strong>Total coordinaciones reportadas:</strong> ${options.rows.length} coordinacion(es) con cursos en el consolidado.</li>`,
-    `<li><strong>Destinatarios del correo:</strong> ${options.recipientsCount} correo(s) configurados en este envio.</li>`,
+    `<li><strong>Periodos academicos incluidos:</strong> ${escapeHtml(selectedPeriodsLabel)}.</li>`,
+    `<li><strong>Momentos evaluados:</strong> ${escapeHtml(selectedMomentsLabel)}.</li>`,
+    `<li><strong>Escala de calificacion (fase ${escapeHtml(phaseLabel).toLowerCase()}):</strong> 0 a ${scoreScale} puntos. Umbral insatisfactorio: menor a ${insatisfactorioThreshold} (equivalente a 70/100 normalizado).</li>`,
+    `<li><strong>Definicion "aula":</strong> cada NRC equivale a 1 aula. Un docente puede tener varias aulas.</li>`,
+    `<li><strong>Definicion "docente reincidente":</strong> docente con resultado insatisfactorio en mas de un momento dentro del consolidado actual.</li>`,
+    `<li><strong>Total coordinaciones reportadas:</strong> ${options.rows.length} programa(s) con aulas en el consolidado.</li>`,
+    `<li><strong>Correos destinatarios del envio:</strong> ${options.recipientsCount}.</li>`,
+  ].join('');
+
+  const aggregates = options.teacherAggregates;
+  const teacherKpiBlock = aggregates
+    ? [
+        '<div class="panel">',
+        '<div class="section-title">Docentes detras de las aulas (resumen)</div>',
+        '<p style="margin:0 0 10px 0;color:#334155;font-size:13px;">Las cifras anteriores cuentan <strong>aulas (NRC)</strong>. La siguiente seccion cuenta <strong>docentes unicos</strong>. Un docente puede tener varias aulas y aparecer en mas de una banda de resultado.</p>',
+        '<div class="kpi-grid">',
+        '<div class="kpi"><div class="kpi-label">Docentes unicos en el consolidado</div>',
+        `<div class="kpi-value">${aggregates.uniqueTeachers}</div></div>`,
+        '<div class="kpi kpi-danger"><div class="kpi-label">Docentes con al menos un aula Insatisfactorio</div>',
+        `<div class="kpi-value">${aggregates.uniqueUnsatisfactoryTeachers}</div><div class="kpi-meta">de ${aggregates.uniqueTeachers} docentes</div></div>`,
+        '<div class="kpi kpi-warning"><div class="kpi-label">Docentes reincidentes</div>',
+        `<div class="kpi-value">${aggregates.uniqueRecurrentTeachers}</div><div class="kpi-meta">insatisfactorio en mas de un momento</div></div>`,
+        '</div>',
+        '</div>',
+      ].join('')
+    : '';
+
+  const programCampusRowsHtml = aggregates
+    ? aggregates.programCampusRows
+        .map((row, idx) => {
+          const background = idx % 2 === 0 ? '#ffffff' : '#f8fbff';
+          return [
+            `<tr style="background:${background};font-size:14px;">`,
+            `<td style="padding:8px 12px;text-align:left;font-weight:600;color:#0057A4;">${escapeHtml(row.coordination)}</td>`,
+            `<td style="padding:8px 12px;text-align:left;">${escapeHtml(row.campus)}</td>`,
+            `<td style="padding:8px 12px;text-align:center;">${row.uniqueTeachers}</td>`,
+            `<td style="padding:8px 12px;text-align:center;background:#fee2e2;font-weight:700;">${row.unsatisfactoryTeachers}</td>`,
+            `<td style="padding:8px 12px;text-align:center;background:#fee2e2;">${row.unsatisfactoryCourses}</td>`,
+            `<td style="padding:8px 12px;text-align:center;background:#ffedd5;">${row.recurrentTeachers}</td>`,
+            '</tr>',
+          ].join('');
+        })
+        .join('')
+    : '';
+
+  const programCampusBlock = aggregates && aggregates.programCampusRows.length
+    ? [
+        '<div class="panel">',
+        '<div class="section-title">Docentes con resultado Insatisfactorio - desagregado por programa y Centro Universitario</div>',
+        '<p style="margin:0 0 10px 0;color:#334155;font-size:13px;">Cada fila combina un programa con un Centro Universitario (CU). Solo se listan combinaciones con al menos un docente insatisfactorio.</p>',
+        '<div class="table-container"><table class="report-table">',
+        '<thead><tr><th>Programa (Coordinacion)</th><th>Centro Universitario</th><th>Docentes en la combinacion</th><th>Docentes Insatisfactorio</th><th>Aulas Insatisfactorio</th><th>Reincidentes</th></tr></thead>',
+        `<tbody>${programCampusRowsHtml}</tbody>`,
+        '</table></div></div>',
+      ].join('')
+    : '';
+
+  const teacherListRowsHtml = aggregates
+    ? aggregates.unsatisfactoryTeacherRows
+        .map((row, idx) => {
+          const background = idx % 2 === 0 ? '#ffffff' : '#fff7ed';
+          const reincidenteBadge = row.recurrent
+            ? '<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#fbbf24;color:#7c2d12;font-weight:700;font-size:11px;">REINCIDENTE</span>'
+            : '<span style="color:#64748b;font-size:11px;">No</span>';
+          const replicadoNote = row.replicatedCount > 0
+            ? `<div style="font-size:11px;color:#64748b;margin-top:2px;">${row.replicatedCount} aula(s) por replicacion de muestra</div>`
+            : '';
+          return [
+            `<tr style="background:${background};font-size:13px;vertical-align:top;">`,
+            `<td style="padding:8px 12px;text-align:left;font-weight:600;color:#0a3e74;">${escapeHtml(row.teacherName)}${replicadoNote}</td>`,
+            `<td style="padding:8px 12px;text-align:left;">${escapeHtml(row.coordination)}</td>`,
+            `<td style="padding:8px 12px;text-align:left;">${escapeHtml(row.campus)}</td>`,
+            `<td style="padding:8px 12px;text-align:center;background:#fee2e2;font-weight:700;">${row.unsatisfactoryCourses}</td>`,
+            `<td style="padding:8px 12px;text-align:center;">${row.totalCourses}</td>`,
+            `<td style="padding:8px 12px;text-align:center;">${row.unsatisfactoryMomentsCount}</td>`,
+            `<td style="padding:8px 12px;text-align:center;">${reincidenteBadge}</td>`,
+            '</tr>',
+          ].join('');
+        })
+        .join('')
+    : '';
+
+  const teacherListBlock = aggregates && aggregates.unsatisfactoryTeacherRows.length
+    ? [
+        '<div class="panel">',
+        '<div class="section-title">Listado nominal de docentes con aulas Insatisfactorio</div>',
+        '<p style="margin:0 0 10px 0;color:#334155;font-size:13px;">Se incluyen todos los docentes con al menos un aula con calificacion insatisfactoria, incluso si solo tiene un NRC en esa banda y otros NRC en bandas superiores. Las aulas marcadas como "por replicacion de muestra" recibieron la calificacion derivada de un NRC representativo del docente.</p>',
+        '<div class="table-container"><table class="report-table">',
+        '<thead><tr><th>Docente</th><th>Programa</th><th>Centro Universitario</th><th>Aulas Insatisf.</th><th>Total aulas</th><th>Momentos con Insatisf.</th><th>Reincidente</th></tr></thead>',
+        `<tbody>${teacherListRowsHtml}</tbody>`,
+        '</table></div></div>',
+      ].join('')
+    : '';
+
+  const significantEventsRowsHtml = options.significantEvents
+    ? options.significantEvents
+        .map((ev, idx) => {
+          const bg = ev.resolved ? '#ecfccb' : (idx % 2 === 0 ? '#ffffff' : '#f8fbff');
+          const estadoBadge = ev.resolved
+            ? '<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#a3e635;color:#3f6212;font-weight:700;font-size:10.5px;">SUBSANADO</span>'
+            : '<span style="display:inline-block;padding:2px 8px;border-radius:999px;background:#fee2e2;color:#991b1b;font-weight:700;font-size:10.5px;">ACTIVO</span>';
+          const firmadoIcon = ev.signed
+            ? '<span style="color:#16a34a;font-weight:700;">SI</span>'
+            : '<span style="color:#dc2626;">NO</span>';
+          const entregadoIcon = ev.delivered
+            ? '<span style="color:#16a34a;font-weight:700;">SI</span>'
+            : '<span style="color:#dc2626;">NO</span>';
+          const cargadoIcon = ev.archived
+            ? '<span style="color:#16a34a;font-weight:700;">SI</span>'
+            : '<span style="color:#dc2626;">NO</span>';
+          return [
+            `<tr style="background:${bg};font-size:13px;vertical-align:top;">`,
+            `<td style="padding:8px 12px;text-align:center;font-weight:700;color:#0a3e74;">${idx + 1}</td>`,
+            `<td style="padding:8px 12px;text-align:left;font-weight:600;color:#0a3e74;">${escapeHtml(ev.teacherName)}</td>`,
+            `<td style="padding:8px 12px;text-align:left;">${escapeHtml(ev.coordination ?? '-')}</td>`,
+            `<td style="padding:8px 12px;text-align:left;">${escapeHtml(ev.campus ?? '-')}</td>`,
+            `<td style="padding:8px 12px;text-align:center;font-family:monospace;">${escapeHtml(ev.periodCode)}</td>`,
+            `<td style="padding:8px 12px;text-align:center;">${escapeHtml(ev.moment)}</td>`,
+            `<td style="padding:8px 12px;text-align:center;font-weight:700;">${ev.resolvedScore != null ? ev.resolvedScore.toFixed(1) : ev.totalScore != null ? ev.totalScore.toFixed(1) : '-'}</td>`,
+            `<td style="padding:8px 12px;text-align:center;">${estadoBadge}</td>`,
+            `<td style="padding:8px 12px;text-align:center;">${firmadoIcon}</td>`,
+            `<td style="padding:8px 12px;text-align:center;">${entregadoIcon}</td>`,
+            `<td style="padding:8px 12px;text-align:center;">${cargadoIcon}</td>`,
+            '</tr>',
+          ].join('');
+        })
+        .join('')
+    : '';
+
+  const significantEventsBlock = options.significantEvents && options.significantEvents.length
+    ? (() => {
+        const totalEvents = options.significantEvents!.length;
+        const subsanados = options.significantEvents!.filter((e) => e.resolved).length;
+        const activos = totalEvents - subsanados;
+        const firmados = options.significantEvents!.filter((e) => e.signed).length;
+        const entregados = options.significantEvents!.filter((e) => e.delivered).length;
+        const cargados = options.significantEvents!.filter((e) => e.archived).length;
+        return [
+          '<div class="panel">',
+          '<div class="section-title">Eventos significativos generados (Momento 1)</div>',
+          '<p style="margin:0 0 10px 0;color:#334155;font-size:13px;">Listado nominal de docentes con resultado Insatisfactorio en el Momento 1, que cumplen el requisito institucional de antiguedad (>= 90 dias). Se incluye estado de firma, entrega y cargue en carpeta de la Subdireccion de Docencia.</p>',
+          '<div class="kpi-grid">',
+          `<div class="kpi"><div class="kpi-label">Eventos generados</div><div class="kpi-value">${totalEvents}</div></div>`,
+          `<div class="kpi kpi-success"><div class="kpi-label">Subsanados</div><div class="kpi-value">${subsanados}</div><div class="kpi-meta">score actual >= 70</div></div>`,
+          `<div class="kpi kpi-warning"><div class="kpi-label">Activos</div><div class="kpi-value">${activos}</div><div class="kpi-meta">en seguimiento</div></div>`,
+          `<div class="kpi kpi-info"><div class="kpi-label">Firmados</div><div class="kpi-value">${firmados}</div><div class="kpi-meta">de ${totalEvents}</div></div>`,
+          `<div class="kpi kpi-info"><div class="kpi-label">Entregados</div><div class="kpi-value">${entregados}</div><div class="kpi-meta">de ${totalEvents}</div></div>`,
+          `<div class="kpi kpi-info"><div class="kpi-label">Cargados Subdireccion</div><div class="kpi-value">${cargados}</div><div class="kpi-meta">de ${totalEvents}</div></div>`,
+          '</div>',
+          '<div class="table-container" style="margin-top:12px;"><table class="report-table">',
+          '<thead><tr><th>#</th><th>Docente</th><th>Programa (Coordinacion)</th><th>Centro Universitario</th><th>Periodo</th><th>Momento</th><th>Score actual</th><th>Estado</th><th>Firmado</th><th>Entregado</th><th>Cargado Subdir.</th></tr></thead>',
+          `<tbody>${significantEventsRowsHtml}</tbody>`,
+          '</table></div>',
+          '<p style="margin:10px 0 0 0;font-size:12px;color:#64748b;font-style:italic;">El estado de firma/entrega/cargue se actualiza desde el modulo "Eventos Significativos" del sistema. Los docentes con calificacion corregida que pasen a >= 70 puntos quedan automaticamente marcados como SUBSANADO.</p>',
+          '</div>',
+        ].join('');
+      })()
+    : '';
+
+  const acompanamientoBlock = [
+    '<div class="panel panel-warm">',
+    '<div class="section-title" style="color:#7a5b00;">Acompanamiento articulado con coordinadores de programa</div>',
+    '<p style="margin:0 0 10px 0;color:#334155;font-size:13px;">Para los docentes con resultado Insatisfactorio, el sistema activa el siguiente protocolo, articulado con cada coordinador(a) de programa:</p>',
+    '<ol style="margin:0 0 0 18px;padding:0;color:#334155;font-size:13px;line-height:1.6;">',
+    '<li><strong>Notificacion individual al docente</strong> con su reporte de cierre, items con menor puntaje y plan de mejora especifico.</li>',
+    '<li><strong>Plazo de subsanacion de 2 dias habiles</strong> a partir del envio del correo, para ajustar el aula virtual.</li>',
+    '<li><strong>Comunicacion al coordinador(a) de programa</strong> con el listado de docentes insatisfactorios de su coordinacion, para gestion conjunta.</li>',
+    '<li><strong>Convocatoria a Jornada de Induccion Campus Virtual</strong> (modalidad Teams) para los docentes con resultado insatisfactorio, articulada con la Direccion Academica.</li>',
+    '<li><strong>Seguimiento de reincidentes</strong>: docentes con insatisfactorio en mas de un momento se priorizan para acompanamiento individualizado por parte del equipo de Campus Virtual.</li>',
+    '</ol>',
+    '</div>',
   ].join('');
 
   return [
-    '<html><head>',
+    '<!DOCTYPE html><html lang="es"><head>',
+    '<meta charset="UTF-8">',
+    '<meta http-equiv="Content-Type" content="text/html; charset=UTF-8">',
+    '<meta name="viewport" content="width=device-width, initial-scale=1.0">',
+    '<title>Reporte ejecutivo - Campus Virtual RCS</title>',
     BASE_REPORT_STYLE,
     '</head><body>',
     '<div class="shell"><div class="top-strip" style="background:#ffc300;background-image:linear-gradient(90deg,#ffc300 0%,#ffd95c 100%);"></div>',
@@ -1095,28 +1400,29 @@ export function buildGlobalHtml(options: GlobalReportOptions): string {
       selectedPeriodsLabel,
     )} en un solo correo.</p>`,
     '<div class="panel">',
-    '<div class="section-title">Resumen ejecutivo</div>',
+    '<div class="section-title">Resumen ejecutivo (cifras en aulas)</div>',
+    '<p style="margin:0 0 10px 0;color:#334155;font-size:13px;">Las cifras de esta seccion corresponden a <strong>aulas (NRC)</strong>, no a docentes. Un mismo docente puede tener varias aulas. Mas abajo se desagrega por docente unico.</p>',
     '<div class="kpi-grid">',
-    '<div class="kpi"><div class="kpi-label">Periodos</div>',
-    `<div class="kpi-value">${options.periodCodes.length}</div></div>`,
-    '<div class="kpi"><div class="kpi-label">Momentos</div>',
-    `<div class="kpi-value">${options.moments.length}</div></div>`,
-    '<div class="kpi"><div class="kpi-label">Aulas consolidadas</div>',
-    `<div class="kpi-value">${options.totalCourses}</div></div>`,
-    '<div class="kpi"><div class="kpi-label">Destinatarios</div>',
-    `<div class="kpi-value">${options.recipientsCount}</div></div>`,
-    '<div class="kpi"><div class="kpi-label">Promedio global</div>',
-    `<div class="kpi-value">${averageLabel}</div><div class="kpi-meta">(0-${scoreScale})</div></div>`,
-    '<div class="kpi kpi-success"><div class="kpi-label">Excelente</div>',
-    `<div class="kpi-value">${options.excellent}</div><div class="kpi-meta">${scoreSeg.EXCELENTE}%</div></div>`,
-    '<div class="kpi kpi-info"><div class="kpi-label">Bueno</div>',
-    `<div class="kpi-value">${options.good}</div><div class="kpi-meta">${scoreSeg.BUENO}%</div></div>`,
-    '<div class="kpi kpi-warning"><div class="kpi-label">Aceptable</div>',
-    `<div class="kpi-value">${options.acceptable}</div><div class="kpi-meta">${scoreSeg.ACEPTABLE}%</div></div>`,
-    '<div class="kpi kpi-danger"><div class="kpi-label">Insatisfactorio</div>',
-    `<div class="kpi-value">${options.unsatisfactory}</div><div class="kpi-meta">${scoreSeg.INSATISFACTORIO}%</div></div>`,
+    '<div class="kpi"><div class="kpi-label">Periodos academicos</div>',
+    `<div class="kpi-value">${options.periodCodes.length}</div><div class="kpi-meta">incluidos en el consolidado</div></div>`,
+    '<div class="kpi"><div class="kpi-label">Momentos evaluados</div>',
+    `<div class="kpi-value">${options.moments.length}</div><div class="kpi-meta">cantidad de momentos</div></div>`,
+    '<div class="kpi"><div class="kpi-label">Aulas evaluadas (NRC)</div>',
+    `<div class="kpi-value">${options.totalCourses}</div><div class="kpi-meta">total de aulas en el consolidado</div></div>`,
+    '<div class="kpi"><div class="kpi-label">Correos destinatarios</div>',
+    `<div class="kpi-value">${options.recipientsCount}</div><div class="kpi-meta">de este envio</div></div>`,
+    '<div class="kpi"><div class="kpi-label">Promedio global de aulas</div>',
+    `<div class="kpi-value">${averageLabel}</div><div class="kpi-meta">escala 0-${scoreScale} (fase ${escapeHtml(phaseLabel).toLowerCase()})</div></div>`,
+    '<div class="kpi kpi-success"><div class="kpi-label">Aulas Excelente</div>',
+    `<div class="kpi-value">${options.excellent}</div><div class="kpi-meta">${scoreSeg.EXCELENTE}% del total</div></div>`,
+    '<div class="kpi kpi-info"><div class="kpi-label">Aulas Bueno</div>',
+    `<div class="kpi-value">${options.good}</div><div class="kpi-meta">${scoreSeg.BUENO}% del total</div></div>`,
+    '<div class="kpi kpi-warning"><div class="kpi-label">Aulas Aceptable</div>',
+    `<div class="kpi-value">${options.acceptable}</div><div class="kpi-meta">${scoreSeg.ACEPTABLE}% del total</div></div>`,
+    '<div class="kpi kpi-danger"><div class="kpi-label">Aulas Insatisfactorio</div>',
+    `<div class="kpi-value">${options.unsatisfactory}</div><div class="kpi-meta">${scoreSeg.INSATISFACTORIO}% del total</div></div>`,
     '</div>',
-    '<div class="score-bar-wrap"><p class="score-bar-title">Distribucion global del desempeno</p><div class="score-bar">',
+    '<div class="score-bar-wrap"><p class="score-bar-title">Distribucion de aulas por banda de desempeno</p><div class="score-bar">',
     `<div class="score-seg seg-exc" style="width:${scoreSeg.EXCELENTE}%;">${scoreSeg.EXCELENTE > 0 ? `Excelente ${scoreSeg.EXCELENTE}%` : ''}</div>`,
     `<div class="score-seg seg-good" style="width:${scoreSeg.BUENO}%;">${scoreSeg.BUENO > 0 ? `Bueno ${scoreSeg.BUENO}%` : ''}</div>`,
     `<div class="score-seg seg-ok" style="width:${scoreSeg.ACEPTABLE}%;">${scoreSeg.ACEPTABLE > 0 ? `Aceptable ${scoreSeg.ACEPTABLE}%` : ''}</div>`,
@@ -1128,29 +1434,34 @@ export function buildGlobalHtml(options: GlobalReportOptions): string {
     `<span class="legend-item"><span class="legend-dot dot-bad"></span>Insatisfactorio: ${options.unsatisfactory}</span>`,
     '</div></div></div>',
     '<div class="panel">',
-    '<div class="section-title">Corte por momento</div>',
+    '<div class="section-title">Resumen de aulas por momento evaluado</div>',
     '<div class="table-container"><table class="report-table">',
-    '<thead><tr><th>Momento</th><th>Aulas</th><th>Promedio</th><th>Excelente</th><th>Bueno</th><th>Aceptable</th><th>Insatisf.</th></tr></thead>',
+    '<thead><tr><th>Momento</th><th>Aulas evaluadas</th><th>Promedio (aulas)</th><th>Aulas Excelente</th><th>Aulas Bueno</th><th>Aulas Aceptable</th><th>Aulas Insatisf.</th></tr></thead>',
     `<tbody>${momentRowsHtml}</tbody>`,
     '</table></div></div>',
     '<div class="panel">',
-    '<div class="section-title">Corte por periodo</div>',
+    '<div class="section-title">Resumen de aulas por periodo academico</div>',
     '<div class="table-container"><table class="report-table">',
-    '<thead><tr><th>Periodo</th><th>Momentos</th><th>Aulas</th><th>Promedio</th><th>Excelente</th><th>Bueno</th><th>Aceptable</th><th>Insatisf.</th></tr></thead>',
+    '<thead><tr><th>Periodo academico</th><th>Momentos</th><th>Aulas evaluadas</th><th>Promedio (aulas)</th><th>Aulas Excelente</th><th>Aulas Bueno</th><th>Aulas Aceptable</th><th>Aulas Insatisf.</th></tr></thead>',
     `<tbody>${periodRowsHtml}</tbody>`,
     '</table></div></div>',
     '<div class="panel">',
-    '<div class="section-title">Resumen consolidado por coordinacion</div>',
+    '<div class="section-title">Aulas por coordinacion (programa)</div>',
     '<div class="table-container"><table class="report-table">',
-    '<thead><tr><th>Coordinacion</th><th>Aulas</th><th>Promedio</th><th>Excelente</th><th>Bueno</th><th>Aceptable</th><th>Insatisf.</th></tr></thead>',
+    '<thead><tr><th>Coordinacion (programa)</th><th>Aulas evaluadas</th><th>Promedio (aulas)</th><th>Aulas Excelente</th><th>Aulas Bueno</th><th>Aulas Aceptable</th><th>Aulas Insatisf.</th></tr></thead>',
     `<tbody>${rowsHtml}</tbody>`,
     '</table></div></div>',
+    teacherKpiBlock,
+    programCampusBlock,
+    teacherListBlock,
+    significantEventsBlock,
+    acompanamientoBlock,
     '<div class="panel panel-warm">',
     '<div class="section-title" style="color:#7a5b00;">Claves de lectura del consolidado</div>',
     `<ul class="obs-list">${summaryNotes}</ul>`,
     '</div>',
     '<div class="action-panel">',
-    '<p class="action-title">Acompanamiento ejecutivo</p>',
+    '<p class="action-title">Acompanamiento ejecutivo personalizado</p>',
     '<p class="action-text">Si requiere una lectura dirigida del consolidado o priorizar programas criticos, puede agendar un espacio con Campus Virtual.</p>',
     '<div class="cta-wrap" style="margin-top:0;">',
     `<a class="cta-btn" href="${TEACHER_BOOKING_URL}" target="_blank" rel="noopener">Agendar llamada / videollamada</a>`,

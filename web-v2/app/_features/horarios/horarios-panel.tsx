@@ -26,8 +26,34 @@ type Item = {
   detectedTemplate: string | null;
 };
 
-const TABS = ['estudiante', 'docente', 'coordinacion', 'academica'] as const;
+const TABS = ['estudiante', 'docente', 'coordinacion', 'academica', 'salones'] as const;
 type Tab = typeof TABS[number];
+
+const DIA_KEYS = ['L', 'M', 'I', 'J', 'V', 'S', 'D'] as const;
+const DIA_LABELS = ['Lun', 'Mar', 'Mié', 'Jue', 'Vie', 'Sáb', 'Dom'] as const;
+
+function getCurrentDayIndex(): number {
+  const jsDay = new Date().getDay();
+  return jsDay === 0 ? 6 : jsDay - 1;
+}
+
+function currentHHMM(): string {
+  const d = new Date();
+  return String(d.getHours()).padStart(2, '0') + String(d.getMinutes()).padStart(2, '0');
+}
+
+function fmtHHMM(value: string | null | undefined): string {
+  if (!value) return '—';
+  const v = String(value).padStart(4, '0');
+  return v.slice(0, 2) + ':' + v.slice(2, 4);
+}
+
+function classroomStatus(item: Item, nowHHMM: string): 'PROXIMO' | 'EN_CURSO' | 'TERMINADO' | 'SIN_HORA' {
+  if (!item.horaInicio || !item.horaFin) return 'SIN_HORA';
+  if (nowHHMM < item.horaInicio) return 'PROXIMO';
+  if (nowHHMM <= item.horaFin) return 'EN_CURSO';
+  return 'TERMINADO';
+}
 
 export function HorariosPanel({ apiBase }: { apiBase: string }) {
   const [tab, setTab] = useState<Tab>('docente');
@@ -42,6 +68,20 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
     campus: '',
     nrc: '',
   });
+  const [salonFilters, setSalonFilters] = useState({
+    template: 'D4',
+    dayIndex: getCurrentDayIndex(),
+    onlyFromNow: true,
+    hideVirtual: false,
+  });
+  const [nowHHMM, setNowHHMM] = useState<string>(currentHHMM());
+
+  useEffect(() => {
+    if (tab !== 'salones') return;
+    const id = setInterval(() => setNowHHMM(currentHHMM()), 60000);
+    return () => clearInterval(id);
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [tab]);
   const [emailMessage, setEmailMessage] = useState('');
   const [sending, setSending] = useState(false);
 
@@ -102,6 +142,96 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
     }
     return map;
   }, [filtered]);
+
+  const salonItems = useMemo(() => {
+    if (tab !== 'salones') return [] as Item[];
+    return items.filter((i) => {
+      if (salonFilters.template && salonFilters.template !== 'TODOS' && i.detectedTemplate !== salonFilters.template) return false;
+      if (filters.campus && i.campus !== filters.campus) return false;
+      if (!i.dias?.[salonFilters.dayIndex]) return false;
+      if (salonFilters.onlyFromNow && i.horaFin && i.horaFin < nowHHMM) return false;
+      if (salonFilters.hideVirtual && (i.edificio === 'VIRTU' || !i.salon)) return false;
+      return true;
+    });
+  }, [items, tab, filters.campus, salonFilters, nowHHMM]);
+
+  const salonStats = useMemo(() => {
+    const total = salonItems.length;
+    let enCurso = 0;
+    let proximo = 0;
+    let terminado = 0;
+    let virtual = 0;
+    for (const i of salonItems) {
+      if (i.edificio === 'VIRTU' || !i.salon) virtual += 1;
+      const st = classroomStatus(i, nowHHMM);
+      if (st === 'EN_CURSO') enCurso += 1;
+      else if (st === 'PROXIMO') proximo += 1;
+      else if (st === 'TERMINADO') terminado += 1;
+    }
+    return { total, enCurso, proximo, terminado, virtual, presenciales: total - virtual };
+  }, [salonItems, nowHHMM]);
+
+  const groupedBySalon = useMemo(() => {
+    const map = new Map<string, Item[]>();
+    for (const i of salonItems) {
+      const key = i.edificio === 'VIRTU' || !i.salon
+        ? '💻 VIRTUAL'
+        : `${i.edificio ?? ''} ${i.salon}`.trim();
+      if (!map.has(key)) map.set(key, []);
+      map.get(key)!.push(i);
+    }
+    for (const list of map.values()) {
+      list.sort((a, b) => (a.horaInicio ?? '').localeCompare(b.horaInicio ?? ''));
+    }
+    return [...map.entries()].sort(([a], [b]) => {
+      if (a === '💻 VIRTUAL') return 1;
+      if (b === '💻 VIRTUAL') return -1;
+      return a.localeCompare(b);
+    });
+  }, [salonItems]);
+
+  function exportSalonesCsv() {
+    const header = ['NRC','Edificio','Salon','Inicia','Termina','Asignatura','Docente','Programa','Estado'];
+    const rows = salonItems.map((i) => {
+      const st = classroomStatus(i, nowHHMM);
+      return [
+        i.nrc,
+        i.edificio ?? '',
+        i.salon ?? '',
+        fmtHHMM(i.horaInicio),
+        fmtHHMM(i.horaFin),
+        i.subjectName ?? '',
+        i.teacherName ?? '',
+        i.programCode ?? '',
+        st,
+      ].map((v) => `"${String(v).replace(/"/g,'""')}"`).join(',');
+    });
+    const csv = [header.join(','), ...rows].join('\n');
+    const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
+    const url = URL.createObjectURL(blob);
+    const a = document.createElement('a');
+    a.href = url;
+    a.download = `salones-${salonFilters.template}-${filters.campus || 'TODOS'}-${DIA_KEYS[salonFilters.dayIndex]}-${new Date().toISOString().slice(0,10)}.csv`;
+    a.click();
+    URL.revokeObjectURL(url);
+  }
+
+  function printSalones() {
+    const w = window.open('', '_blank');
+    if (!w) return;
+    const rowsHtml = groupedBySalon.map(([salon, list]) => {
+      const itemsHtml = list.map((i) => {
+        const st = classroomStatus(i, nowHHMM);
+        const stColor = st === 'EN_CURSO' ? '#16a34a' : st === 'PROXIMO' ? '#2563eb' : st === 'TERMINADO' ? '#9ca3af' : '#6b7280';
+        return `<tr><td style="padding:4px 8px;font-family:monospace;">${i.nrc}</td><td style="padding:4px 8px;">${fmtHHMM(i.horaInicio)} - ${fmtHHMM(i.horaFin)}</td><td style="padding:4px 8px;">${i.subjectName ?? ''}</td><td style="padding:4px 8px;font-size:11px;color:#6b7280;">${i.teacherName ?? ''}</td><td style="padding:4px 8px;color:${stColor};font-weight:700;font-size:11px;">${st}</td></tr>`;
+      }).join('');
+      return `<div style="margin-bottom:16px;page-break-inside:avoid;"><h3 style="margin:0;background:#0f172a;color:#fff;padding:6px 10px;font-size:13px;">${salon} <span style="float:right;font-weight:400;font-size:11px;">${list.length} NRC</span></h3><table style="width:100%;border-collapse:collapse;font-size:12px;border:1px solid #e5e7eb;">${itemsHtml}</table></div>`;
+    }).join('');
+    const html = `<!DOCTYPE html><html><head><meta charset="UTF-8"><title>Recorrido Salones ${salonFilters.template}</title><style>body{font-family:Segoe UI,Arial;color:#0f172a;padding:20px;}h1{font-size:18px;margin:0 0 4px;}h2{font-size:13px;margin:0 0 16px;color:#64748b;font-weight:400;}@media print{h3{break-inside:avoid;}}</style></head><body><h1>Recorrido Salones ${salonFilters.template} - ${filters.campus || 'TODAS LAS SEDES'}</h1><h2>${DIA_LABELS[salonFilters.dayIndex]} - Generado ${new Date().toLocaleString('es-CO')} - ${salonItems.length} NRC</h2>${rowsHtml}</body></html>`;
+    w.document.write(html);
+    w.document.close();
+    setTimeout(() => w.print(), 500);
+  }
 
   async function sendEmailToTeacher(teacherId: string, audience: 'SEMESTRE' | 'PRE_MOMENTO') {
     if (!filters.periodCode) { setEmailMessage('Periodo requerido.'); return; }
@@ -185,6 +315,34 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
         {tab === 'academica' && (
           <label>Centro<input value={filters.campus} onChange={(e) => setFilters((p) => ({ ...p, campus: e.target.value }))} placeholder="IBA, NVA..." /></label>
         )}
+        {tab === 'salones' && (
+          <>
+            <label>Sede (CU)<input value={filters.campus} onChange={(e) => setFilters((p) => ({ ...p, campus: e.target.value.toUpperCase() }))} placeholder="IBA, NVA, GAR..." /></label>
+            <label>Plantilla
+              <select value={salonFilters.template} onChange={(e) => setSalonFilters((p) => ({ ...p, template: e.target.value }))}>
+                <option value="TODOS">Todas</option>
+                <option value="D4">Distancia 4.0 (D4)</option>
+                <option value="CRIBA">CRIBA</option>
+                <option value="INNOVAME">INNOVAME</option>
+                <option value="VACIO">VACIO</option>
+                <option value="UNKNOWN">UNKNOWN</option>
+              </select>
+            </label>
+            <label>Día
+              <select value={salonFilters.dayIndex} onChange={(e) => setSalonFilters((p) => ({ ...p, dayIndex: Number(e.target.value) }))}>
+                {DIA_LABELS.map((d, i) => <option key={d} value={i}>{d}{i === getCurrentDayIndex() ? ' (hoy)' : ''}</option>)}
+              </select>
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <input type="checkbox" checked={salonFilters.onlyFromNow} onChange={(e) => setSalonFilters((p) => ({ ...p, onlyFromNow: e.target.checked }))} />
+              Solo desde ahora ({fmtHHMM(nowHHMM)})
+            </label>
+            <label style={{ display: 'flex', alignItems: 'center', gap: 6 }}>
+              <input type="checkbox" checked={salonFilters.hideVirtual} onChange={(e) => setSalonFilters((p) => ({ ...p, hideVirtual: e.target.checked }))} />
+              Ocultar virtuales
+            </label>
+          </>
+        )}
         <div className="toolbar wide">
           <button type="button" className="primary" onClick={() => void load()} disabled={loading}>{loading ? 'Cargando...' : 'Buscar'}</button>
           {tab === 'docente' && (
@@ -238,6 +396,85 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
         filtered.length === 0
           ? <p className="muted">Ingresa NRC o programa para buscar.</p>
           : <ScheduleTable items={filtered} showTeacher />
+      )}
+
+      {tab === 'salones' && (
+        <div>
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(140px, 1fr))', gap: 10, marginBottom: 12 }}>
+            <div style={{ padding: 10, background: '#f8fafc', borderRadius: 6, border: '1px solid #e5e7eb' }}>
+              <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Total NRC</div>
+              <div style={{ fontSize: 22, fontWeight: 800 }}>{salonStats.total}</div>
+            </div>
+            <div style={{ padding: 10, background: '#dcfce7', borderRadius: 6, border: '1px solid #86efac' }}>
+              <div style={{ fontSize: 11, color: '#166534', fontWeight: 600 }}>En curso</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#166534' }}>{salonStats.enCurso}</div>
+            </div>
+            <div style={{ padding: 10, background: '#dbeafe', borderRadius: 6, border: '1px solid #93c5fd' }}>
+              <div style={{ fontSize: 11, color: '#1e40af', fontWeight: 600 }}>Próximos</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#1e40af' }}>{salonStats.proximo}</div>
+            </div>
+            <div style={{ padding: 10, background: '#f3f4f6', borderRadius: 6, border: '1px solid #d1d5db' }}>
+              <div style={{ fontSize: 11, color: '#6b7280', fontWeight: 600 }}>Terminados</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#6b7280' }}>{salonStats.terminado}</div>
+            </div>
+            <div style={{ padding: 10, background: '#fef3c7', borderRadius: 6, border: '1px solid #fcd34d' }}>
+              <div style={{ fontSize: 11, color: '#92400e', fontWeight: 600 }}>Presenciales</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#92400e' }}>{salonStats.presenciales}</div>
+            </div>
+            <div style={{ padding: 10, background: '#ede9fe', borderRadius: 6, border: '1px solid #c4b5fd' }}>
+              <div style={{ fontSize: 11, color: '#5b21b6', fontWeight: 600 }}>Virtuales</div>
+              <div style={{ fontSize: 22, fontWeight: 800, color: '#5b21b6' }}>{salonStats.virtual}</div>
+            </div>
+          </div>
+
+          <div className="toolbar" style={{ marginBottom: 12 }}>
+            <button type="button" onClick={exportSalonesCsv} style={{ background: '#16a34a', color: '#fff' }}>Exportar CSV</button>
+            <button type="button" onClick={printSalones} style={{ background: '#2563eb', color: '#fff' }}>Imprimir recorrido</button>
+          </div>
+
+          {groupedBySalon.length === 0 ? (
+            <p className="muted">Sin NRC para el filtro actual. Ajusta sede / plantilla / día.</p>
+          ) : (
+            groupedBySalon.map(([salon, list]) => (
+              <div key={salon} style={{ border: '1px solid #e5e7eb', borderRadius: 6, marginBottom: 12, overflow: 'hidden' }}>
+                <div style={{ background: '#0f172a', color: '#fff', padding: '8px 12px', display: 'flex', justifyContent: 'space-between', alignItems: 'center' }}>
+                  <strong>{salon}</strong>
+                  <span style={{ fontSize: 11 }}>{list.length} NRC</span>
+                </div>
+                <table className="table" style={{ margin: 0 }}>
+                  <thead>
+                    <tr>
+                      <th>NRC</th>
+                      <th>Inicia</th>
+                      <th>Termina</th>
+                      <th>Asignatura</th>
+                      <th>Docente</th>
+                      <th>Programa</th>
+                      <th>Estado</th>
+                    </tr>
+                  </thead>
+                  <tbody>
+                    {list.map((i) => {
+                      const st = classroomStatus(i, nowHHMM);
+                      const stColor = st === 'EN_CURSO' ? '#16a34a' : st === 'PROXIMO' ? '#2563eb' : st === 'TERMINADO' ? '#9ca3af' : '#6b7280';
+                      return (
+                        <tr key={i.id}>
+                          <td><strong>{i.nrc}</strong></td>
+                          <td style={{ fontFamily: 'monospace' }}>{fmtHHMM(i.horaInicio)}</td>
+                          <td style={{ fontFamily: 'monospace' }}>{fmtHHMM(i.horaFin)}</td>
+                          <td>{i.subjectName ?? '—'}</td>
+                          <td style={{ fontSize: 12 }}>{i.teacherName ?? '—'}</td>
+                          <td>{i.programCode ?? '—'}</td>
+                          <td style={{ color: stColor, fontWeight: 700, fontSize: 11 }}>{st}</td>
+                        </tr>
+                      );
+                    })}
+                  </tbody>
+                </table>
+              </div>
+            ))
+          )}
+        </div>
       )}
     </div>
   );
