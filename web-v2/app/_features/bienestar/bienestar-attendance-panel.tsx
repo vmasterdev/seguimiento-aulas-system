@@ -436,7 +436,7 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
                   <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>Estado</th>
                 </tr>
               </thead>
-              <tbody style={{ divideY: '1px solid #e5e7eb' }}>
+              <tbody>
                 {enrichedRows.slice(0, 100).map((row, index) => (
                   <tr key={`bienestar-row-${row.sessionDay}-${row.nrc}-${row.studentName}-${index}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
                     <td style={{ padding: '0.75rem 1rem' }}>
@@ -506,7 +506,7 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
                   <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>NRC</th>
                 </tr>
               </thead>
-              <tbody style={{ divideY: '1px solid #e5e7eb' }}>
+              <tbody>
                 {parsed.items.length > 0 ? (
                   parsed.items.map((item, index) => (
                     <tr key={`preview-${item.sessionDay}-${item.nrc}-${index}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
