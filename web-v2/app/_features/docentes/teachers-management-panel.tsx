@@ -5,6 +5,7 @@ import { fetchJson } from '../../_lib/http';
 import { useFetch } from '../../_lib/use-fetch';
 import { Button, StatusPill, PageHero, StatsGrid, AlertBox, Modal, useConfirm, PaginationControls } from '../../_components/ui';
 import type { PageSizeOption } from '../../_components/ui';
+import { BannerDocentesPanel } from '../banner-docentes/banner-docentes-panel';
 
 type TeacherStatus = 'NUEVO' | 'ANTIGUO' | 'SIN_CONTRATO';
 
@@ -318,6 +319,7 @@ const EMPTY_COORDINATOR_FORM: ManualCoordinatorForm = {
 
 export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProps) {
   const confirm = useConfirm();
+  const [activeTab, setActiveTab] = useState<'docentes' | 'banner'>('docentes');
   const [q, setQ] = useState('');
   const [limit, setLimit] = useState('150');
   const [loading, setLoading] = useState(false);
@@ -910,7 +912,32 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
         { label: 'Sin correo', value: sinCorreo, tone: sinCorreo > 0 ? 'warn' : 'ok' },
       ]} />
 
-      <div className="panel-body">
+      <div style={{ display: 'flex', borderBottom: '1px solid var(--line)', margin: '0 0 0 0' }}>
+        {(['docentes', 'banner'] as const).map((tab) => (
+          <button
+            key={tab}
+            type="button"
+            onClick={() => setActiveTab(tab)}
+            style={{
+              padding: '10px 20px',
+              fontSize: 'var(--fs-sm)',
+              fontWeight: activeTab === tab ? 700 : 500,
+              color: activeTab === tab ? 'var(--primary)' : 'var(--muted)',
+              background: 'none',
+              border: 'none',
+              borderBottom: activeTab === tab ? '2px solid var(--primary)' : '2px solid transparent',
+              cursor: 'pointer',
+              marginBottom: -1,
+            }}
+          >
+            {tab === 'docentes' ? 'Docentes' : 'Docentes Banner'}
+          </button>
+        ))}
+      </div>
+
+      {activeTab === 'banner' && <BannerDocentesPanel apiBase={apiBase} embedded />}
+
+      {activeTab === 'docentes' && <div className="panel-body">
 
       <div className="subtitle">0) Traer nombres y correos desde Banner</div>
       <div className="actions">
@@ -1936,7 +1963,7 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
       </>)}
 
       {message ? <AlertBox tone="info">{message}</AlertBox> : null}
-      </div>
+      </div>}
 
       {detailTeacher && (() => {
         const t = detailTeacher;

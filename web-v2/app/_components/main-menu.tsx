@@ -222,7 +222,6 @@ const NAV_ITEMS: NavItem[] = [
 
   // Docentes
   { href: '/docentes', label: 'Docentes', section: 'docentes', icon: ICON_USERS, group: 'docentes' },
-  { href: '/banner-docentes', label: 'Docentes Banner', section: 'banner-docentes', icon: ICON_USER_SEARCH, group: 'docentes' },
   { href: '/centros-universitarios', label: 'Centros Universitarios', section: 'centros-universitarios', icon: ICON_BUILDING, group: 'docentes' },
   { href: '/recargos-nocturnos', label: 'Recargos Nocturnos', section: 'recargos-nocturnos', icon: ICON_MOON, group: 'docentes' },
 

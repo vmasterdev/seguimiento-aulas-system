@@ -8,6 +8,7 @@ import type { PageSizeOption } from '../../_components/ui';
 
 type BannerDocentesPanelProps = {
   apiBase: string;
+  embedded?: boolean;
 };
 
 type BannerTeacherItem = {
@@ -40,7 +41,7 @@ type BannerTeachersResult = {
 
 type AddResult = { ok: boolean; id?: string; message?: string };
 
-export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
+export function BannerDocentesPanel({ apiBase, embedded = false }: BannerDocentesPanelProps) {
   const [message, setMessage] = useState('');
   const [onlyUnresolved, setOnlyUnresolved] = useState(false);
   const [limit, setLimit] = useState('500');
@@ -166,18 +167,20 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
   }
 
   return (
-    <article className="premium-card">
-      <PageHero
-        title="Docentes encontrados por Banner"
-        description="NRCs donde el proceso automatizado de Banner identificó un docente. Permite agregar esos docentes a la base local y vincularlos al NRC."
-      >
-        <StatusPill tone={loading ? 'warn' : (stats?.unresolved ?? 0) > 0 ? 'warn' : 'ok'} dot={loading}>
-          {loading ? 'Cargando' : stats ? `${stats.unresolved} sin vincular` : '—'}
-        </StatusPill>
-        <Button variant="ghost" size="sm" onClick={() => { void refresh(); }} loading={loading}>
-          ↻ Actualizar
-        </Button>
-      </PageHero>
+    <article className={embedded ? undefined : 'premium-card'}>
+      {!embedded && (
+        <PageHero
+          title="Docentes encontrados por Banner"
+          description="NRCs donde el proceso automatizado de Banner identificó un docente. Permite agregar esos docentes a la base local y vincularlos al NRC."
+        >
+          <StatusPill tone={loading ? 'warn' : (stats?.unresolved ?? 0) > 0 ? 'warn' : 'ok'} dot={loading}>
+            {loading ? 'Cargando' : stats ? `${stats.unresolved} sin vincular` : '—'}
+          </StatusPill>
+          <Button variant="ghost" size="sm" onClick={() => { void refresh(); }} loading={loading}>
+            ↻ Actualizar
+          </Button>
+        </PageHero>
+      )}
 
       {stats && (
         <StatsGrid items={[
