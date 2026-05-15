@@ -2,7 +2,8 @@
 
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
-import { AlertBox, Button } from '../../_components/ui';
+import { AlertBox, Button, PaginationControls, PAGE_SIZE_OPTIONS } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 import { useFetch } from '../../_lib/use-fetch';
 
 type AnalyticsOptionsResponse = {
@@ -768,6 +769,8 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
   const [sidecarBatchOptions, setSidecarBatchOptions] = useState<SidecarBatchOptionsResponse | null>(null);
   const [dateReport, setDateReport] = useState<AttendanceDateReportResponse | null>(null);
   const [studentReport, setStudentReport] = useState<AttendanceStudentReportResponse | null>(null);
+  const [studentPage, setStudentPage] = useState(1);
+  const [studentPageSize, setStudentPageSize] = useState<PageSizeOption>(PAGE_SIZE_OPTIONS[1]);
   const [message, setMessage] = useState('');
   const [dateLoading, setDateLoading] = useState(false);
   const [studentReportLoading, setStudentReportLoading] = useState(false);
@@ -1394,6 +1397,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
         `${apiBase}/integrations/moodle-analytics/attendance/student-report?${params.toString()}`,
       );
       setStudentReport(result);
+      setStudentPage(1);
       setMessage(`Reporte generado: ${result.summary.rowCount} registros de asistencia.`);
     } catch (error) {
       setMessage(`No se pudo generar el reporte de estudiantes: ${error instanceof Error ? error.message : String(error)}`);
@@ -2725,7 +2729,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                   </tr>
                 </thead>
                 <tbody>
-                  {studentReport.rows.slice(0, 500).map((row, index) => (
+                  {studentReport.rows.slice((studentPage - 1) * studentPageSize, studentPage * studentPageSize).map((row, index) => (
                     <tr key={`student-attendance-${row.sessionDay}-${row.nrc}-${row.studentName}-${index}`}>
                       <td>
                         {row.sessionDay}
@@ -2745,11 +2749,15 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                   ))}
                 </tbody>
               </table>
-              {studentReport.rows.length > 500 ? (
-                <div style={{ fontSize: '0.72rem', color: 'var(--muted)', padding: 10 }}>
-                  Vista limitada a 500 registros. Descarga el CSV para ver el reporte completo.
-                </div>
-              ) : null}
+              <PaginationControls
+                currentPage={studentPage}
+                totalPages={Math.max(1, Math.ceil(studentReport.rows.length / studentPageSize))}
+                totalItems={studentReport.rows.length}
+                pageSize={studentPageSize}
+                onPageChange={setStudentPage}
+                onPageSizeChange={(s) => { setStudentPageSize(s); setStudentPage(1); }}
+                label="registros"
+              />
             </div>
           </section>
         ) : null}

@@ -1,7 +1,8 @@
 'use client';
 
 import { useEffect, useState } from 'react';
-import { Button, StatusPill, PageHero, StatsGrid, AlertBox } from '../../_components/ui';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox, PaginationControls, PAGE_SIZE_OPTIONS } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 import { useFetch } from '../../_lib/use-fetch';
 
 type Row = {
@@ -65,7 +66,8 @@ export function RecargosPanel({ apiBase }: { apiBase: string }) {
   });
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
-  const [showAll, setShowAll] = useState(false);
+  const [rowPage, setRowPage] = useState(1);
+  const [rowPageSize, setRowPageSize] = useState<PageSizeOption>(PAGE_SIZE_OPTIONS[1]);
 
   const { data: settings } = useFetch<{ recargoStart?: string; recargoEnd?: string }>(`${apiBase}/system-settings`);
 
@@ -88,6 +90,7 @@ export function RecargosPanel({ apiBase }: { apiBase: string }) {
       const r = await fetch(`${apiBase}/recargo-nocturno?${params}`);
       const j = await r.json();
       setResult(j);
+      setRowPage(1);
     } finally { setLoading(false); }
   }
 
@@ -108,7 +111,9 @@ export function RecargosPanel({ apiBase }: { apiBase: string }) {
     if (r.ok) alert('Configuracion guardada como predeterminada.');
   }
 
-  const visibleRows = showAll ? result?.rows ?? [] : (result?.rows ?? []).slice(0, 200);
+  const allRows = result?.rows ?? [];
+  const rowTotalPages = Math.max(1, Math.ceil(allRows.length / rowPageSize));
+  const visibleRows = allRows.slice((rowPage - 1) * rowPageSize, rowPage * rowPageSize);
 
   return (
     <article className="premium-card">
@@ -185,11 +190,15 @@ export function RecargosPanel({ apiBase }: { apiBase: string }) {
               ))}
             </tbody>
           </table>
-          {!showAll && result.rows.length > 200 && (
-            <Button variant="ghost" size="sm" onClick={() => setShowAll(true)} style={{ marginTop: 8 }}>
-              Mostrar las {result.rows.length} filas
-            </Button>
-          )}
+          <PaginationControls
+            currentPage={rowPage}
+            totalPages={rowTotalPages}
+            totalItems={allRows.length}
+            pageSize={rowPageSize}
+            onPageChange={setRowPage}
+            onPageSizeChange={(s) => { setRowPageSize(s); setRowPage(1); }}
+            label="filas"
+          />
         </>
       )}
       </div>{/* /panel-body */}
