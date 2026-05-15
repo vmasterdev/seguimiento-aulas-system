@@ -3,7 +3,7 @@
 import { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
 import { useFetch } from '../../_lib/use-fetch';
-import { Button, PaginationControls, PAGE_SIZE_OPTIONS } from '../../_components/ui';
+import { Button, PaginationControls, PAGE_SIZE_OPTIONS, useConfirm } from '../../_components/ui';
 import type { PageSizeOption } from '../../_components/ui';
 
 type RpacaManagementPanelProps = {
@@ -159,6 +159,7 @@ type BannerBatchOptions = {
 };
 
 export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
+  const confirm = useConfirm();
   const [rpacaFiles, setRpacaFiles] = useState<File[]>([]);
   const [preserveTeacherAssignment, setPreserveTeacherAssignment] = useState(true);
   const [createOnly, setCreateOnly] = useState(false);
@@ -876,13 +877,15 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
               size="sm"
               style={{ color: 'var(--color-danger, #dc2626)', borderColor: 'var(--color-danger, #dc2626)' }}
               onClick={() => {
-                if (
-                  window.confirm(
-                    'Confirmas la deactivacion de todos los NRC marcados como NO_ENCONTRADO en Banner para los periodos seleccionados?',
-                  )
-                ) {
-                  void runBannerPipelineForPeriods(selectedPeriodCodes.length ? selectedPeriodCodes : []);
-                }
+                void (async () => {
+                  const ok = await confirm({
+                    title: 'Deactivar NRC no encontrados',
+                    message: 'Se descartarán del sistema todos los NRC marcados como NO_ENCONTRADO en Banner para los periodos seleccionados. Operación irreversible sin restauración manual.',
+                    confirmLabel: 'Deactivar',
+                    tone: 'danger',
+                  });
+                  if (ok) void runBannerPipelineForPeriods(selectedPeriodCodes.length ? selectedPeriodCodes : []);
+                })();
               }}
               disabled={importLoading}
             >
