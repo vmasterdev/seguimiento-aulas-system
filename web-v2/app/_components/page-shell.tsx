@@ -1,20 +1,21 @@
 import type { ReactNode } from 'react';
 import type { MainMenuSection } from './main-menu';
+import { PageHero } from './ui/page-hero';
 
 type PageShellProps = {
   active: MainMenuSection;
   title: string;
   description: string;
   children: ReactNode;
+  hideHeader?: boolean;
 };
 
-export function PageShell({ title, description, children }: PageShellProps) {
+export function PageShell({ title, description, children, hideHeader = true }: PageShellProps) {
   return (
     <div className="shell">
-      <header className="page-header">
-        <h1>{title}</h1>
-        <p>{description}</p>
-      </header>
+      {!hideHeader && (
+        <PageHero title={title} description={description} />
+      )}
       {children}
     </div>
   );

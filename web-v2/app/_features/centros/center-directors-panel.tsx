@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button, PageHero, AlertBox, useConfirm } from '../../_components/ui';
 
 type Director = {
   id: string;
@@ -29,6 +30,7 @@ const EMPTY_FORM = {
 };
 
 export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
+  const confirm = useConfirm();
   const [data, setData] = useState<ListResult | null>(null);
   const [loading, setLoading] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
@@ -106,7 +108,7 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
   }
 
   async function remove(d: Director) {
-    if (!window.confirm(`Eliminar director "${d.fullName}" del centro ${d.campusCode}?`)) return;
+    if (!await confirm({ title: 'Eliminar director', message: `¿Eliminar a "${d.fullName}" del centro ${d.campusCode}?`, confirmLabel: 'Eliminar', tone: 'danger' })) return;
     try {
       const r = await fetch(`${apiBase}/center-directors/${d.id}`, { method: 'DELETE' });
       const j = await r.json();
@@ -127,11 +129,14 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
   const pending = known.filter((c) => !assignedCodes.has(c.campusCode));
 
   return (
-    <div className="panel">
-      <h3>Directores de centro universitario</h3>
-      <p className="muted">Asignacion manual de directores por codigo de centro (campus). Usado para reportes por centro y notificaciones.</p>
+    <article className="premium-card">
+      <PageHero
+        title="Directores de centro universitario"
+        description="Asignación manual de directores por código de centro (campus). Usado para reportes por centro y notificaciones."
+      />
 
-      {message && <div className="message" style={{ margin: '8px 0' }}>{message}</div>}
+      <div className="panel-body">
+      {message && <AlertBox tone="info">{message}</AlertBox>}
 
       <form onSubmit={save} className="form-grid" style={{ marginBottom: 16 }}>
         <label>
@@ -183,11 +188,11 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
           />
         </label>
         <div className="toolbar wide">
-          <button type="submit" className="primary" disabled={saving}>
-            {saving ? 'Guardando...' : form.id ? 'Actualizar director' : 'Agregar director'}
-          </button>
+          <Button variant="primary" size="sm" type="submit" disabled={saving} loading={saving}>
+            {form.id ? 'Actualizar director' : 'Agregar director'}
+          </Button>
           {form.id && (
-            <button type="button" onClick={() => setForm(EMPTY_FORM)}>Cancelar edicion</button>
+            <Button variant="ghost" size="sm" type="button" onClick={() => setForm(EMPTY_FORM)}>Cancelar edición</Button>
           )}
         </div>
       </form>
@@ -210,13 +215,13 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
       )}
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-        <button type="button" onClick={() => void load()} disabled={loading}>
-          {loading ? 'Cargando...' : 'Recargar'}
-        </button>
-        <span className="muted" style={{ fontSize: 12 }}>{items.length} director(es) registrados</span>
+        <Button variant="ghost" size="sm" onClick={() => void load()} disabled={loading} loading={loading}>
+          ↻ Recargar
+        </Button>
+        <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--muted)' }}>{items.length} director(es) registrados</span>
       </div>
 
-      <table className="table">
+      <table className="fast-table">
         <thead>
           <tr>
             <th>Codigo</th>
@@ -235,9 +240,9 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
               <td>{d.region ?? '—'}</td>
               <td>{d.fullName}</td>
               <td>{d.email}</td>
-              <td>
-                <button type="button" onClick={() => edit(d)}>Editar</button>{' '}
-                <button type="button" onClick={() => void remove(d)} style={{ color: '#c0392b' }}>Eliminar</button>
+              <td style={{ display: 'flex', gap: 4 }}>
+                <Button variant="ghost" size="sm" onClick={() => edit(d)}>Editar</Button>
+                <Button variant="danger" size="sm" onClick={() => void remove(d)}>Eliminar</Button>
               </td>
             </tr>
           ))}
@@ -246,6 +251,7 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
           )}
         </tbody>
       </table>
-    </div>
+      </div>{/* /panel-body */}
+    </article>
   );
 }

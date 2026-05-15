@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { Button, PageHero, StatsGrid } from '../../_components/ui';
 
 type Center = { campus: string; nrcCount: number; salonesCount: number; teachersCount: number; horasSemana: number; modalityBreakdown: Record<string, number> };
 type Salon = { campus: string; edificio: string; salon: string; nrcCount: number; teachersCount: number; subjectsCount: number; horasSemana: number; ocupacionPct: number };
@@ -70,35 +71,41 @@ export function MetricsPanel({ apiBase }: { apiBase: string }) {
   };
 
   return (
-    <div className="panel">
-      <h3>Metricas de uso de sedes y salones</h3>
-      <p className="muted">Carga horaria semanal por sede y salon, calculada desde NRC con horario asignado. Util para usabilidad y planeacion.</p>
+    <article className="premium-card">
+      <PageHero
+        title="Métricas de uso de sedes y salones"
+        description="Carga horaria semanal por sede y salón, calculada desde NRC con horario asignado. Útil para usabilidad y planeación."
+      >
+        <Button variant="primary" size="sm" onClick={() => void load()} disabled={loading} loading={loading}>
+          Calcular métricas
+        </Button>
+      </PageHero>
 
+      {data && (
+        <StatsGrid items={[
+          { label: 'Slots NRC×día', value: data.totalSlots, tone: 'default' },
+          { label: 'Sedes activas', value: data.byCenter.length, tone: 'ok' },
+          { label: 'Salones únicos', value: data.bySalon.length, tone: 'default' },
+          { label: 'Horas/sem', value: Math.round(data.byCenter.reduce((s, c) => s + c.horasSemana, 0)), tone: 'default' },
+          ...(franjas ? [
+            { label: 'Mañana h/sem', value: Math.round(franjas.mañana / 60), tone: 'default' as const },
+            { label: 'Tarde h/sem', value: Math.round(franjas.tarde / 60), tone: 'default' as const },
+            { label: 'Noche h/sem', value: Math.round(franjas.noche / 60), tone: franjas.noche > franjas.mañana ? 'warn' as const : 'default' as const },
+          ] : []),
+        ]} />
+      )}
+
+      <div className="panel-body">
       <div className="form-grid" style={{ marginBottom: 12 }}>
         <label>Periodo<input value={filters.periodCode} onChange={(e) => setFilters((p) => ({ ...p, periodCode: e.target.value }))} /></label>
         <label>Momento<input value={filters.moment} onChange={(e) => setFilters((p) => ({ ...p, moment: e.target.value }))} placeholder="MD1, MD2, 1" /></label>
         <label>Centro<input value={filters.campus} onChange={(e) => setFilters((p) => ({ ...p, campus: e.target.value }))} placeholder="(opcional)" /></label>
-        <div className="toolbar wide">
-          <button type="button" className="primary" onClick={() => void load()} disabled={loading}>{loading ? 'Cargando...' : 'Calcular metricas'}</button>
-        </div>
       </div>
 
-      {!data && <p className="muted">Sin datos. Pulsa "Calcular metricas".</p>}
+      {!data && <p style={{ color: 'var(--muted)', fontSize: 'var(--fs-sm)' }}>Sin datos. Pulsa "Calcular métricas".</p>}
 
       {data && (
         <>
-          {/* KPIs */}
-          <div style={{ display: 'flex', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
-            <Kpi label="Slots NRC×día" value={data.totalSlots} color="#1e40af" />
-            <Kpi label="Sedes activas" value={data.byCenter.length} color="#16a34a" />
-            <Kpi label="Salones únicos" value={data.bySalon.length} color="#d97706" />
-            <Kpi label="Total horas/sem" value={Math.round(data.byCenter.reduce((s, c) => s + c.horasSemana, 0))} color="#7c3aed" />
-            {franjas && <>
-              <Kpi label="Mañana (h/sem)" value={Math.round(franjas.mañana / 60)} color="#0891b2" />
-              <Kpi label="Tarde (h/sem)" value={Math.round(franjas.tarde / 60)} color="#ea580c" />
-              <Kpi label="Noche (h/sem)" value={Math.round(franjas.noche / 60)} color="#1e293b" />
-            </>}
-          </div>
 
           {/* Heatmap dia x hora */}
           <div className="subtitle" style={{ marginTop: 16 }}>Heatmap día × hora (minutos clase / hora)</div>
@@ -185,7 +192,7 @@ export function MetricsPanel({ apiBase }: { apiBase: string }) {
           {/* Tabla detalle salones */}
           <details style={{ marginTop: 16 }}>
             <summary style={{ cursor: 'pointer', fontWeight: 600 }}>Tabla completa de salones ({data.bySalon.length})</summary>
-            <table className="table" style={{ marginTop: 8 }}>
+            <table className="fast-table" style={{ marginTop: 8 }}>
               <thead><tr><th>Centro</th><th>Edificio</th><th>Salón</th><th style={{ textAlign: 'right' }}>NRC</th><th style={{ textAlign: 'right' }}>Docentes</th><th style={{ textAlign: 'right' }}>Asignaturas</th><th style={{ textAlign: 'right' }}>Horas/sem</th><th style={{ textAlign: 'right' }}>Ocupación</th></tr></thead>
               <tbody>
                 {data.bySalon.map((s, i) => (
@@ -205,7 +212,8 @@ export function MetricsPanel({ apiBase }: { apiBase: string }) {
           </details>
         </>
       )}
-    </div>
+      </div>{/* /panel-body */}
+    </article>
   );
 }
 

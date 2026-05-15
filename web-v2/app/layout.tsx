@@ -1,6 +1,7 @@
 import type { Metadata } from 'next';
 import './globals.css';
 import Sidebar from './_components/main-menu';
+import { AppProviders } from './_components/ui/app-providers';
 
 export const metadata: Metadata = {
   title: 'Seguimiento de Aulas',
@@ -11,12 +12,14 @@ export default function RootLayout({ children }: { children: React.ReactNode }) 
   return (
     <html lang="es">
       <body>
-        <div className="app-layout">
-          <Sidebar />
-          <div className="app-content">
-            {children}
+        <AppProviders>
+          <div className="app-layout">
+            <Sidebar />
+            <div className="app-content">
+              {children}
+            </div>
           </div>
-        </div>
+        </AppProviders>
       </body>
     </html>
   );

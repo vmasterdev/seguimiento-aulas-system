@@ -2,6 +2,7 @@
 
 import { useState } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox, useConfirm } from '../../_components/ui';
 
 type ImmersionInvitationPanelProps = {
   apiBase: string;
@@ -66,6 +67,7 @@ function formatMomentLabel(value: string): string {
 }
 
 export function ImmersionInvitationPanel({ apiBase }: ImmersionInvitationPanelProps) {
+  const confirm = useConfirm();
   const [periodCode, setPeriodCode] = useState('');
   const [phase, setPhase] = useState<Phase>('ALISTAMIENTO');
   const [sessionTitle, setSessionTitle] = useState('Sesion virtual de inmersion digital de Campus Virtual');
@@ -150,9 +152,12 @@ export function ImmersionInvitationPanel({ apiBase }: ImmersionInvitationPanelPr
       return;
     }
 
-    const confirmed = window.confirm(
-      `Se enviaran ${generatedIds.length} correos de invitacion a la sesion de inmersion digital. Continuar?`,
-    );
+    const confirmed = await confirm({
+      title: 'Enviar invitaciones',
+      message: `Se enviarán ${generatedIds.length} correos de invitación a la sesión de inmersión digital.`,
+      confirmLabel: 'Enviar',
+      tone: 'primary',
+    });
     if (!confirmed) return;
 
     try {
@@ -178,33 +183,23 @@ export function ImmersionInvitationPanel({ apiBase }: ImmersionInvitationPanelPr
   }
 
   return (
-    <article className="panel">
-      <div className="panel-heading">
-        <h2>Sesion virtual de inmersion digital</h2>
-        <span className="panel-note">Invitacion por docente con preview antes del envio</span>
-      </div>
+    <article className="premium-card">
+      <PageHero
+        title="Sesión virtual de inmersión digital"
+        description="Invitación por docente con preview antes del envío. Solo para docentes con resultado ACEPTABLE o INSATISFACTORIO en M1 (MD1) y RCY (1)."
+      >
+        <StatusPill tone={busy ? 'warn' : sending ? 'warn' : 'neutral'} dot={busy || sending}>
+          {busy ? 'Preparando' : sending ? 'Enviando' : 'Listo'}
+        </StatusPill>
+      </PageHero>
 
-      <div className="actions">
-        Esta campana genera borradores solo para docentes con resultado <strong>ACEPTABLE</strong> o <strong>INSATISFACTORIO</strong> en los momentos <strong>M1 (MD1)</strong> y <strong>RCY (1)</strong>.
-      </div>
-      <div className="actions" style={{ marginTop: 6 }}>
-        Flujo recomendado: <strong>Generar borradores</strong>, luego <strong>revisar preview</strong> y finalmente <strong>enviar invitacion real</strong>.
-      </div>
+      <StatsGrid items={[
+        { label: 'Momentos', value: 'MD1 + 1 (RCY)', tone: 'default' },
+        { label: 'Resultados objetivo', value: 'Aceptable / Insatisfactorio', tone: 'warn' },
+        { label: 'Horario sesión', value: sessionTimeLabel || 'Por definir', tone: sessionTimeLabel ? 'ok' : 'default' },
+      ]} />
 
-      <div className="grid" style={{ marginTop: 14 }}>
-        <article className="card">
-          <div className="kpi-label">Momento incluido</div>
-          <div className="kpi-value-sm">MD1 + 1 (RCY)</div>
-        </article>
-        <article className="card">
-          <div className="kpi-label">Resultados objetivo</div>
-          <div className="kpi-value-sm">Aceptable / Insatisfactorio</div>
-        </article>
-        <article className="card">
-          <div className="kpi-label">Horario</div>
-          <div className="kpi-value-sm">{sessionTimeLabel || 'Por definir'}</div>
-        </article>
-      </div>
+      <div className="panel-body">
 
       <div className="controls" style={{ marginTop: 10 }}>
         <label>
@@ -255,15 +250,15 @@ export function ImmersionInvitationPanel({ apiBase }: ImmersionInvitationPanelPr
             placeholder="correo.prueba@dominio.edu"
           />
         </label>
-        <button type="button" className="primary" onClick={() => void prepareInvitation()} disabled={busy || sending}>
-          {busy ? 'Preparando...' : 'Generar borradores + preview'}
-        </button>
-        <button type="button" className="btn-next-action" onClick={() => void sendInvitation()} disabled={busy || sending || !generatedIds.length}>
-          {sending ? 'Enviando...' : 'Enviar invitacion real'}
-        </button>
+        <Button variant="primary" size="sm" onClick={() => void prepareInvitation()} disabled={busy || sending} loading={busy}>
+          Generar borradores + preview
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => void sendInvitation()} disabled={busy || sending || !generatedIds.length} loading={sending}>
+          Enviar invitación real
+        </Button>
       </div>
 
-      {message ? <div className="flash" style={{ marginTop: 12 }}>{message}</div> : null}
+      {message ? <AlertBox tone="info" style={{ marginTop: 12 }}>{message}</AlertBox> : null}
 
       {result ? (
         <div className="action-grid" style={{ marginTop: 14 }}>
@@ -326,9 +321,9 @@ export function ImmersionInvitationPanel({ apiBase }: ImmersionInvitationPanelPr
                   <td>{item.scoreBands.join(', ')}</td>
                   <td>{item.courseCount}</td>
                   <td>
-                    <button type="button" className="primary" onClick={() => void loadPreview(item.id)}>
+                    <Button variant="secondary" size="sm" onClick={() => void loadPreview(item.id)}>
                       Abrir preview
-                    </button>
+                    </Button>
                   </td>
                 </tr>
               ))}
@@ -344,8 +339,8 @@ export function ImmersionInvitationPanel({ apiBase }: ImmersionInvitationPanelPr
             <span className="panel-note">El correo no se envia hasta que confirmes</span>
           </div>
 
-          {previewLoading ? <div className="flash">Cargando preview...</div> : null}
-          {previewError ? <div className="flash flash-warning">No fue posible cargar el preview: {previewError}</div> : null}
+          {previewLoading ? <AlertBox tone="info">Cargando preview...</AlertBox> : null}
+          {previewError ? <AlertBox tone="error">No fue posible cargar el preview: {previewError}</AlertBox> : null}
 
           {previewData ? (
             <>
@@ -374,6 +369,8 @@ export function ImmersionInvitationPanel({ apiBase }: ImmersionInvitationPanelPr
           ) : null}
         </div>
       ) : null}
+
+      </div>{/* /panel-body */}
     </article>
   );
 }

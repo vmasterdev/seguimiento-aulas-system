@@ -2,6 +2,7 @@
 
 import { useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { Button, PageHero, StatsGrid, AlertBox } from '../../_components/ui';
 
 type BienestarAttendancePanelProps = {
   apiBase: string;
@@ -303,21 +304,18 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
     URL.revokeObjectURL(url);
   }
 
+  const hasPresentRows = enrichedRows.some((row) => row.statusCode === 'A');
+  const isError = message.startsWith('No se pudo');
+
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: '1.5rem', width: '100%', maxWidth: '1200px', margin: '0 auto', color: '#111827' }}>
+    <div className="premium-card">
+      <PageHero
+        title="Asistencia a Eventos de Bienestar"
+        description="Pega el bloque de texto con la programación de actividades. El sistema cruzará cada actividad, jornada, fecha y NRC con los registros de asistencia en Moodle."
+      />
 
-      <div style={{ background: '#ffffff', borderTop: '4px solid #1b3a6b', padding: '1.5rem 2rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1), 0 1px 2px -1px rgb(0 0 0 / 0.1)' }}>
-        <h2 style={{ margin: 0, color: '#122850', fontSize: '1.5rem', fontWeight: 600, display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-          <FileTextIcon /> Asistencia a Eventos de Bienestar
-        </h2>
-        <p style={{ margin: '0.5rem 0 0 0', color: '#4b5563', fontSize: '0.95rem' }}>
-          Pega el bloque de texto con la programación de actividades. El sistema cruzará cada actividad, jornada, fecha y NRC con los registros de asistencia en Moodle.
-        </p>
-      </div>
-
-      <section style={{ background: '#ffffff', padding: '1.5rem 2rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}>
+      <div className="panel-body">
         <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(250px, 1fr))', gap: '1.5rem', alignItems: 'start' }}>
-
           <div style={{ display: 'flex', flexDirection: 'column', gap: '0.5rem', maxWidth: '300px' }}>
             <label style={{ fontWeight: 600, fontSize: '0.9rem', color: '#374151' }}>Año de las fechas</label>
             <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', background: '#f9fafb', border: '1px solid #d1d5db', borderRadius: '0.375rem', padding: '0.5rem 0.75rem' }}>
@@ -348,117 +346,102 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
         </div>
 
         {parsed.warnings.length > 0 && (
-          <div style={{ marginTop: '1rem', padding: '1rem', background: '#fffbeb', borderLeft: '4px solid #f59e0b', borderRadius: '0.375rem' }}>
-            <div style={{ display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#b45309', fontWeight: 600, marginBottom: '0.5rem' }}>
-              <AlertIcon /> Advertencias en la lectura del texto
-            </div>
-            <ul style={{ margin: 0, paddingLeft: '1.5rem', color: '#92400e', fontSize: '0.85rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
-              {parsed.warnings.slice(0, 4).map((w, i) => <li key={i}>{w}</li>)}
-              {parsed.warnings.length > 4 && <li>... y {parsed.warnings.length - 4} más.</li>}
-            </ul>
+          <div style={{ marginTop: '1rem' }}>
+            <AlertBox tone="warn">
+              <strong>Advertencias en la lectura del texto</strong>
+              <ul style={{ margin: '0.25rem 0 0 0', paddingLeft: '1.5rem', display: 'flex', flexDirection: 'column', gap: '0.25rem' }}>
+                {parsed.warnings.slice(0, 4).map((w, i) => <li key={i}>{w}</li>)}
+                {parsed.warnings.length > 4 && <li>... y {parsed.warnings.length - 4} más.</li>}
+              </ul>
+            </AlertBox>
           </div>
         )}
 
-        <div style={{ marginTop: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '1rem', alignItems: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '1.5rem' }}>
-          <button
-            type="button"
-            onClick={() => void generateReport()}
+        <div style={{ marginTop: '1.5rem', display: 'flex', flexWrap: 'wrap', gap: '0.75rem', alignItems: 'center', borderTop: '1px solid #e5e7eb', paddingTop: '1.5rem' }}>
+          <Button
+            variant="primary"
+            size="sm"
+            loading={loading}
             disabled={loading || !parsed.items.length}
-            style={{ background: loading || !parsed.items.length ? '#9ca3af' : '#1b3a6b', color: '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '0.375rem', border: 'none', cursor: loading || !parsed.items.length ? 'not-allowed' : 'pointer', fontWeight: 500, transition: 'background 0.2s' }}
+            onClick={() => void generateReport()}
           >
-            <PlayIcon /> {loading ? 'Procesando Moodle...' : 'Generar reporte'}
-          </button>
+            {loading ? 'Procesando Moodle...' : 'Generar reporte'}
+          </Button>
 
-          <button
-            type="button"
+          <Button
+            variant="primary"
+            size="sm"
+            disabled={!hasPresentRows}
             onClick={downloadPresentStudentsCsv}
-            disabled={!enrichedRows.some((row) => row.statusCode === 'A')}
-            style={{ background: !enrichedRows.some((row) => row.statusCode === 'A') ? '#f3f4f6' : '#16a34a', color: !enrichedRows.some((row) => row.statusCode === 'A') ? '#9ca3af' : '#fff', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '0.375rem', border: 'none', cursor: !enrichedRows.some((row) => row.statusCode === 'A') ? 'not-allowed' : 'pointer', fontWeight: 500, transition: 'background 0.2s' }}
           >
-            <DownloadIcon /> Descargar presentes
-          </button>
+            Descargar presentes
+          </Button>
 
-          <button
-            type="button"
-            onClick={downloadCsv}
+          <Button
+            variant="secondary"
+            size="sm"
             disabled={!enrichedRows.length}
-            style={{ background: '#f3f4f6', color: !enrichedRows.length ? '#9ca3af' : '#111827', display: 'flex', alignItems: 'center', gap: '0.5rem', padding: '0.6rem 1.2rem', borderRadius: '0.375rem', border: '1px solid #d1d5db', cursor: !enrichedRows.length ? 'not-allowed' : 'pointer', fontWeight: 500, transition: 'background 0.2s' }}
+            onClick={downloadCsv}
           >
-            <FileTextIcon /> Descargar CSV completo
-          </button>
+            Descargar CSV completo
+          </Button>
         </div>
 
         {message && (
-          <div style={{ marginTop: '1rem', padding: '0.75rem 1rem', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: '0.375rem', color: '#166534', fontSize: '0.9rem', display: 'flex', alignItems: 'center', gap: '0.5rem' }}>
-            <CheckIcon /> {message}
+          <div style={{ marginTop: '1rem' }}>
+            <AlertBox tone={isError ? 'error' : 'success'}>{message}</AlertBox>
           </div>
         )}
-      </section>
+      </div>
 
       {report && (
-        <section style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(220px, 1fr))', gap: '1rem' }}>
-          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', borderLeft: '4px solid #3b82f6' }}>
-            <p style={{ margin: 0, color: '#6b7280', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>NRCs Solicitados</p>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#111827', fontSize: '1.75rem', fontWeight: 700 }}>{nrcs.length}</p>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#4b5563', fontSize: '0.8rem' }}>{parsed.items.length} cruces fecha/NRC</p>
-          </div>
-          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', borderLeft: '4px solid #f59e0b' }}>
-            <p style={{ margin: 0, color: '#6b7280', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Asistencia Global</p>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#111827', fontSize: '1.75rem', fontWeight: 700 }}>{formatPercent(report.summary.attendanceRate)}</p>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#4b5563', fontSize: '0.8rem' }}>{report.summary.presentCount} presentes / {report.summary.rowCount} total</p>
-          </div>
-          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', borderLeft: '4px solid #10b981' }}>
-            <p style={{ margin: 0, color: '#6b7280', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Registros Encontrados</p>
-            <p style={{ margin: '0.5rem 0 0 0', color: '#111827', fontSize: '1.75rem', fontWeight: 700 }}>{report.summary.rowCount}</p>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#4b5563', fontSize: '0.8rem' }}>Estudiantes en lista Moodle</p>
-          </div>
-          <div style={{ background: '#ffffff', padding: '1.25rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)', borderLeft: missingItems.length > 0 ? '4px solid #ef4444' : '4px solid #d1d5db' }}>
-            <p style={{ margin: 0, color: '#6b7280', fontSize: '0.85rem', fontWeight: 600, textTransform: 'uppercase' }}>Sin Cruce</p>
-            <p style={{ margin: '0.5rem 0 0 0', color: missingItems.length > 0 ? '#b91c1c' : '#111827', fontSize: '1.75rem', fontWeight: 700 }}>{missingItems.length}</p>
-            <p style={{ margin: '0.25rem 0 0 0', color: '#4b5563', fontSize: '0.8rem' }}>Fechas/NRC no hallados</p>
-          </div>
-        </section>
+        <div className="panel-body" style={{ paddingTop: 0 }}>
+          <StatsGrid items={[
+            { label: 'NRCs Solicitados', value: nrcs.length, help: `${parsed.items.length} cruces fecha/NRC`, tone: 'default' },
+            { label: 'Asistencia Global', value: formatPercent(report.summary.attendanceRate), help: `${report.summary.presentCount} presentes / ${report.summary.rowCount} total`, tone: report.summary.attendanceRate != null && report.summary.attendanceRate >= 70 ? 'ok' : 'warn' },
+            { label: 'Registros Encontrados', value: report.summary.rowCount, help: 'Estudiantes en lista Moodle', tone: 'default' },
+            { label: 'Sin Cruce', value: missingItems.length, help: 'Fechas/NRC no hallados', tone: missingItems.length > 0 ? 'danger' : 'default' },
+          ]} />
+        </div>
       )}
 
       {report ? (
-        <section style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <h3 style={{ margin: 0, color: '#122850', fontSize: '1.2rem' }}>Resultado de asistencia</h3>
-          </div>
-          <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '0.375rem' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-              <thead style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+        <div className="panel-body" style={{ paddingTop: 0 }}>
+          <h3 style={{ margin: '0 0 1rem 0', color: '#122850', fontSize: '1.1rem' }}>Resultado de asistencia</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="fast-table">
+              <thead>
                 <tr>
-                  <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>Actividad</th>
-                  <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>Fecha</th>
-                  <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>NRC</th>
-                  <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>Estudiante</th>
-                  <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>Estado</th>
+                  <th>Actividad</th>
+                  <th>Fecha</th>
+                  <th>NRC</th>
+                  <th>Estudiante</th>
+                  <th>Estado</th>
                 </tr>
               </thead>
               <tbody>
                 {enrichedRows.slice(0, 100).map((row, index) => (
-                  <tr key={`bienestar-row-${row.sessionDay}-${row.nrc}-${row.studentName}-${index}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ fontWeight: 500, color: '#111827' }}>{row.activity}</div>
+                  <tr key={`bienestar-row-${row.sessionDay}-${row.nrc}-${row.studentName}-${index}`}>
+                    <td>
+                      <div style={{ fontWeight: 500 }}>{row.activity}</div>
                       <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>{row.shift}</div>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem', color: '#4b5563', whiteSpace: 'nowrap' }}>{row.sessionDay}</td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
+                    <td style={{ whiteSpace: 'nowrap' }}>{row.sessionDay}</td>
+                    <td>
                       <span style={{ background: '#eef2ff', color: '#3730a3', padding: '0.1rem 0.5rem', borderRadius: '0.25rem', fontFamily: 'monospace' }}>{row.requestedNrc}</span>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
-                      <div style={{ fontWeight: 500, color: '#111827' }}>{row.studentName}</div>
+                    <td>
+                      <div style={{ fontWeight: 500 }}>{row.studentName}</div>
                       <div style={{ fontSize: '0.8rem', color: '#6b7280' }}>
                         {row.studentEmail ?? '-'}
                         {row.studentId ? ` · ${row.studentId}` : ''}
                       </div>
                     </td>
-                    <td style={{ padding: '0.75rem 1rem' }}>
+                    <td>
                       <span style={{
                         background: row.statusCode === 'A' ? '#dcfce7' : row.statusCode === 'P' ? '#fee2e2' : '#f3f4f6',
                         color: row.statusCode === 'A' ? '#166534' : row.statusCode === 'P' ? '#991b1b' : '#374151',
-                        padding: '0.25rem 0.5rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 600
+                        padding: '0.25rem 0.5rem', borderRadius: '1rem', fontSize: '0.8rem', fontWeight: 600,
                       }}>
                         {row.statusLabel}
                       </span>
@@ -469,58 +452,54 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
             </table>
           </div>
           {enrichedRows.length > 100 && (
-            <div style={{ padding: '1rem', textAlign: 'center', color: '#6b7280', fontSize: '0.9rem', background: '#f9fafb', border: '1px solid #e5e7eb', borderTop: 'none', borderRadius: '0 0 0.375rem 0.375rem' }}>
-              Mostrando los primeros 100 registros de {enrichedRows.length}. Usa los botones de descarga para ver el listado completo.
-            </div>
+            <p style={{ textAlign: 'center', color: '#6b7280', fontSize: '0.9rem', marginTop: '0.75rem' }}>
+              Mostrando los primeros 100 de {enrichedRows.length}. Usa los botones de descarga para el listado completo.
+            </p>
           )}
 
           {missingItems.length > 0 && (
-            <div style={{ marginTop: '2rem', border: '1px solid #fca5a5', borderRadius: '0.5rem', overflow: 'hidden' }}>
-              <div style={{ background: '#fef2f2', padding: '1rem', borderBottom: '1px solid #fca5a5', display: 'flex', alignItems: 'center', gap: '0.5rem', color: '#991b1b', fontWeight: 600 }}>
-                <AlertIcon /> {missingItems.length} NRCs/Fechas sin registros de asistencia
-              </div>
-              <div style={{ padding: '1rem', background: '#fff' }}>
-                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem' }}>
+            <div style={{ marginTop: '1.5rem' }}>
+              <AlertBox tone="error">
+                <strong>{missingItems.length} NRCs/Fechas sin registros de asistencia</strong>
+                <div style={{ display: 'flex', flexWrap: 'wrap', gap: '0.5rem', marginTop: '0.5rem' }}>
                   {missingItems.map((item, index) => (
-                    <span key={index} style={{ background: '#f3f4f6', border: '1px solid #e5e7eb', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.85rem', color: '#374151' }}>
+                    <span key={index} style={{ background: '#f3f4f6', border: '1px solid #e5e7eb', padding: '0.25rem 0.5rem', borderRadius: '0.25rem', fontSize: '0.85rem' }}>
                       {item.nrc} ({item.sessionDay})
                     </span>
                   ))}
                 </div>
-              </div>
+              </AlertBox>
             </div>
           )}
-        </section>
+        </div>
       ) : (
-        <section style={{ background: '#ffffff', padding: '1.5rem', borderRadius: '0.5rem', boxShadow: '0 1px 3px 0 rgb(0 0 0 / 0.1)' }}>
-          <div style={{ marginBottom: '1rem' }}>
-            <h3 style={{ margin: 0, color: '#122850', fontSize: '1.2rem' }}>Vista previa de la solicitud</h3>
-          </div>
-          <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: '0.375rem' }}>
-            <table style={{ width: '100%', borderCollapse: 'collapse', textAlign: 'left', fontSize: '0.9rem' }}>
-              <thead style={{ background: '#f9fafb', borderBottom: '1px solid #e5e7eb' }}>
+        <div className="panel-body" style={{ paddingTop: 0 }}>
+          <h3 style={{ margin: '0 0 1rem 0', color: '#122850', fontSize: '1.1rem' }}>Vista previa de la solicitud</h3>
+          <div style={{ overflowX: 'auto' }}>
+            <table className="fast-table">
+              <thead>
                 <tr>
-                  <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>Actividad</th>
-                  <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>Jornada</th>
-                  <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>Fecha</th>
-                  <th style={{ padding: '0.75rem 1rem', fontWeight: 600, color: '#374151' }}>NRC</th>
+                  <th>Actividad</th>
+                  <th>Jornada</th>
+                  <th>Fecha</th>
+                  <th>NRC</th>
                 </tr>
               </thead>
               <tbody>
                 {parsed.items.length > 0 ? (
                   parsed.items.map((item, index) => (
-                    <tr key={`preview-${item.sessionDay}-${item.nrc}-${index}`} style={{ borderBottom: '1px solid #e5e7eb' }}>
-                      <td style={{ padding: '0.75rem 1rem', color: '#111827' }}>{item.activity}</td>
-                      <td style={{ padding: '0.75rem 1rem', color: '#4b5563' }}>{item.shift}</td>
-                      <td style={{ padding: '0.75rem 1rem', color: '#4b5563' }}>{item.sessionDay}</td>
-                      <td style={{ padding: '0.75rem 1rem' }}>
+                    <tr key={`preview-${item.sessionDay}-${item.nrc}-${index}`}>
+                      <td>{item.activity}</td>
+                      <td>{item.shift}</td>
+                      <td>{item.sessionDay}</td>
+                      <td>
                         <span style={{ background: '#f3f4f6', color: '#374151', padding: '0.1rem 0.5rem', borderRadius: '0.25rem', fontFamily: 'monospace' }}>{item.nrc}</span>
                       </td>
                     </tr>
                   ))
                 ) : (
                   <tr>
-                    <td colSpan={4} style={{ padding: '2rem', textAlign: 'center', color: '#6b7280' }}>
+                    <td colSpan={4} style={{ textAlign: 'center', color: '#6b7280' }}>
                       No se detectaron NRCs válidos en el texto.
                     </td>
                   </tr>
@@ -528,7 +507,7 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
               </tbody>
             </table>
           </div>
-        </section>
+        </div>
       )}
     </div>
   );

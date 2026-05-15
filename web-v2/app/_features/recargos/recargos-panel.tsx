@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox } from '../../_components/ui';
 
 type Row = {
   docente: string;
@@ -107,10 +108,25 @@ export function RecargosPanel({ apiBase }: { apiBase: string }) {
   const visibleRows = showAll ? result?.rows ?? [] : (result?.rows ?? []).slice(0, 200);
 
   return (
-    <div className="panel">
-      <h3>Recargos nocturnos</h3>
-      <p className="muted">Calculo de horas en franja nocturna por docente. Configurable rango de fechas y franja horaria. Exportable a CSV.</p>
+    <article className="premium-card">
+      <PageHero
+        title="Recargos nocturnos"
+        description="Cálculo de horas en franja nocturna por docente. Configurable rango de fechas y franja horaria. Exportable a CSV."
+      >
+        <StatusPill tone={loading ? 'warn' : result ? 'ok' : 'neutral'} dot={loading}>
+          {loading ? 'Calculando' : result ? `${result.totalRows} filas` : 'Sin datos'}
+        </StatusPill>
+      </PageHero>
 
+      {result && (
+        <StatsGrid items={[
+          { label: 'Total filas', value: result.totalRows, tone: 'default' },
+          { label: 'Horas total', value: result.totalHoras, tone: 'ok' },
+          { label: 'Docentes', value: result.byTeacher.length, tone: 'default' },
+        ]} />
+      )}
+
+      <div className="panel-body">
       <div className="form-grid" style={{ marginBottom: 12 }}>
         <label>Desde<input type="date" value={filters.dateFrom} onChange={(e) => setFilters((p) => ({ ...p, dateFrom: e.target.value }))} /></label>
         <label>Hasta<input type="date" value={filters.dateTo} onChange={(e) => setFilters((p) => ({ ...p, dateTo: e.target.value }))} /></label>
@@ -120,23 +136,20 @@ export function RecargosPanel({ apiBase }: { apiBase: string }) {
         <label>Programa<input value={filters.programCode} onChange={(e) => setFilters((p) => ({ ...p, programCode: e.target.value }))} placeholder="(opcional)" /></label>
         <label>Centro<input value={filters.campus} onChange={(e) => setFilters((p) => ({ ...p, campus: e.target.value }))} placeholder="IBA, NVA..." /></label>
         <div className="toolbar wide">
-          <button type="button" className="primary" onClick={() => void compute()} disabled={loading}>{loading ? 'Calculando...' : 'Calcular'}</button>
-          <button type="button" onClick={downloadCsv} disabled={!result || !result.totalRows} style={{ background: '#16a34a', color: '#fff' }}>Exportar CSV</button>
-          <button type="button" onClick={() => void saveSettings()}>Guardar franja como default</button>
+          <Button variant="primary" size="sm" onClick={() => void compute()} disabled={loading} loading={loading}>Calcular</Button>
+          <Button variant="secondary" size="sm" onClick={downloadCsv} disabled={!result || !result.totalRows}>Exportar CSV</Button>
+          <Button variant="ghost" size="sm" onClick={() => void saveSettings()}>Guardar franja como default</Button>
         </div>
       </div>
 
       {result && (
         <>
-          <div style={{ display: 'flex', gap: 16, padding: 12, background: '#f3f4f6', borderRadius: 6, marginBottom: 12 }}>
-            <div><strong>{result.totalRows}</strong> filas</div>
-            <div><strong>{result.totalHoras}</strong> horas total</div>
-            <div><strong>{result.byTeacher.length}</strong> docentes</div>
-            <div className="muted" style={{ fontSize: 12 }}>Franja {result.recargoStart}–{result.recargoEnd} · {result.dateFrom} a {result.dateTo}</div>
-          </div>
+          <p style={{ fontSize: 'var(--fs-micro)', color: 'var(--muted)', marginBottom: 8 }}>
+            Franja {result.recargoStart}–{result.recargoEnd} · {result.dateFrom} a {result.dateTo}
+          </p>
 
           <div className="subtitle">Resumen por docente</div>
-          <table className="table" style={{ marginBottom: 16 }}>
+          <table className="fast-table" style={{ marginBottom: 16 }}>
             <thead><tr><th>Docente</th><th>Centro</th><th>Programa</th><th style={{ textAlign: 'right' }}>Horas</th><th style={{ textAlign: 'right' }}>Minutos</th></tr></thead>
             <tbody>
               {result.byTeacher.map((t, idx) => (
@@ -152,7 +165,7 @@ export function RecargosPanel({ apiBase }: { apiBase: string }) {
           </table>
 
           <div className="subtitle">Detalle hora por hora ({result.totalRows} filas)</div>
-          <table className="table">
+          <table className="fast-table">
             <thead><tr><th>Docente</th><th>Centro</th><th>NRC</th><th>Fecha</th><th>Dia</th><th>Clase</th><th>Recargo</th><th>Min</th></tr></thead>
             <tbody>
               {visibleRows.map((r, idx) => (
@@ -170,10 +183,13 @@ export function RecargosPanel({ apiBase }: { apiBase: string }) {
             </tbody>
           </table>
           {!showAll && result.rows.length > 200 && (
-            <button type="button" onClick={() => setShowAll(true)} style={{ marginTop: 8 }}>Mostrar las {result.rows.length} filas</button>
+            <Button variant="ghost" size="sm" onClick={() => setShowAll(true)} style={{ marginTop: 8 }}>
+              Mostrar las {result.rows.length} filas
+            </Button>
           )}
         </>
       )}
-    </div>
+      </div>{/* /panel-body */}
+    </article>
   );
 }

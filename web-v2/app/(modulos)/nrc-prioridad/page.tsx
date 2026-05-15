@@ -10,6 +10,7 @@ export default function NrcPrioridadPage() {
       active="nrc-prioridad"
       title="Prioridad de NRC"
       description="Vista de NRC ordenados por urgencia de calendario. Filtra por activos, cortos o urgentes."
+      hideHeader={false}
     >
       <NrcPrioridadPanel apiBase={CLIENT_API_BASE} />
     </SinglePanelPageShell>

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useState } from 'react';
+import { Button, PageHero, AlertBox, useConfirm } from '../../_components/ui';
 
 type Item = {
   id: string;
@@ -15,6 +16,7 @@ type Item = {
 const EMPTY = { id: '', template: 'D4', subjectName: '', alphanumericCode: '', backupUrl: '', notes: '' };
 
 export function StandardClassroomsPanel({ apiBase }: { apiBase: string }) {
+  const confirm = useConfirm();
   const [items, setItems] = useState<Item[]>([]);
   const [filter, setFilter] = useState({ template: '', q: '' });
   const [form, setForm] = useState(EMPTY);
@@ -57,7 +59,7 @@ export function StandardClassroomsPanel({ apiBase }: { apiBase: string }) {
   }
 
   async function remove(it: Item) {
-    if (!window.confirm(`Eliminar aula ${it.template} — ${it.subjectName}?`)) return;
+    if (!await confirm({ title: 'Eliminar aula estándar', message: `¿Eliminar aula ${it.template} — ${it.subjectName}?`, confirmLabel: 'Eliminar', tone: 'danger' })) return;
     await fetch(`${apiBase}/standard-classrooms/${it.id}`, { method: 'DELETE' });
     await load();
   }
@@ -74,10 +76,14 @@ export function StandardClassroomsPanel({ apiBase }: { apiBase: string }) {
   }
 
   return (
-    <div className="panel">
-      <h3>Repositorio de aulas estandar</h3>
-      <p className="muted">Codigos alfanumericos D4/INNOVAME y URLs de copia de seguridad CRIBA por asignatura. Se incluyen automaticamente en correos a docentes.</p>
-      {message && <div className="message" style={{ margin: '8px 0' }}>{message}</div>}
+    <article className="premium-card">
+      <PageHero
+        title="Repositorio de aulas estándar"
+        description="Códigos alfanuméricos D4/INNOVAME y URLs de copia de seguridad CRIBA por asignatura. Se incluyen automáticamente en correos a docentes."
+      />
+
+      <div className="panel-body">
+      {message && <AlertBox tone="info">{message}</AlertBox>}
 
       <form onSubmit={save} className="form-grid" style={{ marginBottom: 16 }}>
         <label>
@@ -109,14 +115,14 @@ export function StandardClassroomsPanel({ apiBase }: { apiBase: string }) {
           <input value={form.notes} onChange={(e) => setForm((p) => ({ ...p, notes: e.target.value }))} />
         </label>
         <div className="toolbar wide">
-          <button type="submit" className="primary" disabled={saving}>
-            {saving ? 'Guardando...' : form.id ? 'Actualizar' : 'Agregar'}
-          </button>
-          {form.id && <button type="button" onClick={() => setForm(EMPTY)}>Cancelar edicion</button>}
+          <Button variant="primary" size="sm" type="submit" disabled={saving} loading={saving}>
+            {form.id ? 'Actualizar' : 'Agregar'}
+          </Button>
+          {form.id && <Button variant="ghost" size="sm" type="button" onClick={() => setForm(EMPTY)}>Cancelar edición</Button>}
         </div>
       </form>
 
-      <div className="toolbar" style={{ marginBottom: 8 }}>
+      <div className="controls" style={{ marginBottom: 8 }}>
         <select value={filter.template} onChange={(e) => setFilter((p) => ({ ...p, template: e.target.value }))}>
           <option value="">Todas</option>
           <option value="D4">D4</option>
@@ -124,11 +130,11 @@ export function StandardClassroomsPanel({ apiBase }: { apiBase: string }) {
           <option value="CRIBA">CRIBA</option>
         </select>
         <input placeholder="Buscar..." value={filter.q} onChange={(e) => setFilter((p) => ({ ...p, q: e.target.value }))} />
-        <button type="button" onClick={() => void load()} disabled={loading}>{loading ? '...' : 'Filtrar'}</button>
-        <span className="muted" style={{ fontSize: 12 }}>{items.length} aulas</span>
+        <Button variant="ghost" size="sm" onClick={() => void load()} disabled={loading} loading={loading}>Filtrar</Button>
+        <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--muted)' }}>{items.length} aulas</span>
       </div>
 
-      <table className="table">
+      <table className="fast-table">
         <thead><tr><th>Tipo</th><th>Asignatura</th><th>Alfanumerico</th><th>Backup URL</th><th>Notas</th><th>Acciones</th></tr></thead>
         <tbody>
           {items.map((it) => (
@@ -138,15 +144,16 @@ export function StandardClassroomsPanel({ apiBase }: { apiBase: string }) {
               <td>{it.alphanumericCode ?? '—'}</td>
               <td>{it.backupUrl ? <a href={it.backupUrl} target="_blank" rel="noreferrer">link</a> : '—'}</td>
               <td>{it.notes ?? '—'}</td>
-              <td>
-                <button type="button" onClick={() => edit(it)}>Editar</button>{' '}
-                <button type="button" onClick={() => void remove(it)} style={{ color: '#c0392b' }}>Eliminar</button>
+              <td style={{ display: 'flex', gap: 4 }}>
+                <Button variant="ghost" size="sm" onClick={() => edit(it)}>Editar</Button>
+                <Button variant="danger" size="sm" onClick={() => void remove(it)}>Eliminar</Button>
               </td>
             </tr>
           ))}
           {items.length === 0 && (<tr><td colSpan={6} className="muted" style={{ textAlign: 'center', padding: 16 }}>Sin aulas registradas</td></tr>)}
         </tbody>
       </table>
-    </div>
+      </div>{/* /panel-body */}
+    </article>
   );
 }

@@ -8,6 +8,7 @@ import {
   scoreAlistamiento,
   scoreEjecucion,
 } from '@seguimiento/shared';
+import { useConfirm, AlertBox, Button, StatusPill } from '../../_components/ui';
 
 type ChecklistState = Record<string, boolean | number>;
 
@@ -400,6 +401,7 @@ export function ReviewPanel({
   initialCategory = 'MUESTREO',
   initialMoodleUrlTemplate = '',
 }: ReviewPanelProps) {
+  const confirm = useConfirm();
   const [periodCode, setPeriodCode] = useState(initialPeriodCode);
   const [moment, setMoment] = useState(initialMoment);
   const [phase, setPhase] = useState<'ALISTAMIENTO' | 'EJECUCION'>(toPhase(initialPhase));
@@ -713,11 +715,12 @@ export function ReviewPanel({
       setMessage('Periodo requerido para generar muestreo.');
       return;
     }
-    const ok = window.confirm(
-      `Generar muestreo para ${periodCode}?\n\n` +
-        `Crea grupos nuevos y asigna NRC distintos en fase de ejecucion (cuando hay >=2 cursos por grupo).\n` +
-        `NO sobreescribe NRC ya revisados en alistamiento.`,
-    );
+    const ok = await confirm({
+      title: `Generar muestreo ${periodCode}`,
+      message: 'Crea grupos nuevos y asigna NRC distintos en fase de ejecución (cuando hay ≥2 cursos por grupo). No sobreescribe NRC ya revisados en alistamiento.',
+      confirmLabel: 'Generar',
+      tone: 'primary',
+    });
     if (!ok) return;
     try {
       setGenerating(true);
@@ -995,12 +998,12 @@ export function ReviewPanel({
       return (
         <>
           {executionExpectations.reviewHint ? (
-            <p className="muted" style={{ marginBottom: 10 }}>
+            <p style={{ color: 'var(--muted)', fontSize: '0.83rem', marginBottom: 10 }}>
               {executionExpectations.reviewHint} {executionExpectations.shortCourseHint}
             </p>
           ) : null}
           {isVirtual100 && (
-            <p className="muted" style={{ marginBottom: 10 }}>
+            <p style={{ color: 'var(--muted)', fontSize: '0.83rem', marginBottom: 10 }}>
               Curso 100% virtual — grabaciones y asistencia no aplican. Puntos redistribuidos entre acuerdo, ingresos y calificaciones.
             </p>
           )}
@@ -1040,7 +1043,7 @@ export function ReviewPanel({
               </label>
             ))}
           </div>
-          <div className="subtitle">Items CRIBA ({isVirtual100 ? '20' : '10'} puntos distribuidos en 9 criterios)</div>
+          <div style={{ fontSize: '0.72rem', fontWeight: 600, color: 'var(--muted)', textTransform: 'uppercase', letterSpacing: '0.05em', margin: '8px 0 4px' }}>Items CRIBA ({isVirtual100 ? '20' : '10'} puntos distribuidos en 9 criterios)</div>
           <div className="form-grid">
             {CRIBA_ITEMS.map(([key, label]) => (
               <label className="checkbox" key={key}>
@@ -1079,7 +1082,7 @@ export function ReviewPanel({
             </label>
           ))}
           {isVirtual100 && (
-            <p className="muted" style={{ gridColumn: '1 / -1', marginTop: 4, fontSize: 11 }}>
+            <p style={{ color: 'var(--muted)', fontSize: '0.72rem', gridColumn: '1 / -1', marginTop: 4 }}>
               Curso 100% virtual — puntos de asistencia redistribuidos entre los 3 ítems.
             </p>
           )}
@@ -1090,43 +1093,43 @@ export function ReviewPanel({
     if (effectiveTemplate === 'VACIO') {
       if ((current.selectedCourse.enrolledCount ?? 0) > 0) {
         return (
-          <p className="muted">
+          <p style={{ color: 'var(--muted)', fontSize: '0.83rem' }}>
             Aula VACIA con estudiantes. Se guarda con calificacion 0 y se replica al grupo. No requiere checklist.
           </p>
         );
       }
 
-      return <p className="muted">Esta aula es VACIA y no tiene estudiantes. No requiere checklist de alistamiento.</p>;
+      return <p style={{ color: 'var(--muted)', fontSize: '0.83rem' }}>Esta aula es VACIA y no tiene estudiantes. No requiere checklist de alistamiento.</p>;
     }
 
-    return <p className="muted">Esta aula no requiere checklist de alistamiento.</p>;
+    return <p style={{ color: 'var(--muted)', fontSize: '0.83rem' }}>Esta aula no requiere checklist de alistamiento.</p>;
   }
 
   return (
-    <article className={`panel ${compact ? 'panel-compact' : ''}`}>
+    <div className={compact ? 'premium-card' : 'premium-card'} style={compact ? { padding: 10 } : {}}>
 
       {/* ── HEADER ── */}
-      <div className="panel-heading">
+      <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', gap: 12, flexWrap: 'wrap', marginBottom: 12 }}>
         <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
-          <h2 style={{ margin: 0 }}>Revision NRC</h2>
+          <h2 style={{ margin: 0, fontSize: compact ? '0.92rem' : '0.95rem', fontWeight: 700, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+            Revision NRC
+          </h2>
           {queue ? (
             <>
-              <span className="chip chip-info">{queue.periodCode}</span>
-              <span className="chip chip-primary">{queue.phase}</span>
-              {queue.moment ? <span className="chip">{queue.moment}</span> : null}
-              <span className="chip chip-ok">{queue.done}/{queue.total} hechos</span>
+              <StatusPill tone="neutral">{queue.periodCode}</StatusPill>
+              <StatusPill tone="neutral">{queue.phase}</StatusPill>
+              {queue.moment ? <StatusPill tone="neutral">{queue.moment}</StatusPill> : null}
+              <StatusPill tone="ok">{queue.done}/{queue.total} hechos</StatusPill>
             </>
           ) : null}
         </div>
         <div className="toolbar">
           {!compact ? (
-            <button type="button" onClick={openFloatingTab}>
-              Abrir flotante
-            </button>
+            <Button variant="secondary" size="sm" onClick={openFloatingTab}>Abrir flotante</Button>
           ) : null}
-          <button type="button" onClick={() => void loadQueue()} disabled={loading} className="primary">
+          <Button variant="primary" size="sm" loading={loading} onClick={() => void loadQueue()}>
             {loading ? 'Cargando...' : 'Cargar cola'}
-          </button>
+          </Button>
         </div>
       </div>
 
@@ -1156,35 +1159,29 @@ export function ReviewPanel({
             </label>
             <label>
               Categoria
-              <select
-                value={queueCategory}
-                onChange={(event) => setQueueCategory(event.target.value as 'MUESTREO' | 'TEMPORAL')}
-              >
+              <select value={queueCategory} onChange={(event) => setQueueCategory(event.target.value as 'MUESTREO' | 'TEMPORAL')}>
                 <option value="MUESTREO">Muestreo normal</option>
                 <option value="TEMPORAL">Temporal (rezagados/casos)</option>
               </select>
             </label>
             <label className="wide">
               URL Moodle
-              <input
-                value={moodleUrlTemplate}
-                onChange={(event) => setMoodleUrlTemplate(event.target.value)}
-                placeholder="https://campus.../course/search.php?search={nrc}"
-              />
+              <input value={moodleUrlTemplate} onChange={(event) => setMoodleUrlTemplate(event.target.value)} placeholder="https://campus.../course/search.php?search={nrc}" />
             </label>
           </div>
           <div className="toolbar" style={{ marginTop: 8 }}>
-            <button type="button" onClick={() => void loadQueue()} disabled={loading} className="primary">
+            <Button variant="primary" size="sm" loading={loading} onClick={() => void loadQueue()}>
               {loading ? 'Cargando...' : 'Cargar cola'}
-            </button>
-            <button
-              type="button"
-              onClick={() => void generateSampling()}
+            </Button>
+            <Button
+              variant="secondary" size="sm"
+              loading={generating}
               disabled={generating || !periodCode}
               title="Crea/actualiza grupos de revision para el periodo. Preserva NRC ya revisados; solo asigna NRC para fase de ejecucion donde falte."
+              onClick={() => void generateSampling()}
             >
               {generating ? 'Generando...' : 'Generar muestreo'}
-            </button>
+            </Button>
           </div>
         </div>
       </details>
@@ -1219,12 +1216,9 @@ export function ReviewPanel({
           />
 
           {/* Lista de cola con altura fija */}
-          <div
-            className="issue-list"
-            style={{ maxHeight: 420, overflowY: 'auto', marginTop: 10 }}
-          >
+          <div className="issue-list" style={{ maxHeight: 420, overflowY: 'auto', marginTop: 10 }}>
             {processedItems.length === 0 ? (
-              <p className="muted" style={{ padding: '10px 14px' }}>Sin items para este filtro.</p>
+              <p style={{ padding: '10px 14px', color: 'var(--muted)', fontSize: '0.83rem' }}>Sin items para este filtro.</p>
             ) : (
               processedItems.map((item, i) => {
                 const isActive = i === index;
@@ -1238,47 +1232,33 @@ export function ReviewPanel({
                     type="button"
                     onClick={() => selectItemByIndex(i, processedItems)}
                     style={{
-                      display: 'flex',
-                      alignItems: 'center',
-                      justifyContent: 'space-between',
-                      width: '100%',
-                      padding: '7px 12px',
+                      display: 'flex', alignItems: 'center', justifyContent: 'space-between',
+                      width: '100%', padding: '7px 12px',
                       background: isActive ? 'var(--blue-light, #dbeafe)' : item.done ? 'var(--n-50)' : 'transparent',
-                      border: 'none',
-                      borderBottom: '1px solid var(--n-100)',
-                      cursor: 'pointer',
-                      textAlign: 'left',
-                      gap: 8,
+                      border: 'none', borderBottom: '1px solid var(--n-100)',
+                      cursor: 'pointer', textAlign: 'left', gap: 8,
                     }}
                   >
                     <span style={{ display: 'flex', flexDirection: 'column', gap: 1, minWidth: 0 }}>
-                      <span style={{ fontWeight: isActive ? 700 : 500, fontSize: 13 }}>
-                        NRC {item.selectedCourse.nrc}
-                      </span>
-                      <span style={{ fontSize: 11, color: 'var(--n-500)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                        {item.teacherName}
-                        {item.selectedCourse.subjectName ? ` · ${item.selectedCourse.subjectName}` : ''}
+                      <span style={{ fontWeight: isActive ? 700 : 500, fontSize: '0.83rem' }}>NRC {item.selectedCourse.nrc}</span>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--muted)', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.teacherName}{item.selectedCourse.subjectName ? ` · ${item.selectedCourse.subjectName}` : ''}
                       </span>
                     </span>
                     <span style={{ display: 'flex', gap: 4, flexShrink: 0, alignItems: 'center' }}>
-                      {item.selectedCourse.modalityType === 'VIRTUAL_100' ? (
-                        <span className="badge badge-info" style={{ fontSize: 10 }}>100% Virtual</span>
-                      ) : null}
-                      {item.evaluation ? (
-                        <span className="badge badge-green" style={{ fontSize: 10 }}>{item.evaluation.score}/50</span>
-                      ) : null}
-                      {item.done ? (
-                        <span className="badge badge-gray" style={{ fontSize: 10 }}>Hecho</span>
-                      ) : (
-                        <span className="badge badge-amber" style={{ fontSize: 10 }}>Pendiente</span>
-                      )}
+                      {item.selectedCourse.modalityType === 'VIRTUAL_100' ? <StatusPill tone="neutral">100% Virtual</StatusPill> : null}
+                      {item.evaluation ? <StatusPill tone="ok">{item.evaluation.score}/50</StatusPill> : null}
+                      {item.done
+                        ? <StatusPill tone="neutral">Hecho</StatusPill>
+                        : <StatusPill tone="warn">Pendiente</StatusPill>
+                      }
                       {itemSchedule.calendarState === 'ACTIVE' && (() => {
                         if (!itemSchedule.endIsoDate) return null;
                         const today = new Date();
                         const todayMs = Date.UTC(today.getUTCFullYear(), today.getUTCMonth(), today.getUTCDate());
                         const endMs = new Date(itemSchedule.endIsoDate + 'T00:00:00Z').getTime();
                         const days = Math.ceil((endMs - todayMs) / 86400000);
-                        if (days <= 7) return <span className="badge badge-red" style={{ fontSize: 10 }}>!{days}d</span>;
+                        if (days <= 7) return <StatusPill tone="danger">!{days}d</StatusPill>;
                         return null;
                       })()}
                     </span>
@@ -1302,7 +1282,7 @@ export function ReviewPanel({
                   />
                 </label>
               </div>
-              <table className="compact-table">
+              <table className="fast-table">
                 <thead>
                   <tr>
                     <th>NRC</th>
@@ -1319,22 +1299,17 @@ export function ReviewPanel({
                         <td>{item.evaluation?.score ?? 0}/50</td>
                         <td>{item.evaluation?.observations?.trim() || '-'}</td>
                         <td>
-                          <button
-                            type="button"
-                            onClick={() => {
+                          <Button variant="ghost" size="sm" onClick={() => {
                               if (!queue?.items.length) return;
                               const targetIndex = queue.items.findIndex((qItem) => qItem.sampleGroupId === item.sampleGroupId);
                               if (targetIndex >= 0) selectItemByIndex(targetIndex);
-                            }}
-                          >
-                            Ver
-                          </button>
+                            }}>Ver</Button>
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={4} className="muted">No hay NRC guardados para ese filtro.</td>
+                      <td colSpan={4} style={{ color: 'var(--muted)' }}>No hay NRC guardados para ese filtro.</td>
                     </tr>
                   )}
                 </tbody>
@@ -1343,12 +1318,12 @@ export function ReviewPanel({
           </details>
         </div>
       ) : (
-        <p className="muted" style={{ marginTop: 12 }}>Carga una cola para iniciar la revision.</p>
+        <p style={{ color: 'var(--muted)', fontSize: '0.83rem', marginTop: 12 }}>Carga una cola para iniciar la revision.</p>
       )}
 
       {/* ── PANEL DE CHECKLIST ACTIVO ── */}
       {!current ? (
-        queue ? <p className="muted" style={{ marginTop: 10 }}>Sin registros de muestreo para este filtro.</p> : null
+        queue ? <p style={{ color: 'var(--muted)', fontSize: '0.83rem', marginTop: 10 }}>Sin registros de muestreo para este filtro.</p> : null
       ) : (
         <div style={{ marginTop: 16, borderTop: '1px solid var(--n-200)', paddingTop: 14 }}>
 
@@ -1360,19 +1335,19 @@ export function ReviewPanel({
                   NRC {current.selectedCourse.nrc}
                 </span>
                 {currentScheduleInfo.calendarState === 'ACTIVE' && daysRemaining !== null && daysRemaining <= 7 && (
-                  <span className="chip chip-alert">URGENTE {daysRemaining}d</span>
+                  <StatusPill tone="danger">URGENTE {daysRemaining}d</StatusPill>
                 )}
                 {currentScheduleInfo.calendarState === 'ACTIVE' && currentScheduleInfo.isShortCourse && (daysRemaining === null || daysRemaining > 7) && (
-                  <span className="chip chip-warn">CORTO</span>
+                  <StatusPill tone="warn">CORTO</StatusPill>
                 )}
                 {currentScheduleInfo.calendarState === 'ACTIVE' && !currentScheduleInfo.isShortCourse && (daysRemaining === null || daysRemaining > 7) && (
-                  <span className="chip chip-ok">ACTIVO</span>
+                  <StatusPill tone="ok">ACTIVO</StatusPill>
                 )}
                 {currentScheduleInfo.calendarState === 'UPCOMING' && (
-                  <span className="chip">POR INICIAR</span>
+                  <StatusPill tone="neutral">POR INICIAR</StatusPill>
                 )}
                 {currentScheduleInfo.calendarState === 'ENDED' && (
-                  <span className="chip chip-alert">FINALIZADO</span>
+                  <StatusPill tone="danger">FINALIZADO</StatusPill>
                 )}
               </div>
               <div style={{ fontSize: 13, color: 'var(--n-600)', marginTop: 2 }}>
@@ -1401,14 +1376,13 @@ export function ReviewPanel({
             </div>
 
             {/* Boton Moodle prominent */}
-            <button
-              type="button"
-              className="primary"
+            <Button
+              variant="primary" size="sm"
               style={{ flexShrink: 0 }}
               onClick={() => openNrcInMoodle(current.selectedCourse.nrc, current.selectedCourse.moodleCourseUrl)}
             >
               Abrir en Moodle {current.selectedCourse.moodleCourseUrl ? '(URL detectada)' : '(buscar)'}
-            </button>
+            </Button>
           </div>
 
           {/* Tipo de aula editable */}
@@ -1431,14 +1405,14 @@ export function ReviewPanel({
                 <option key={opt} value={opt}>{opt}</option>
               ))}
             </select>
-            <button
-              type="button"
-              className="primary"
-              onClick={() => { void persistCurrentTemplate(editableTemplate.toUpperCase()); }}
+            <Button
+              variant="primary" size="sm"
+              loading={savingTemplate}
               disabled={savingTemplate || editableTemplate.toUpperCase() === currentTemplate}
+              onClick={() => { void persistCurrentTemplate(editableTemplate.toUpperCase()); }}
             >
               {savingTemplate ? 'Guardando...' : 'Guardar tipo'}
-            </button>
+            </Button>
             <span style={{ fontSize: 11, color: 'var(--n-400)' }}>
               Estado Moodle: {current.selectedCourse.moodleStatus ?? 'N/A'}
             </span>
@@ -1468,51 +1442,36 @@ export function ReviewPanel({
 
           {/* Toolbar de navegacion y acciones */}
           <div className="toolbar" style={{ flexWrap: 'wrap', gap: 6 }}>
-            <button
-              type="button"
-              onClick={() => selectItemByIndex(Math.max(0, index - 1), processedItems)}
-              disabled={index <= 0}
-            >
+            <Button variant="secondary" size="sm" disabled={index <= 0}
+              onClick={() => selectItemByIndex(Math.max(0, index - 1), processedItems)}>
               Anterior
-            </button>
-            <button
-              type="button"
+            </Button>
+            <Button variant="secondary" size="sm"
+              disabled={!processedItems.length || index >= processedItems.length - 1}
               onClick={() => {
                 if (!processedItems.length) return;
                 selectItemByIndex(Math.min(processedItems.length - 1, index + 1), processedItems);
-              }}
-              disabled={!processedItems.length || index >= processedItems.length - 1}
-            >
+              }}>
               Siguiente
-            </button>
+            </Button>
             <span style={{ flex: 1 }} />
-            <button
-              type="button"
-              className="primary"
-              onClick={() => void saveCurrent(false)}
-              disabled={saving}
-            >
+            <Button variant="primary" size="sm" loading={saving} disabled={saving}
+              onClick={() => void saveCurrent(false)}>
               {saving ? 'Guardando...' : 'Guardar'}
-            </button>
-            <button
-              type="button"
-              className="primary"
+            </Button>
+            <Button variant="primary" size="sm" loading={saving} disabled={saving}
               onClick={() => {
                 const nextPending = processedItems.find((item, i) => i !== index && !item.done);
-                if (nextPending) {
-                  openNrcInMoodle(nextPending.selectedCourse.nrc, nextPending.selectedCourse.moodleCourseUrl);
-                }
+                if (nextPending) openNrcInMoodle(nextPending.selectedCourse.nrc, nextPending.selectedCourse.moodleCourseUrl);
                 void saveCurrent(true, false);
-              }}
-              disabled={saving}
-            >
+              }}>
               {saving ? 'Guardando...' : 'Guardar y siguiente (AUTO)'}
-            </button>
+            </Button>
           </div>
         </div>
       )}
 
-      {message ? <div className="message" style={{ marginTop: 10 }}>{message}</div> : null}
-    </article>
+      {message ? <div style={{ marginTop: 10 }}><AlertBox tone={message.startsWith('No se pudo') || message.startsWith('Error') ? 'error' : message.startsWith('El navegador') || message.startsWith('Configura') || message.startsWith('Periodo') ? 'warn' : 'info'}>{message}</AlertBox></div> : null}
+    </div>
   );
 }

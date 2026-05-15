@@ -3,6 +3,8 @@
   "private": true,
   "packageManager": "pnpm@9.15.0",
   "scripts": {
+    "clean:symlinks": "node scripts/clean-broken-symlinks.mjs",
+    "postinstall": "node scripts/clean-broken-symlinks.mjs",
     "dev": "turbo dev",
     "stack:up": "bash ./scripts/dev-stack.sh up",
     "stack:status": "bash ./scripts/dev-stack.sh status",

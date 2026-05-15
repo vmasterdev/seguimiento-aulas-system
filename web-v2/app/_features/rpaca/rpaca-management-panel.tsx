@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { Button } from '../../_components/ui';
 
 type RpacaManagementPanelProps = {
   apiBase: string;
@@ -467,7 +468,7 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
   }
 
   return (
-    <article className="panel">
+    <div className="premium-card">
 
       {/* ── Header ─────────────────────────────────────────────── */}
       <div className="page-header" style={{ display: 'flex', alignItems: 'flex-start', justifyContent: 'space-between', gap: 16, marginBottom: 20 }}>
@@ -494,10 +495,9 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
               Elegir CSV
             </span>
           </label>
-          <button
-            type="button"
-            className="btn-secondary"
-            style={{ fontWeight: 600 }}
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => {
               const params = new URLSearchParams();
               if (selectedPeriodCodes.length === 1) params.set('periodCode', selectedPeriodCodes[0]);
@@ -505,21 +505,21 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
             }}
           >
             Descargar reporte
-          </button>
-          <button
-            type="button"
-            className="btn-primary"
+          </Button>
+          <Button
+            variant="primary"
+            size="sm"
             onClick={() => void importRpaca()}
             disabled={importLoading}
-            style={{ fontWeight: 600 }}
+            loading={importLoading}
           >
             {importLoading ? 'Importando...' : 'Importar CSV'}
-          </button>
+          </Button>
         </div>
       </div>
 
       {/* ── Upload zone / opciones ──────────────────────────────── */}
-      <div className="panel" style={{ background: 'var(--surface-subtle, #f9fafb)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8, padding: '12px 16px', marginBottom: 16 }}>
+      <div className="premium-card" style={{ background: 'var(--surface-subtle, #f9fafb)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8, padding: '12px 16px', marginBottom: 16 }}>
         <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 24px', alignItems: 'center' }}>
           <label style={{ display: 'flex', alignItems: 'center', gap: 8, fontSize: '0.875rem' }}>
             <input
@@ -560,18 +560,18 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
 
       {/* ── Stats de importacion ────────────────────────────────── */}
       {importResult ? (
-        <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
-          <div className="stat-card" style={{ background: 'var(--surface-subtle, #f0fdf4)', border: '1px solid var(--border, #bbf7d0)', borderRadius: 8, padding: '10px 14px' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-success, #16a34a)' }}>{importResult.createdCourses}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>NRC creados</div>
+        <div className="ds-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 16 }}>
+          <div className="ds-stat-card" style={{ background: 'var(--surface-subtle, #f0fdf4)', border: '1px solid var(--border, #bbf7d0)', borderRadius: 8, padding: '10px 14px' }}>
+            <div className="ds-stat-value" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-success, #16a34a)' }}>{importResult.createdCourses}</div>
+            <div className="ds-stat-label" style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>NRC creados</div>
           </div>
-          <div className="stat-card" style={{ background: 'var(--surface-subtle, #eff6ff)', border: '1px solid var(--border, #bfdbfe)', borderRadius: 8, padding: '10px 14px' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-info, #2563eb)' }}>{importResult.updatedCourses}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>NRC actualizados</div>
+          <div className="ds-stat-card" style={{ background: 'var(--surface-subtle, #eff6ff)', border: '1px solid var(--border, #bfdbfe)', borderRadius: 8, padding: '10px 14px' }}>
+            <div className="ds-stat-value" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--color-info, #2563eb)' }}>{importResult.updatedCourses}</div>
+            <div className="ds-stat-label" style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>NRC actualizados</div>
           </div>
-          <div className="stat-card" style={{ background: 'var(--surface-subtle, #fafafa)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8, padding: '10px 14px' }}>
-            <div style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-muted, #6b7280)' }}>{importResult.skippedRows}</div>
-            <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>Filas omitidas</div>
+          <div className="ds-stat-card" style={{ background: 'var(--surface-subtle, #fafafa)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8, padding: '10px 14px' }}>
+            <div className="ds-stat-value" style={{ fontSize: '1.5rem', fontWeight: 700, color: 'var(--text-muted, #6b7280)' }}>{importResult.skippedRows}</div>
+            <div className="ds-stat-label" style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>Filas omitidas</div>
           </div>
         </div>
       ) : null}
@@ -613,18 +613,18 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
 
           {/* Resumen del pipeline si existe */}
           {pipelineSummary ? (
-            <div className="stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 12 }}>
-              <div className="stat-card" style={{ background: 'var(--surface-subtle, #f0fdf4)', border: '1px solid var(--border, #bbf7d0)', borderRadius: 8, padding: '10px 14px' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-success, #16a34a)' }}>{pipelineSummary.bannerFound}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>Banner encontrados</div>
+            <div className="ds-stats-grid" style={{ display: 'grid', gridTemplateColumns: 'repeat(3, 1fr)', gap: 10, marginBottom: 12 }}>
+              <div className="ds-stat-card" style={{ background: 'var(--surface-subtle, #f0fdf4)', border: '1px solid var(--border, #bbf7d0)', borderRadius: 8, padding: '10px 14px' }}>
+                <div className="ds-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-success, #16a34a)' }}>{pipelineSummary.bannerFound}</div>
+                <div className="ds-stat-label" style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>Banner encontrados</div>
               </div>
-              <div className="stat-card" style={{ background: 'var(--surface-subtle, #fff7ed)', border: '1px solid var(--border, #fed7aa)', borderRadius: 8, padding: '10px 14px' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-warning, #ea580c)' }}>{pipelineSummary.bannerNoEncontrado}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>No encontrados</div>
+              <div className="ds-stat-card" style={{ background: 'var(--surface-subtle, #fff7ed)', border: '1px solid var(--border, #fed7aa)', borderRadius: 8, padding: '10px 14px' }}>
+                <div className="ds-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--color-warning, #ea580c)' }}>{pipelineSummary.bannerNoEncontrado}</div>
+                <div className="ds-stat-label" style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>No encontrados</div>
               </div>
-              <div className="stat-card" style={{ background: 'var(--surface-subtle, #fafafa)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8, padding: '10px 14px' }}>
-                <div style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-muted, #6b7280)' }}>{pipelineSummary.systemDeactivated}</div>
-                <div style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>Descartados del sistema</div>
+              <div className="ds-stat-card" style={{ background: 'var(--surface-subtle, #fafafa)', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8, padding: '10px 14px' }}>
+                <div className="ds-stat-value" style={{ fontSize: '1.25rem', fontWeight: 700, color: 'var(--text-muted, #6b7280)' }}>{pipelineSummary.systemDeactivated}</div>
+                <div className="ds-stat-label" style={{ fontSize: '0.8rem', color: 'var(--text-muted, #6b7280)', marginTop: 2 }}>Descartados del sistema</div>
               </div>
             </div>
           ) : null}
@@ -642,46 +642,37 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
                 Periodos para tabla de faltantes:
               </div>
               <div className="toolbar" style={{ display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center' }}>
-                <button type="button" onClick={() => setSelectedPeriodCodes([])} style={{ fontSize: '0.8rem' }}>
+                <Button variant="secondary" size="sm" onClick={() => setSelectedPeriodCodes([])}>
                   Todos
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setSelectedPeriodCodes(periodOptions.map((p) => p.code))}
                   disabled={!periodOptions.length}
-                  style={{ fontSize: '0.8rem' }}
                 >
                   Marcar todos
-                </button>
-                <button
-                  type="button"
+                </Button>
+                <Button
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setSelectedPeriodCodes(periodOptions[0]?.code ? [periodOptions[0].code] : [])}
                   disabled={!periodOptions.length}
-                  style={{ fontSize: '0.8rem' }}
                 >
                   Solo ultimo
-                </button>
+                </Button>
                 <span className="divider" style={{ width: 1, height: 18, background: 'var(--border, #e5e7eb)', display: 'inline-block', margin: '0 4px' }} />
                 {periodOptions.map((period) => {
                   const active = selectedPeriodCodes.includes(period.code);
                   return (
-                    <button
+                    <Button
                       key={`missing-period-${period.code}`}
-                      type="button"
-                      style={{
-                        fontSize: '0.8rem',
-                        ...(active
-                          ? {
-                              borderColor: 'var(--border-strong, #1f2937)',
-                              background: 'var(--surface-strong, #eef2ff)',
-                              fontWeight: 600,
-                            }
-                          : undefined),
-                      }}
+                      variant={active ? 'primary' : 'secondary'}
+                      size="sm"
                       onClick={() => setSelectedPeriodCodes((current) => toggleSelection(current, period.code))}
                     >
                       {period.code}
-                    </button>
+                    </Button>
                   );
                 })}
               </div>
@@ -701,14 +692,14 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
             <div style={{ marginTop: 10, display: 'flex', flexWrap: 'wrap', gap: 6, alignItems: 'center', fontSize: '0.8rem' }}>
               <span style={{ color: 'var(--text-muted, #6b7280)' }}>Periodos tocados en esta carga:</span>
               {recentPeriodsTouched.map((period) => (
-                <button
+                <Button
                   key={`recent-period-${period}`}
-                  type="button"
+                  variant="secondary"
+                  size="sm"
                   onClick={() => setSelectedPeriodCodes([period])}
-                  style={{ fontSize: '0.8rem' }}
                 >
                   {period}
-                </button>
+                </Button>
               ))}
             </div>
           ) : null}
@@ -728,24 +719,23 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
             ) : null}
           </div>
           <div className="toolbar" style={{ display: 'flex', gap: 8, alignItems: 'center' }}>
-            <button
-              type="button"
-              className="primary"
+            <Button
+              variant="primary"
+              size="sm"
               onClick={() => void saveAllDrafts()}
               disabled={missingLoading || !missingResult?.items?.length || rowsWithDraft === 0}
-              style={{ fontSize: '0.8125rem' }}
             >
               Guardar todos ({rowsWithDraft})
-            </button>
-            <button
-              type="button"
-              className="btn-primary"
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
               onClick={() => void loadMissingTeacher()}
               disabled={missingLoading}
-              style={{ fontWeight: 600, fontSize: '0.8125rem' }}
+              loading={missingLoading}
             >
               {missingLoading ? 'Cargando...' : 'Buscar'}
-            </button>
+            </Button>
           </div>
         </div>
 
@@ -788,7 +778,7 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
         {/* Tabla */}
         {missingResult ? (
           <div className="table-wrap" style={{ overflowX: 'auto', maxHeight: 440, overflowY: 'auto', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8 }}>
-            <table className="compact-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
+            <table className="fast-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
               <thead style={{ position: 'sticky', top: 0, background: 'var(--surface-subtle, #f9fafb)', zIndex: 1 }}>
                 <tr>
                   <th style={{ padding: '8px 10px', textAlign: 'left', borderBottom: '1px solid var(--border, #e5e7eb)', whiteSpace: 'nowrap', fontWeight: 600 }}>NRC</th>
@@ -830,15 +820,15 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
                       />
                     </td>
                     <td style={{ padding: '6px 10px', borderBottom: '1px solid var(--border, #f3f4f6)', whiteSpace: 'nowrap' }}>
-                      <button
-                        type="button"
-                        className="primary"
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => void saveTeacher(item.id)}
                         disabled={!!savingMap[item.id] || !(teacherDrafts[item.id] ?? '').trim()}
-                        style={{ fontSize: '0.8rem' }}
+                        loading={!!savingMap[item.id]}
                       >
                         {savingMap[item.id] ? 'Guardando...' : 'Guardar'}
-                      </button>
+                      </Button>
                     </td>
                   </tr>
                 ))}
@@ -873,9 +863,10 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
             la seccion Pipeline Banner. Usa este boton solo si necesitas deactivar manualmente despues de una corrida Banner independiente.
           </p>
           <div className="toolbar" style={{ display: 'flex', gap: 8 }}>
-            <button
-              type="button"
-              style={{ color: 'var(--color-danger, #dc2626)', borderColor: 'var(--color-danger, #dc2626)', fontSize: '0.875rem' }}
+            <Button
+              variant="ghost"
+              size="sm"
+              style={{ color: 'var(--color-danger, #dc2626)', borderColor: 'var(--color-danger, #dc2626)' }}
               onClick={() => {
                 if (
                   window.confirm(
@@ -888,11 +879,11 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
               disabled={importLoading}
             >
               Deactivar NRC no encontrados
-            </button>
+            </Button>
           </div>
         </div>
       </details>
 
-    </article>
+    </div>
   );
 }

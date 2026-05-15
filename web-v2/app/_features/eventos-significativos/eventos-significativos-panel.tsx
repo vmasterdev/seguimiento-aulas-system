@@ -1,6 +1,7 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox } from '../../_components/ui';
 
 type EventItem = {
   id: string;
@@ -187,43 +188,29 @@ export function EventosSignificativosPanel({ apiBase }: Props) {
   }
 
   return (
-    <div style={{ display: 'flex', flexDirection: 'column', gap: 16 }}>
-      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fit, minmax(150px, 1fr))', gap: 12 }}>
-        <div className="kpi-card" style={{ padding: 12, background: '#f8fafc', borderRadius: 8, border: '1px solid #e5e7eb' }}>
-          <div style={{ fontSize: 11, color: '#64748b', fontWeight: 600 }}>Total eventos</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#0f172a' }}>{counts.total}</div>
-        </div>
-        <div className="kpi-card" style={{ padding: 12, background: '#f0fdf4', borderRadius: 8, border: '1px solid #86efac' }}>
-          <div style={{ fontSize: 11, color: '#166534', fontWeight: 600 }}>Firmados</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#166534' }}>{counts.signed}</div>
-        </div>
-        <div className="kpi-card" style={{ padding: 12, background: '#eff6ff', borderRadius: 8, border: '1px solid #93c5fd' }}>
-          <div style={{ fontSize: 11, color: '#1e40af', fontWeight: 600 }}>Entregados</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#1e40af' }}>{counts.delivered}</div>
-        </div>
-        <div className="kpi-card" style={{ padding: 12, background: '#fef3c7', borderRadius: 8, border: '1px solid #fcd34d' }}>
-          <div style={{ fontSize: 11, color: '#92400e', fontWeight: 600 }}>Cargados Subdireccion</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#92400e' }}>{counts.archived}</div>
-        </div>
-        <div className="kpi-card" style={{ padding: 12, background: '#dcfce7', borderRadius: 8, border: '1px solid #4ade80' }}>
-          <div style={{ fontSize: 11, color: '#15803d', fontWeight: 600 }}>Completos (3/3)</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#15803d' }}>{counts.complete}</div>
-        </div>
-        <div className="kpi-card" style={{ padding: 12, background: '#fee2e2', borderRadius: 8, border: '1px solid #fca5a5' }}>
-          <div style={{ fontSize: 11, color: '#991b1b', fontWeight: 600 }}>Docentes nuevos (excluibles)</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#991b1b' }}>{counts.pendingNew}</div>
-        </div>
-        <div className="kpi-card" style={{ padding: 12, background: '#ecfccb', borderRadius: 8, border: '1px solid #a3e635' }}>
-          <div style={{ fontSize: 11, color: '#3f6212', fontWeight: 600 }}>Subsanados (score &gt;= 70)</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#3f6212' }}>{counts.resolved}</div>
-        </div>
-        <div className="kpi-card" style={{ padding: 12, background: '#ffedd5', borderRadius: 8, border: '1px solid #fdba74' }}>
-          <div style={{ fontSize: 11, color: '#9a3412', fontWeight: 600 }}>Activos (sin subsanar)</div>
-          <div style={{ fontSize: 22, fontWeight: 800, color: '#9a3412' }}>{counts.activos}</div>
-        </div>
-      </div>
+    <article className="premium-card">
+      <PageHero
+        title="Eventos significativos"
+        description="Registro de eventos por resultado insatisfactorio. Seguimiento de firma, entrega y carga en Subdirección de Docencia."
+      >
+        <StatusPill tone={counts.activos > 0 ? 'warn' : 'ok'}>
+          {counts.activos} activos sin subsanar
+        </StatusPill>
+      </PageHero>
 
-      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', padding: 12, background: '#f9fafb', borderRadius: 8, border: '1px solid #e5e7eb' }}>
+      <StatsGrid columns={4} items={[
+        { label: 'Total eventos', value: counts.total, tone: 'default' },
+        { label: 'Firmados', value: counts.signed, tone: counts.signed === counts.total ? 'ok' : 'warn' },
+        { label: 'Entregados', value: counts.delivered, tone: counts.delivered === counts.total ? 'ok' : 'warn' },
+        { label: 'Cargados Subdir.', value: counts.archived, tone: counts.archived === counts.total ? 'ok' : 'warn' },
+        { label: 'Completos (3/3)', value: counts.complete, tone: 'ok' },
+        { label: 'Docentes nuevos', value: counts.pendingNew, tone: 'default' },
+        { label: 'Subsanados', value: counts.resolved, tone: 'ok' },
+        { label: 'Activos (sin subsanar)', value: counts.activos, tone: counts.activos > 0 ? 'danger' : 'ok' },
+      ]} />
+
+      <div className="panel-body">
+      <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginBottom: 12 }}>
         <input
           type="text"
           value={filterPeriod}
@@ -277,31 +264,12 @@ export function EventosSignificativosPanel({ apiBase }: Props) {
           />
           Ocultar subsanados
         </label>
-        <button
-          type="button"
-          onClick={() => void load()}
-          style={{ padding: '6px 14px', fontSize: 13, borderRadius: 6, border: '1px solid #2563eb', background: '#2563eb', color: '#fff', cursor: 'pointer', fontWeight: 600 }}
-        >
-          Refrescar
-        </button>
-        <button
-          type="button"
-          onClick={exportCsv}
-          style={{ padding: '6px 14px', fontSize: 13, borderRadius: 6, border: '1px solid #16a34a', background: '#16a34a', color: '#fff', cursor: 'pointer', fontWeight: 600 }}
-        >
-          Exportar CSV
-        </button>
+        <Button variant="primary" size="sm" onClick={() => void load()} loading={loading}>Refrescar</Button>
+        <Button variant="secondary" size="sm" onClick={exportCsv}>Exportar CSV</Button>
       </div>
 
-      {error && (
-        <div style={{ padding: 12, background: '#fee2e2', border: '1px solid #fca5a5', borderRadius: 8, color: '#991b1b' }}>
-          Error: {error}
-        </div>
-      )}
-
-      {loading && (
-        <div style={{ padding: 12, color: '#64748b', fontSize: 13 }}>Cargando...</div>
-      )}
+      {error && <AlertBox tone="error">Error: {error}</AlertBox>}
+      {loading && <AlertBox tone="info">Cargando...</AlertBox>}
 
       <div style={{ overflowX: 'auto', border: '1px solid #e5e7eb', borderRadius: 8 }}>
         <table style={{ width: '100%', borderCollapse: 'collapse', fontSize: 12.5 }}>
@@ -403,9 +371,11 @@ export function EventosSignificativosPanel({ apiBase }: Props) {
         </table>
       </div>
 
-      <div style={{ fontSize: 12, color: '#64748b', padding: 8, background: '#f9fafb', border: '1px dashed #e5e7eb', borderRadius: 6 }}>
-        <strong>Notas:</strong> Los eventos se generan automaticamente al producir reportes de cierre por momento. Marca "Firmado" cuando el docente firme el acta, "Entregado" cuando se entregue el documento, y "Cargado" cuando este disponible en la carpeta de la Subdireccion de Docencia. Los docentes nuevos (con menos de 90 dias) se marcan con badge rojo y NO requieren evento significativo segun politica institucional.
-      </div>
-    </div>
+      <AlertBox tone="info" style={{ marginTop: 8 }}>
+        <strong>Notas:</strong> Los eventos se generan automáticamente al producir reportes de cierre por momento. Marca "Firmado" cuando el docente firme el acta, "Entregado" cuando se entregue el documento, y "Cargado" cuando esté disponible en la carpeta de la Subdirección de Docencia. Los docentes nuevos (menos de 90 días) NO requieren evento significativo según política institucional.
+      </AlertBox>
+
+      </div>{/* /panel-body */}
+    </article>
   );
 }

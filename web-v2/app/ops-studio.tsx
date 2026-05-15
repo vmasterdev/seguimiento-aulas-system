@@ -2,6 +2,7 @@
 
 import { startTransition, useDeferredValue, useEffect, useMemo, useState } from 'react';
 import type { CourseRecord, OpsData } from './lib/types';
+import { Button, AlertBox, StatusPill, StatsGrid } from './_components/ui';
 
 type ViewKey = 'overview' | 'courses' | 'integrations' | 'files';
 type TeacherFilter = 'ALL' | 'WITH_TEACHER' | 'WITHOUT_TEACHER';
@@ -16,70 +17,30 @@ const EMPTY_OPS_DATA: OpsData = {
   health: null,
   stats: null,
   queue: null,
-  courses: {
-    total: 0,
-    items: [],
-  },
-  outbox: {
-    total: 0,
-    items: [],
-  },
+  courses: { total: 0, items: [] },
+  outbox: { total: 0, items: [] },
   sidecar: {
     config: null,
     runner: null,
     summary: {
-      latestFile: null,
-      modifiedAt: null,
-      rowCount: 0,
-      okCount: 0,
-      errorCount: 0,
-      emptyClassrooms: 0,
-      typeCounts: {},
-      statusCounts: {},
-      participantAverage: null,
-      preview: [],
-      sampleByNrc: {},
+      latestFile: null, modifiedAt: null, rowCount: 0, okCount: 0,
+      errorCount: 0, emptyClassrooms: 0, typeCounts: {}, statusCounts: {},
+      participantAverage: null, preview: [], sampleByNrc: {},
     },
     urlValidation: {
-      latestFile: null,
-      modifiedAt: null,
-      rowCount: 0,
-      withUrlCount: 0,
-      preview: [],
-      sampleByNrc: {},
+      latestFile: null, modifiedAt: null, rowCount: 0,
+      withUrlCount: 0, preview: [], sampleByNrc: {},
     },
   },
   banner: {
-    runner: {
-      running: false,
-      current: null,
-      lastRun: null,
-      logTail: '',
-      liveActivity: null,
-    },
-    exportSummary: {
-      latestFile: null,
-      modifiedAt: null,
-      rowCount: 0,
-      statusCounts: {},
-      preview: [],
-      sampleByNrc: {},
-    },
+    runner: { running: false, current: null, lastRun: null, logTail: '', liveActivity: null },
+    exportSummary: { latestFile: null, modifiedAt: null, rowCount: 0, statusCounts: {}, preview: [], sampleByNrc: {} },
   },
   files: [],
   derived: {
-    withTeacher: 0,
-    withoutTeacher: 0,
-    moodleOk: 0,
-    moodlePending: 0,
-    moodleErrors: 0,
-    withMoodleUrl: 0,
-    withSidecarData: 0,
-    bannerFound: 0,
-    bannerWithoutTeacher: 0,
-    outboxDrafts: 0,
-    reviewExcluded: 0,
-    attention: [],
+    withTeacher: 0, withoutTeacher: 0, moodleOk: 0, moodlePending: 0,
+    moodleErrors: 0, withMoodleUrl: 0, withSidecarData: 0, bannerFound: 0,
+    bannerWithoutTeacher: 0, outboxDrafts: 0, reviewExcluded: 0, attention: [],
   },
 };
 
@@ -96,16 +57,11 @@ function formatScore(value?: number | null) {
 }
 
 function formatListMap(values: Record<string, number>) {
-  return Object.entries(values).sort((left, right) => right[1] - left[1]);
+  return Object.entries(values).sort((l, r) => r[1] - l[1]);
 }
 
 function normalizeText(value: string) {
-  return value
-    .normalize('NFD')
-    .replace(/[̀-ͯ]/g, '')
-    .toLowerCase()
-    .replace(/[^a-z0-9]+/g, ' ')
-    .trim();
+  return value.normalize('NFD').replace(/[̀-ͯ]/g, '').toLowerCase().replace(/[^a-z0-9]+/g, ' ').trim();
 }
 
 function getCourseStatusBucket(course: CourseRecord): StatusFilter {
@@ -114,26 +70,6 @@ function getCourseStatusBucket(course: CourseRecord): StatusFilter {
   if (['PENDIENTE', 'ERROR_REINTENTABLE', 'REVISAR_MANUAL'].includes(status)) return 'PENDING';
   if (status) return 'ERROR';
   return 'PENDING';
-}
-
-function StatCard({
-  label,
-  value,
-  tone = 'default',
-  hint,
-}: {
-  label: string;
-  value: string | number;
-  tone?: 'default' | 'teal' | 'amber' | 'red';
-  hint?: string;
-}) {
-  return (
-    <article className={`stat-card tone-${tone}`}>
-      <div className="stat-label">{label}</div>
-      <div className="stat-value">{value}</div>
-      {hint ? <div className="stat-hint">{hint}</div> : null}
-    </article>
-  );
 }
 
 export function OpsStudio({ initialData = null }: { initialData?: OpsData | null }) {
@@ -201,7 +137,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
         setBannerLoginResult(`Error: ${json.error ?? json.message ?? 'No se pudo guardar la sesión.'}`);
         return;
       }
-      setBannerLoginResult('Sesión guardada. Ahora ve a /docentes → "Solo docentes".');
+      setBannerLoginResult('Sesión guardada. Ve a /docentes → "Solo docentes".');
     } catch (err) {
       setBannerLoginResult(`Error: ${err instanceof Error ? err.message : String(err)}`);
     }
@@ -210,33 +146,22 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
   async function refreshData(silent = false) {
     try {
       if (!silent) setLoading(true);
-      const response = await fetch('/api/ops', {
-        cache: 'no-store',
-        signal: AbortSignal.timeout(10000),
-      });
+      const response = await fetch('/api/ops', { cache: 'no-store', signal: AbortSignal.timeout(10000) });
       const next = (await response.json()) as OpsData & { error?: string };
       if (!response.ok) throw new Error(next.error ?? 'No fue posible cargar Ops Studio.');
       startTransition(() => {
         setData(next);
         setMessage('');
-        if (!selectedCourseId && next.courses.items[0]?.id) {
-          setSelectedCourseId(next.courses.items[0].id);
-        }
+        if (!selectedCourseId && next.courses.items[0]?.id) setSelectedCourseId(next.courses.items[0].id);
       });
     } catch (error) {
-      if (!silent) {
-        setMessage(`No se pudo actualizar: ${error instanceof Error ? error.message : String(error)}`);
-      }
+      if (!silent) setMessage(`No se pudo actualizar: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
       if (!silent) setLoading(false);
     }
   }
 
-  useEffect(() => {
-    if (hasInitialData) return;
-    void refreshData();
-  }, []);
-
+  useEffect(() => { if (hasInitialData) return; void refreshData(); }, []);
   useEffect(() => {
     if (!autoRefresh) return;
     const timer = window.setInterval(() => void refreshData(true), 15000);
@@ -244,195 +169,186 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
   }, [autoRefresh, selectedCourseId]);
 
   const periods = useMemo(
-    () => ['ALL', ...Array.from(new Set(data.courses.items.map((course) => course.period.code))).sort()],
+    () => ['ALL', ...Array.from(new Set(data.courses.items.map((c) => c.period.code))).sort()],
     [data.courses.items],
   );
 
   const filteredCourses = useMemo(() => {
-    const normalizedQuery = normalizeText(deferredCourseSearch);
+    const q = normalizeText(deferredCourseSearch);
     return data.courses.items
       .filter((course) => {
         if (periodFilter !== 'ALL' && course.period.code !== periodFilter) return false;
         if (teacherFilter === 'WITH_TEACHER' && !course.teacherId) return false;
         if (teacherFilter === 'WITHOUT_TEACHER' && course.teacherId) return false;
         if (statusFilter !== 'ALL' && getCourseStatusBucket(course) !== statusFilter) return false;
-        if (!normalizedQuery) return true;
-        const haystack = normalizeText(
-          [
-            course.nrc,
-            course.subjectName ?? '',
-            course.programName ?? '',
-            course.teacher?.fullName ?? '',
-            course.teacher?.id ?? '',
-            course.teacher?.documentId ?? '',
-            course.moodleCheck?.status ?? '',
-            course.moodleCheck?.detectedTemplate ?? '',
-            course.integrations.moodleSidecar?.type ?? '',
-            course.integrations.moodleSidecar?.moodleCourseName ?? '',
-            course.integrations.urlValidation?.moodleUrl ?? '',
-            course.integrations.bannerExport?.teacherName ?? '',
-            course.bannerReviewStatus ?? '',
-            course.reviewExcludedReason ?? '',
-          ].join(' '),
-        );
-        return haystack.includes(normalizedQuery);
+        if (!q) return true;
+        const hay = normalizeText([
+          course.nrc, course.subjectName ?? '', course.programName ?? '',
+          course.teacher?.fullName ?? '', course.teacher?.id ?? '', course.teacher?.documentId ?? '',
+          course.moodleCheck?.status ?? '', course.moodleCheck?.detectedTemplate ?? '',
+          course.integrations.moodleSidecar?.type ?? '', course.integrations.moodleSidecar?.moodleCourseName ?? '',
+          course.integrations.urlValidation?.moodleUrl ?? '', course.integrations.bannerExport?.teacherName ?? '',
+          course.bannerReviewStatus ?? '', course.reviewExcludedReason ?? '',
+        ].join(' '));
+        return hay.includes(q);
       })
-      .sort((left, right) => {
-        const leftIssues =
-          Number(!left.teacherId) +
-          Number(left.moodleCheck?.status !== 'OK') +
-          Number(left.integrations.moodleSidecar?.empty) +
-          Number(!left.integrations.urlValidation?.moodleUrl);
-        const rightIssues =
-          Number(!right.teacherId) +
-          Number(right.moodleCheck?.status !== 'OK') +
-          Number(right.integrations.moodleSidecar?.empty) +
-          Number(!right.integrations.urlValidation?.moodleUrl);
-        if (rightIssues !== leftIssues) return rightIssues - leftIssues;
-        return left.nrc.localeCompare(right.nrc, 'es');
+      .sort((l, r) => {
+        const issues = (c: CourseRecord) =>
+          Number(!c.teacherId) + Number(c.moodleCheck?.status !== 'OK') +
+          Number(c.integrations.moodleSidecar?.empty) + Number(!c.integrations.urlValidation?.moodleUrl);
+        const diff = issues(r) - issues(l);
+        return diff !== 0 ? diff : l.nrc.localeCompare(r.nrc, 'es');
       });
   }, [data.courses.items, deferredCourseSearch, periodFilter, teacherFilter, statusFilter]);
 
   const selectedCourse =
-    filteredCourses.find((course) => course.id === selectedCourseId) ??
-    data.courses.items.find((course) => course.id === selectedCourseId) ??
-    filteredCourses[0] ??
-    data.courses.items[0] ??
-    null;
+    filteredCourses.find((c) => c.id === selectedCourseId) ??
+    data.courses.items.find((c) => c.id === selectedCourseId) ??
+    filteredCourses[0] ?? data.courses.items[0] ?? null;
 
   const topBannerStatuses = formatListMap(data.banner.exportSummary.statusCounts).slice(0, 6);
   const selectedMoodleUrl =
     selectedCourse?.integrations.urlValidation?.moodleUrl ?? selectedCourse?.moodleCheck?.moodleCourseUrl ?? null;
-
   const today = new Date().toLocaleDateString('es-CO', { weekday: 'short', year: 'numeric', month: 'short', day: 'numeric' });
 
   return (
     <div className="shell">
-      {/* ── Hero compacto ── */}
-      <section className="hero hero-compact">
-        <div className="hero-copy">
-          <h1>Panel operativo</h1>
-          <div className="hero-meta">
-            <span className={`chip ${data.apiReachable ? 'chip-ok' : 'chip-alert'}`}>
-              <span className={`status-dot ${data.apiReachable ? 'dot-ok' : 'dot-error'}`} />
-              API {data.apiReachable ? 'conectada' : 'sin conexión'}
-            </span>
-            <span className="chip">{today}</span>
+
+      {/* ── Hero ── */}
+      <header className="hero-banner">
+        <div className="hero-banner-body">
+          <div>
+            <h1 className="hero-banner-title">Panel operativo</h1>
+            <div className="hero-banner-meta">
+              <StatusPill tone={data.apiReachable ? 'ok' : 'danger'} dot>
+                API {data.apiReachable ? 'conectada' : 'sin conexión'}
+              </StatusPill>
+              <span className="chip">{today}</span>
+            </div>
+          </div>
+          <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+            <Button variant="primary" size="sm" loading={loading} onClick={() => void refreshData()}>
+              {loading ? 'Actualizando...' : 'Refrescar'}
+            </Button>
+            <label className="toggle">
+              <input type="checkbox" checked={autoRefresh} onChange={(e) => setAutoRefresh(e.target.checked)} />
+              <span>Auto 15s</span>
+            </label>
           </div>
         </div>
-        <div className="hero-actions">
-          <button className="primary-button" onClick={() => void refreshData()} disabled={loading}>
-            {loading ? 'Actualizando...' : 'Refrescar'}
-          </button>
-          <label className="toggle">
-            <input type="checkbox" checked={autoRefresh} onChange={(event) => setAutoRefresh(event.target.checked)} />
-            <span>Auto 15s</span>
-          </label>
+      </header>
+
+      {/* ── Mensajes ── */}
+      {loading && !data.generatedAt && (
+        <div style={{ padding: '0 32px 14px' }}>
+          <AlertBox tone="info">Cargando tablero operativo...</AlertBox>
         </div>
-      </section>
-
-      {/* ── Flashes ── */}
-      {loading && !data.generatedAt ? <div className="flash">Cargando tablero operativo...</div> : null}
-      {message ? <div className="flash">{message}</div> : null}
-      {!data.apiReachable ? (
-        <div className="flash flash-warning">
-          API en 3001 no responde. Métricas y acciones no disponibles.
+      )}
+      {message && (
+        <div style={{ padding: '0 32px 14px' }}>
+          <AlertBox tone="error">{message}</AlertBox>
         </div>
-      ) : null}
+      )}
+      {!data.apiReachable && (
+        <div style={{ padding: '0 32px 14px' }}>
+          <AlertBox tone="warn">API en 3001 no responde. Métricas y acciones no disponibles.</AlertBox>
+        </div>
+      )}
 
-      {/* ── Stats grid ── */}
-      <section className="stats-grid">
-        <StatCard label="Cursos" value={data.stats?.courses ?? data.courses.total} tone="teal" hint={`${data.derived.withoutTeacher} sin docente`} />
-        <StatCard label="Docentes" value={data.derived.withTeacher} hint="con asignación" />
-        <StatCard label="Moodle OK" value={data.derived.moodleOk} hint={`${data.derived.moodlePending} pendientes`} />
-        <StatCard label="URLs Moodle" value={data.derived.withMoodleUrl} hint={`${data.sidecar.urlValidation.rowCount} validadas`} />
-        <StatCard label="Banner" value={data.derived.bannerFound} hint={`${data.derived.bannerWithoutTeacher} sin docente`} tone={data.derived.bannerWithoutTeacher > 0 ? 'amber' : 'default'} />
-        <StatCard label="Cola activa" value={data.queue?.queue.active ?? 0} hint={`${data.queue?.queue.waiting ?? 0} en espera`} tone={(data.queue?.queue.active ?? 0) > 0 ? 'teal' : 'default'} />
-        <StatCard label="Cursos virtuales" value={data.stats?.virtualCount ?? 0} hint="con encuentros Teams" />
-        <StatCard label="100% virtuales" value={data.stats?.virtual100Count ?? 0} hint="sin encuentros sincrónicos" />
-      </section>
+      {/* ── Stats ── */}
+      <StatsGrid items={[
+        { label: 'Cursos', value: data.stats?.courses ?? data.courses.total, help: `${data.derived.withoutTeacher} sin docente`, tone: 'ok' },
+        { label: 'Docentes', value: data.derived.withTeacher, help: 'con asignación' },
+        { label: 'Moodle OK', value: data.derived.moodleOk, help: `${data.derived.moodlePending} pendientes` },
+        { label: 'URLs Moodle', value: data.derived.withMoodleUrl, help: `${data.sidecar.urlValidation.rowCount} validadas` },
+        { label: 'Banner', value: data.derived.bannerFound, help: `${data.derived.bannerWithoutTeacher} sin docente`, tone: data.derived.bannerWithoutTeacher > 0 ? 'warn' : undefined },
+        { label: 'Cola activa', value: data.queue?.queue.active ?? 0, help: `${data.queue?.queue.waiting ?? 0} en espera`, tone: (data.queue?.queue.active ?? 0) > 0 ? 'ok' : undefined },
+        { label: 'Virtuales', value: data.stats?.virtualCount ?? 0, help: 'con encuentros Teams' },
+        { label: '100% virtuales', value: data.stats?.virtual100Count ?? 0, help: 'sin encuentros sincrónicos' },
+      ]} columns={4} />
 
-      {/* ── View switcher pills ── */}
-      <section className="view-switcher">
-        {([
-          ['overview', 'Resumen'],
-          ['courses', 'Cursos'],
-          ['integrations', 'Integraciones'],
-          ['files', 'Archivos'],
-        ] as Array<[ViewKey, string]>).map(([key, label]) => (
-          <button
-            key={key}
-            className={`switch-button${activeView === key ? ' active' : ''}`}
-            onClick={() => setActiveView(key)}
-          >
-            {label}
-          </button>
-        ))}
-      </section>
+      {/* ── View switcher ── */}
+      <div style={{ padding: '0 32px' }}>
+        <div className="view-switcher">
+          {([
+            ['overview', 'Resumen'],
+            ['courses', 'Cursos'],
+            ['integrations', 'Integraciones'],
+            ['files', 'Archivos'],
+          ] as Array<[ViewKey, string]>).map(([key, label]) => (
+            <button
+              key={key}
+              className={`switch-button${activeView === key ? ' active' : ''}`}
+              onClick={() => setActiveView(key)}
+            >
+              {label}
+            </button>
+          ))}
+        </div>
+      </div>
 
       {/* ════════════════════════════════
           OVERVIEW
       ════════════════════════════════ */}
-      {activeView === 'overview' ? (
-        <section className="dashboard-grid">
+      {activeView === 'overview' && (
+        <div className="dashboard-grid" style={{ padding: '0 32px 32px' }}>
 
-          {/* Columna izquierda */}
-          <article className="panel">
-            <div className="panel-heading">
-              <h2>Acciones rápidas</h2>
-              <span className="panel-note">Mantenimiento del entorno de automatización</span>
+          {/* Acciones rápidas */}
+          <article className="premium-card">
+            <div style={{ marginBottom: 14 }}>
+              <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+                Acciones rápidas
+              </h2>
+              <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                Mantenimiento del entorno de automatización
+              </p>
             </div>
 
             <details className="disclosure" open>
               <summary>Sesión Banner y navegadores</summary>
               <div className="disclosure-body">
                 <p className="disclosure-desc">
-                  Usa estos controles cuando Edge esté bloqueado o necesites renovar la sesión de Banner antes de correr consultas en <a href="/docentes" className="inline-link">/docentes</a> o <a href="/automatizacion-banner" className="inline-link">/automatizacion-banner</a>.
+                  Usa estos controles cuando Edge esté bloqueado o necesites renovar la sesión de Banner antes de correr consultas en{' '}
+                  <a href="/docentes" className="inline-link">/docentes</a> o{' '}
+                  <a href="/automatizacion-banner" className="inline-link">/automatizacion-banner</a>.
                 </p>
-                <p className="disclosure-desc" style={{ marginTop: 6, color: '#6b7280', fontSize: 12 }}>
-                  Flujo: <strong>1. Limpiar</strong> si Edge está bloqueado → <strong>2. Abrir login</strong> → completar SSO/2FA en la ventana que se abre → <strong>3. Guardar sesión</strong>.
+                <p className="disclosure-desc" style={{ marginTop: 6, color: 'var(--muted)', fontSize: '0.75rem' }}>
+                  Flujo: <strong>1. Limpiar</strong> si Edge está bloqueado → <strong>2. Abrir login</strong> → completar SSO/2FA → <strong>3. Guardar sesión</strong>.
                 </p>
-                <div className="toolbar">
-                  <button
-                    style={{ background: '#7f1d1d', color: '#fff' }}
-                    disabled={killingBrowsers}
-                    onClick={() => void killBrowsers()}
-                  >
+                <div className="toolbar" style={{ marginTop: 10 }}>
+                  <Button variant="danger" size="sm" loading={killingBrowsers} onClick={() => void killBrowsers()}>
                     {killingBrowsers ? 'Limpiando...' : '1. Limpiar Edge bloqueado'}
-                  </button>
-                  <button
-                    style={{ background: '#92400e', color: '#fff' }}
-                    onClick={() => void startBannerLogin()}
-                  >
+                  </Button>
+                  <Button variant="secondary" size="sm" onClick={() => void startBannerLogin()}>
                     2. Abrir login Banner
-                  </button>
-                  <button
-                    style={{ background: '#15803d', color: '#fff' }}
-                    onClick={() => void confirmBannerLogin()}
-                  >
+                  </Button>
+                  <Button variant="primary" size="sm" onClick={() => void confirmBannerLogin()}>
                     3. Guardar sesión Banner
-                  </button>
+                  </Button>
                 </div>
                 {killBrowsersResult && (
-                  <div style={{ marginTop: 8, padding: '8px 12px', background: '#f9fafb', border: '1px solid #e5e7eb', borderRadius: 6, fontSize: 13, color: '#374151' }}>
-                    {killBrowsersResult}
+                  <div style={{ marginTop: 8 }}>
+                    <AlertBox tone="info">{killBrowsersResult}</AlertBox>
                   </div>
                 )}
                 {bannerLoginResult && (
-                  <div style={{ marginTop: 8, padding: '8px 12px', background: '#fefce8', border: '1px solid #fde68a', borderRadius: 6, fontSize: 13, color: '#92400e' }}>
-                    {bannerLoginResult}
+                  <div style={{ marginTop: 8 }}>
+                    <AlertBox tone="warn">{bannerLoginResult}</AlertBox>
                   </div>
                 )}
               </div>
             </details>
-
           </article>
 
-          {/* Columna derecha: alertas */}
-          <article className="panel">
-            <div className="panel-heading">
-              <h2>Avisos de atención</h2>
-              <span className="panel-note">{data.derived.attention.length} avisos activos</span>
+          {/* Avisos de atención */}
+          <article className="premium-card">
+            <div style={{ marginBottom: 14 }}>
+              <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+                Avisos de atención
+              </h2>
+              <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                {data.derived.attention.length} avisos activos
+              </p>
             </div>
             <div className="issue-list">
               {data.derived.attention.length ? (
@@ -440,10 +356,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                   <button
                     key={`${item.id}-${item.reason}`}
                     className="issue-item"
-                    onClick={() => {
-                      setSelectedCourseId(item.id);
-                      setActiveView('courses');
-                    }}
+                    onClick={() => { setSelectedCourseId(item.id); setActiveView('courses'); }}
                   >
                     <strong>{item.nrc}</strong>
                     <span>{item.subjectName ?? 'Sin asignatura'}</span>
@@ -456,14 +369,18 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
             </div>
           </article>
 
-          {/* Fila inferior: preview sidecar + correos */}
-          <article className="panel">
-            <div className="panel-heading">
-              <h2>Últimas aulas clasificadas</h2>
-              <span className="panel-note">{data.sidecar.summary.rowCount} aulas · prom. {data.sidecar.summary.participantAverage ?? '-'} estudiantes</span>
+          {/* Últimas aulas clasificadas */}
+          <article className="premium-card">
+            <div style={{ marginBottom: 14 }}>
+              <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+                Últimas aulas clasificadas
+              </h2>
+              <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                {data.sidecar.summary.rowCount} aulas · prom. {data.sidecar.summary.participantAverage ?? '-'} estudiantes
+              </p>
             </div>
             <div className="table-wrap">
-              <table className="compact-table">
+              <table className="fast-table">
                 <thead>
                   <tr>
                     <th>NRC</th>
@@ -486,13 +403,18 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
             </div>
           </article>
 
-          <article className="panel">
-            <div className="panel-heading">
-              <h2>Correos pendientes</h2>
-              <span className="panel-note">{data.outbox.total} mensajes · <a href="/correos" className="inline-link">Gestionar en /correos</a></span>
+          {/* Correos pendientes */}
+          <article className="premium-card">
+            <div style={{ marginBottom: 14 }}>
+              <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+                Correos pendientes
+              </h2>
+              <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                {data.outbox.total} mensajes · <a href="/correos" className="inline-link">Gestionar en /correos</a>
+              </p>
             </div>
             <div className="table-wrap">
-              <table className="compact-table">
+              <table className="fast-table">
                 <thead>
                   <tr>
                     <th>Destinatario</th>
@@ -502,76 +424,68 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                 </thead>
                 <tbody>
                   {data.outbox.items.length ? (
-                    data.outbox.items.slice(0, 8).map((item, index) => (
-                      <tr key={`${item.subject}-${index}`}>
+                    data.outbox.items.slice(0, 8).map((item, idx) => (
+                      <tr key={`${item.subject}-${idx}`}>
                         <td>{item.teacher?.fullName ?? item.coordinator?.fullName ?? item.recipientName ?? '-'}</td>
                         <td>{item.subject}</td>
                         <td>{item.status}</td>
                       </tr>
                     ))
                   ) : (
-                    <tr>
-                      <td colSpan={3}>Sin registros.</td>
-                    </tr>
+                    <tr><td colSpan={3}>Sin registros.</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
           </article>
-
-        </section>
-      ) : null}
+        </div>
+      )}
 
       {/* ════════════════════════════════
           COURSES
       ════════════════════════════════ */}
-      {activeView === 'courses' ? (
-        <section className="courses-layout">
-          <article className="panel">
-            <div className="panel-heading">
-              <h2>Listado de cursos</h2>
-              <span className="panel-note">{filteredCourses.length} resultados</span>
+      {activeView === 'courses' && (
+        <div className="courses-layout" style={{ padding: '0 32px 32px' }}>
+          <article className="premium-card" style={{ padding: 0 }}>
+            <div style={{ padding: '18px 20px 12px' }}>
+              <h2 style={{ margin: '0 0 2px', fontSize: '0.95rem', fontWeight: 700, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+                Listado de cursos
+              </h2>
+              <p style={{ margin: 0, fontSize: '0.75rem', color: 'var(--muted)' }}>{filteredCourses.length} resultados</p>
             </div>
-            <div className="filters">
-              <label>
-                Buscar
-                <input
-                  value={courseSearch}
-                  onChange={(event) => setCourseSearch(event.target.value)}
-                  placeholder="NRC, docente, URL, tipo..."
-                />
-              </label>
-              <label>
-                Periodo
-                <select value={periodFilter} onChange={(event) => setPeriodFilter(event.target.value)}>
-                  {periods.map((period) => (
-                    <option key={period} value={period}>
-                      {period === 'ALL' ? 'Todos' : period}
-                    </option>
-                  ))}
-                </select>
-              </label>
-              <label>
-                Docente
-                <select value={teacherFilter} onChange={(event) => setTeacherFilter(event.target.value as TeacherFilter)}>
-                  <option value="ALL">Todos</option>
-                  <option value="WITH_TEACHER">Con docente</option>
-                  <option value="WITHOUT_TEACHER">Sin docente</option>
-                </select>
-              </label>
-              <label>
-                Moodle
-                <select value={statusFilter} onChange={(event) => setStatusFilter(event.target.value as StatusFilter)}>
-                  <option value="ALL">Todos</option>
-                  <option value="OK">OK</option>
-                  <option value="PENDING">Pendiente</option>
-                  <option value="ERROR">Error</option>
-                </select>
-              </label>
+            <div style={{ padding: '0 20px 12px' }}>
+              <div className="filters">
+                <label>
+                  Buscar
+                  <input value={courseSearch} onChange={(e) => setCourseSearch(e.target.value)} placeholder="NRC, docente, URL, tipo..." />
+                </label>
+                <label>
+                  Periodo
+                  <select value={periodFilter} onChange={(e) => setPeriodFilter(e.target.value)}>
+                    {periods.map((p) => <option key={p} value={p}>{p === 'ALL' ? 'Todos' : p}</option>)}
+                  </select>
+                </label>
+                <label>
+                  Docente
+                  <select value={teacherFilter} onChange={(e) => setTeacherFilter(e.target.value as TeacherFilter)}>
+                    <option value="ALL">Todos</option>
+                    <option value="WITH_TEACHER">Con docente</option>
+                    <option value="WITHOUT_TEACHER">Sin docente</option>
+                  </select>
+                </label>
+                <label>
+                  Moodle
+                  <select value={statusFilter} onChange={(e) => setStatusFilter(e.target.value as StatusFilter)}>
+                    <option value="ALL">Todos</option>
+                    <option value="OK">OK</option>
+                    <option value="PENDING">Pendiente</option>
+                    <option value="ERROR">Error</option>
+                  </select>
+                </label>
+              </div>
             </div>
-
-            <div className="table-wrap">
-              <table className="compact-table">
+            <div className="table-wrap" style={{ borderRadius: '0 0 var(--radius-md) var(--radius-md)', border: 'none', borderTop: '1px solid var(--line)' }}>
+              <table className="fast-table">
                 <thead>
                   <tr>
                     <th>NRC</th>
@@ -589,6 +503,7 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                       key={course.id}
                       className={selectedCourseId === course.id ? 'selected-row' : ''}
                       onClick={() => setSelectedCourseId(course.id)}
+                      style={{ cursor: 'pointer' }}
                     >
                       <td>
                         <strong>{course.nrc}</strong>
@@ -598,25 +513,26 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                         {course.subjectName ?? '-'}
                         <div className="mini">{course.programName ?? course.programCode ?? '-'}</div>
                       </td>
-                      <td>{course.teacher?.fullName ?? <span className="chip chip-warn">Sin docente</span>}</td>
                       <td>
-                        <span className={`chip ${course.moodleCheck?.status === 'OK' ? 'chip-ok' : course.moodleCheck?.status ? 'chip-warn' : 'chip-alert'}`}>
+                        {course.teacher?.fullName ?? (
+                          <StatusPill tone="warn">Sin docente</StatusPill>
+                        )}
+                      </td>
+                      <td>
+                        <StatusPill tone={course.moodleCheck?.status === 'OK' ? 'ok' : course.moodleCheck?.status ? 'warn' : 'danger'}>
                           {course.moodleCheck?.status ?? 'SIN_CHECK'}
-                        </span>
+                        </StatusPill>
                       </td>
                       <td>{course.integrations.moodleSidecar?.type ?? '-'}</td>
                       <td>
-                        <span className={`chip ${course.integrations.urlValidation?.moodleUrl ? 'chip-ok' : 'chip-alert'}`}>
+                        <StatusPill tone={course.integrations.urlValidation?.moodleUrl ? 'ok' : 'danger'}>
                           {course.integrations.urlValidation?.moodleUrl ? 'OK' : 'Pendiente'}
-                        </span>
+                        </StatusPill>
                       </td>
                       <td>
-                        <button
-                          className="ghost-button"
-                          onClick={(e) => { e.stopPropagation(); setSelectedCourseId(course.id); }}
-                        >
+                        <Button variant="ghost" size="sm" onClick={(e) => { e.stopPropagation(); setSelectedCourseId(course.id); }}>
                           Ver
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                   ))}
@@ -625,23 +541,28 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
             </div>
           </article>
 
-          <aside className="ficha-card course-detail">
+          {/* Ficha del curso seleccionado */}
+          <aside className="premium-card course-detail" style={{ alignSelf: 'start', position: 'sticky', top: 16 }}>
             {selectedCourse ? (
               <>
-                <div className="ficha-header">
-                  <div className="ficha-header-row">
-                    <div>
-                      <h2>{selectedCourse.nrc}</h2>
-                      <div className="ficha-subtitle">{selectedCourse.subjectName ?? 'Sin asignatura'}</div>
-                      <div className="ficha-chip-row">
-                        <span className="ficha-chip">{selectedCourse.period.code}</span>
-                        {selectedCourse.moodleCheck?.status ? (
-                          <span className={`ficha-chip ${selectedCourse.moodleCheck.status === 'OK' ? 'ficha-chip-success' : 'ficha-chip-warn'}`}>
+                <div style={{ marginBottom: 16, paddingBottom: 14, borderBottom: '1px solid var(--line)' }}>
+                  <div style={{ display: 'flex', alignItems: 'flex-start', gap: 10 }}>
+                    <div style={{ flex: 1 }}>
+                      <h2 style={{ margin: 0, fontSize: '1.1rem', fontWeight: 700, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+                        {selectedCourse.nrc}
+                      </h2>
+                      <p style={{ margin: '2px 0 0', fontSize: '0.82rem', color: 'var(--n-600)' }}>
+                        {selectedCourse.subjectName ?? 'Sin asignatura'}
+                      </p>
+                      <div style={{ display: 'flex', gap: 6, flexWrap: 'wrap', marginTop: 6 }}>
+                        <span className="chip">{selectedCourse.period.code}</span>
+                        {selectedCourse.moodleCheck?.status && (
+                          <StatusPill tone={selectedCourse.moodleCheck.status === 'OK' ? 'ok' : 'warn'}>
                             Moodle: {selectedCourse.moodleCheck.status}
-                          </span>
-                        ) : null}
-                        {selectedCourse.teacher?.fullName ? null : (
-                          <span className="ficha-chip ficha-chip-warn">Sin docente</span>
+                          </StatusPill>
+                        )}
+                        {!selectedCourse.teacher?.fullName && (
+                          <StatusPill tone="warn">Sin docente</StatusPill>
                         )}
                       </div>
                     </div>
@@ -649,191 +570,154 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                 </div>
 
                 <div className="ficha-body">
-                  <h3 className="ficha-section-title">Información general</h3>
-                  <div className="ficha-grid">
-                    {[
-                      { label: 'Docente', value: selectedCourse.teacher?.fullName },
-                      { label: 'Banner', value: selectedCourse.bannerReviewStatus ?? selectedCourse.integrations.bannerExport?.status },
-                      { label: 'Moodle API', value: selectedCourse.moodleCheck?.status },
-                      { label: 'Tipo de aula', value: selectedCourse.integrations.moodleSidecar?.type },
-                      { label: 'Estudiantes Moodle', value: selectedCourse.integrations.moodleSidecar?.participants?.toString() },
-                      { label: 'Nombre en Moodle', value: selectedCourse.integrations.moodleSidecar?.moodleCourseName },
-                    ].map((f) => (
-                      <div className="ficha-field" key={f.label}>
-                        <div className="ficha-field-label">{f.label}</div>
-                        <div className={`ficha-field-value${f.value ? '' : ' empty'}`}>{f.value || 'Sin información'}</div>
+                  {[
+                    {
+                      title: 'Información general',
+                      fields: [
+                        { label: 'Docente', value: selectedCourse.teacher?.fullName },
+                        { label: 'Banner', value: selectedCourse.bannerReviewStatus ?? selectedCourse.integrations.bannerExport?.status },
+                        { label: 'Moodle API', value: selectedCourse.moodleCheck?.status },
+                        { label: 'Tipo de aula', value: selectedCourse.integrations.moodleSidecar?.type },
+                        { label: 'Estudiantes Moodle', value: selectedCourse.integrations.moodleSidecar?.participants?.toString() },
+                        { label: 'Nombre en Moodle', value: selectedCourse.integrations.moodleSidecar?.moodleCourseName },
+                      ],
+                    },
+                    {
+                      title: 'Estado en Moodle',
+                      fields: [
+                        { label: 'Plantilla detectada', value: selectedCourse.moodleCheck?.detectedTemplate },
+                        { label: 'Modalidad', value: selectedCourse.moodleCheck?.resolvedModality ?? selectedCourse.integrations.urlValidation?.modality },
+                        { label: 'ID del aula', value: selectedCourse.integrations.moodleSidecar?.moodleCourseId ?? selectedCourse.moodleCheck?.moodleCourseId },
+                        { label: 'Estudiantes detectados', value: selectedCourse.integrations.moodleSidecar?.participantsDetected?.toString() },
+                      ],
+                    },
+                    {
+                      title: 'Datos de Banner',
+                      fields: [
+                        { label: 'ID del docente', value: selectedCourse.integrations.bannerExport?.teacherId ?? selectedCourse.teacherId },
+                        { label: 'Nombre', value: selectedCourse.integrations.bannerExport?.teacherName ?? selectedCourse.teacher?.fullName },
+                        { label: 'Última verificación', value: formatDate(selectedCourse.integrations.bannerExport?.checkedAt) },
+                        { label: 'Error', value: selectedCourse.integrations.bannerExport?.errorMessage },
+                      ],
+                    },
+                    {
+                      title: 'Estado de revisión',
+                      fields: [
+                        { label: 'Excluido', value: selectedCourse.reviewExcluded ? 'Sí' : 'No' },
+                        { label: 'Razón', value: selectedCourse.reviewExcludedReason },
+                        { label: 'Checklist activo', value: selectedCourse.checklistTemporal?.active ? 'Sí' : 'No' },
+                        { label: 'Última fase', value: selectedCourse.evaluationSummary?.latestPhase },
+                        { label: 'Puntaje alistamiento', value: formatScore(selectedCourse.evaluationSummary?.alistamientoScore) },
+                        { label: 'Puntaje ejecución', value: formatScore(selectedCourse.evaluationSummary?.ejecucionScore) },
+                      ],
+                    },
+                  ].map(({ title, fields }) => (
+                    <div key={title} style={{ marginBottom: 16 }}>
+                      <h3 style={{ margin: '0 0 8px', fontSize: '0.78rem', fontWeight: 700, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>
+                        {title}
+                      </h3>
+                      <div className="kv-grid">
+                        {fields.map((f) => (
+                          <div key={f.label}>
+                            <span>{f.label}</span>
+                            <strong className={f.value ? '' : 'mini'}>{f.value || 'Sin información'}</strong>
+                          </div>
+                        ))}
                       </div>
-                    ))}
-                  </div>
-
-                  <h3 className="ficha-section-title">Estado en Moodle</h3>
-                  <div className="ficha-grid">
-                    {[
-                      { label: 'Plantilla detectada', value: selectedCourse.moodleCheck?.detectedTemplate },
-                      { label: 'Modalidad', value: selectedCourse.moodleCheck?.resolvedModality ?? selectedCourse.integrations.urlValidation?.modality },
-                      { label: 'ID del aula', value: selectedCourse.integrations.moodleSidecar?.moodleCourseId ?? selectedCourse.moodleCheck?.moodleCourseId },
-                      { label: 'Estudiantes detectados', value: selectedCourse.integrations.moodleSidecar?.participantsDetected?.toString() },
-                    ].map((f) => (
-                      <div className="ficha-field" key={f.label}>
-                        <div className="ficha-field-label">{f.label}</div>
-                        <div className={`ficha-field-value${f.value ? '' : ' empty'}`}>{f.value || 'Sin información'}</div>
-                      </div>
-                    ))}
-                  </div>
-                  <div style={{ marginTop: -12, marginBottom: 16 }}>
-                    {selectedMoodleUrl ? (
-                      <a href={selectedMoodleUrl} target="_blank" rel="noreferrer" className="inline-link">
-                        Abrir URL Moodle
-                      </a>
-                    ) : (
-                      <span className="inline-muted">Sin URL final resuelta</span>
-                    )}
-                  </div>
-
-                  <h3 className="ficha-section-title">Datos de Banner</h3>
-                  <div className="ficha-grid">
-                    {[
-                      { label: 'ID del docente', value: selectedCourse.integrations.bannerExport?.teacherId ?? selectedCourse.teacherId },
-                      { label: 'Nombre', value: selectedCourse.integrations.bannerExport?.teacherName ?? selectedCourse.teacher?.fullName },
-                      { label: 'Última verificación', value: formatDate(selectedCourse.integrations.bannerExport?.checkedAt) },
-                      { label: 'Error', value: selectedCourse.integrations.bannerExport?.errorMessage },
-                    ].map((f) => (
-                      <div className="ficha-field" key={f.label}>
-                        <div className="ficha-field-label">{f.label}</div>
-                        <div className={`ficha-field-value${f.value && f.value !== '-' ? '' : ' empty'}`}>{f.value && f.value !== '-' ? f.value : 'Sin información'}</div>
-                      </div>
-                    ))}
-                  </div>
-
-                  <h3 className="ficha-section-title">Estado de revisión</h3>
-                  <div className="ficha-grid">
-                    {[
-                      { label: 'Excluido', value: selectedCourse.reviewExcluded ? 'Sí' : 'No' },
-                      { label: 'Razón', value: selectedCourse.reviewExcludedReason },
-                      { label: 'Checklist activo', value: selectedCourse.checklistTemporal?.active ? 'Sí' : 'No' },
-                      { label: 'Última fase', value: selectedCourse.evaluationSummary?.latestPhase },
-                      { label: 'Puntaje alistamiento', value: formatScore(selectedCourse.evaluationSummary?.alistamientoScore) },
-                      { label: 'Puntaje ejecución', value: formatScore(selectedCourse.evaluationSummary?.ejecucionScore) },
-                    ].map((f) => (
-                      <div className="ficha-field" key={f.label}>
-                        <div className="ficha-field-label">{f.label}</div>
-                        <div className={`ficha-field-value${f.value && f.value !== '-' ? '' : ' empty'}`}>{f.value && f.value !== '-' ? f.value : 'Sin información'}</div>
-                      </div>
-                    ))}
-                  </div>
+                      {title === 'Estado en Moodle' && (
+                        <div style={{ marginTop: 6 }}>
+                          {selectedMoodleUrl ? (
+                            <a href={selectedMoodleUrl} target="_blank" rel="noreferrer" className="inline-link">
+                              Abrir URL Moodle →
+                            </a>
+                          ) : (
+                            <span className="inline-muted">Sin URL final resuelta</span>
+                          )}
+                        </div>
+                      )}
+                    </div>
+                  ))}
                 </div>
               </>
             ) : (
-              <div className="ficha-body">
-                <div className="empty-state">Selecciona un curso para ver su ficha.</div>
-              </div>
+              <div className="empty-state">Selecciona un curso para ver su ficha.</div>
             )}
           </aside>
-        </section>
-      ) : null}
+        </div>
+      )}
 
       {/* ════════════════════════════════
           INTEGRATIONS
       ════════════════════════════════ */}
-      {activeView === 'integrations' ? (
-        <section className="dashboard-grid">
-
-          <article className="panel panel-span-2">
-            <div className="panel-heading">
-              <h2>Estado de conexiones</h2>
-              <span className="panel-note">Servicios y procesos activos en este momento</span>
+      {activeView === 'integrations' && (
+        <div style={{ padding: '0 32px 32px' }}>
+          <article className="premium-card">
+            <div style={{ marginBottom: 14 }}>
+              <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+                Estado de conexiones
+              </h2>
+              <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                Servicios y procesos activos en este momento
+              </p>
             </div>
+
             <div className="integration-status-list">
-              <div className="integration-row">
-                <span className="integration-name">Servicio principal (API)</span>
-                <span className={`chip ${data.apiReachable ? 'chip-ok' : 'chip-alert'}`}>
-                  {data.apiReachable ? 'Conectada' : 'Sin conexión'}
-                </span>
-              </div>
-              <div className="integration-row">
-                <span className="integration-name">Conector Banner</span>
-                <span className={`chip ${data.banner.runner.running ? 'chip-warn' : 'chip-ok'}`}>
-                  {data.banner.runner.running ? 'En ejecución' : 'Inactivo'}
-                </span>
-              </div>
-              <div className="integration-row">
-                <span className="integration-name">Clasificador Moodle</span>
-                <span className={`chip ${(data.sidecar.runner as { running?: boolean } | null)?.running ? 'chip-warn' : 'chip-ok'}`}>
-                  {(data.sidecar.runner as { running?: boolean } | null)?.running ? 'En ejecución' : 'Inactivo'}
-                </span>
-              </div>
-              <div className="integration-row">
-                <span className="integration-name">Datos exportados Banner</span>
-                <span className={`chip ${data.banner.exportSummary.rowCount > 0 ? 'chip-ok' : 'chip-alert'}`}>
-                  {data.banner.exportSummary.rowCount} filas
-                </span>
-              </div>
-              <div className="integration-row">
-                <span className="integration-name">Archivo de clasificación Moodle</span>
-                <span className={`chip ${data.sidecar.summary.rowCount > 0 ? 'chip-ok' : 'chip-alert'}`}>
-                  {data.sidecar.summary.rowCount} filas
-                </span>
-              </div>
-              <div className="integration-row">
-                <span className="integration-name">Aulas sin estudiantes</span>
-                <span className={`chip ${data.sidecar.summary.emptyClassrooms > 0 ? 'chip-alert' : 'chip-ok'}`}>
-                  {data.sidecar.summary.emptyClassrooms}
-                </span>
-              </div>
-              <div className="integration-row">
-                <span className="integration-name">Cola de procesamiento Moodle</span>
-                <span className={`chip ${(data.queue?.queue.active ?? 0) > 0 ? 'chip-warn' : 'chip-ok'}`}>
-                  {data.queue?.queue.active ?? 0} activos / {data.queue?.queue.waiting ?? 0} en espera
-                </span>
-              </div>
-              <div className="integration-row">
-                <span className="integration-name">Última consulta Banner</span>
-                <span className="chip">{formatDate(data.banner.runner.lastRun?.endedAt ?? data.banner.runner.current?.startedAt)}</span>
-              </div>
-              <div className="integration-row">
-                <span className="integration-name">Última clasificación Moodle</span>
-                <span className="chip">
-                  {formatDate(
-                    (data.sidecar.runner as { lastRun?: { endedAt?: string }; current?: { startedAt?: string } } | null)?.lastRun?.endedAt ??
-                    (data.sidecar.runner as { current?: { startedAt?: string } } | null)?.current?.startedAt
-                  )}
-                </span>
-              </div>
-            </div>
-
-            <div className="panel-heading" style={{ marginTop: '1.25rem' }}>
-              <h3>Resultados Banner por categoría</h3>
-              <span className="panel-note">Para ejecutar nuevas consultas, ve a <a href="/automatizacion-banner" className="inline-link">/automatizacion-banner</a></span>
-            </div>
-            <div className="badge-wall">
-              {topBannerStatuses.map(([label, value]) => (
-                <span className="badge" key={label}>
-                  {label}: {value}
-                </span>
+              {[
+                { name: 'Servicio principal (API)', pill: <StatusPill tone={data.apiReachable ? 'ok' : 'danger'}>{data.apiReachable ? 'Conectada' : 'Sin conexión'}</StatusPill> },
+                { name: 'Conector Banner', pill: <StatusPill tone={data.banner.runner.running ? 'warn' : 'ok'}>{data.banner.runner.running ? 'En ejecución' : 'Inactivo'}</StatusPill> },
+                { name: 'Clasificador Moodle', pill: <StatusPill tone={(data.sidecar.runner as { running?: boolean } | null)?.running ? 'warn' : 'ok'}>{(data.sidecar.runner as { running?: boolean } | null)?.running ? 'En ejecución' : 'Inactivo'}</StatusPill> },
+                { name: 'Datos exportados Banner', pill: <StatusPill tone={data.banner.exportSummary.rowCount > 0 ? 'ok' : 'danger'}>{data.banner.exportSummary.rowCount} filas</StatusPill> },
+                { name: 'Archivo de clasificación Moodle', pill: <StatusPill tone={data.sidecar.summary.rowCount > 0 ? 'ok' : 'danger'}>{data.sidecar.summary.rowCount} filas</StatusPill> },
+                { name: 'Aulas sin estudiantes', pill: <StatusPill tone={data.sidecar.summary.emptyClassrooms > 0 ? 'danger' : 'ok'}>{data.sidecar.summary.emptyClassrooms}</StatusPill> },
+                { name: 'Cola de procesamiento Moodle', pill: <StatusPill tone={(data.queue?.queue.active ?? 0) > 0 ? 'warn' : 'ok'}>{data.queue?.queue.active ?? 0} activos / {data.queue?.queue.waiting ?? 0} en espera</StatusPill> },
+                { name: 'Última consulta Banner', pill: <span className="chip">{formatDate(data.banner.runner.lastRun?.endedAt ?? data.banner.runner.current?.startedAt)}</span> },
+                { name: 'Última clasificación Moodle', pill: <span className="chip">{formatDate((data.sidecar.runner as { lastRun?: { endedAt?: string }; current?: { startedAt?: string } } | null)?.lastRun?.endedAt ?? (data.sidecar.runner as { current?: { startedAt?: string } } | null)?.current?.startedAt)}</span> },
+              ].map(({ name, pill }) => (
+                <div key={name} className="integration-row">
+                  <span className="integration-name">{name}</span>
+                  {pill}
+                </div>
               ))}
             </div>
 
-            <div className="panel-heading" style={{ marginTop: '1.25rem' }}>
-              <h3>Log reciente de Banner</h3>
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--line)' }}>
+              <h3 style={{ margin: '0 0 10px', fontSize: '0.82rem', fontWeight: 600 }}>
+                Resultados Banner por categoría
+                <span className="panel-note" style={{ marginLeft: 8 }}>
+                  Para ejecutar nuevas consultas, ve a <a href="/automatizacion-banner" className="inline-link">/automatizacion-banner</a>
+                </span>
+              </h3>
+              <div className="badge-wall">
+                {topBannerStatuses.map(([label, value]) => (
+                  <span className="badge" key={label}>{label}: {value}</span>
+                ))}
+              </div>
             </div>
-            <pre className="log-block">{data.banner.runner.logTail || 'Sin actividad reciente.'}</pre>
-          </article>
 
-        </section>
-      ) : null}
+            <div style={{ marginTop: 20, paddingTop: 16, borderTop: '1px solid var(--line)' }}>
+              <h3 style={{ margin: '0 0 8px', fontSize: '0.82rem', fontWeight: 600 }}>Log reciente de Banner</h3>
+              <pre className="log-block">{data.banner.runner.logTail || 'Sin actividad reciente.'}</pre>
+            </div>
+          </article>
+        </div>
+      )}
 
       {/* ════════════════════════════════
           FILES
       ════════════════════════════════ */}
-      {activeView === 'files' ? (
-        <section className="dashboard-grid">
-          <article className="panel panel-span-2">
-            <div className="panel-heading">
-              <h2>Archivos del sistema</h2>
-              <span className="panel-note">Archivos generados o importados automáticamente</span>
+      {activeView === 'files' && (
+        <div style={{ padding: '0 32px 32px' }}>
+          <article className="premium-card" style={{ padding: 0 }}>
+            <div style={{ padding: '18px 20px 12px' }}>
+              <h2 style={{ margin: 0, fontSize: '0.95rem', fontWeight: 700, fontFamily: 'var(--font-display)', letterSpacing: '-0.02em' }}>
+                Archivos del sistema
+              </h2>
+              <p style={{ margin: '2px 0 0', fontSize: '0.75rem', color: 'var(--muted)' }}>
+                Archivos generados o importados automáticamente
+              </p>
             </div>
-            <div className="table-wrap">
-              <table className="compact-table">
+            <div className="table-wrap" style={{ borderRadius: '0 0 var(--radius-md) var(--radius-md)', border: 'none', borderTop: '1px solid var(--line)' }}>
+              <table className="fast-table">
                 <thead>
                   <tr>
                     <th>Archivo</th>
@@ -855,16 +739,14 @@ export function OpsStudio({ initialData = null }: { initialData?: OpsData | null
                       </tr>
                     ))
                   ) : (
-                    <tr>
-                      <td colSpan={5}>Sin archivos detectados.</td>
-                    </tr>
+                    <tr><td colSpan={5}>Sin archivos detectados.</td></tr>
                   )}
                 </tbody>
               </table>
             </div>
           </article>
-        </section>
-      ) : null}
+        </div>
+      )}
     </div>
   );
 }

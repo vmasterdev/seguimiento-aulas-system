@@ -28,6 +28,7 @@ export default function ReviewPage({ searchParams }: Props) {
       active="review"
       title="Revision Manual de NRC"
       description="Carga una cola de revision, abre Moodle y guarda la evaluacion manual del NRC seleccionado."
+      hideHeader={false}
     >
       <ReviewPanel
         apiBase={CLIENT_API_BASE}

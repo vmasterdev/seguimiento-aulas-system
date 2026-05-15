@@ -2,6 +2,7 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox, Modal, useConfirm } from '../../_components/ui';
 
 // Festivos Colombia 2026-2027 (formato YYYY-MM-DD)
 const CO_HOLIDAYS = new Set([
@@ -938,6 +939,7 @@ function findCoordinator(coord: string, cs: Coordinator[]): Coordinator | undefi
 }
 
 export function CierrePanel({ apiBase }: CierrePanelProps) {
+  const confirm = useConfirm();
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [courses, setCourses] = useState<CourseItem[]>([]);
@@ -1335,7 +1337,7 @@ export function CierrePanel({ apiBase }: CierrePanelProps) {
 
   async function runRosterSync() {
     if (!period.trim()) { setRosterMsg('Ingresa un periodo primero.'); return; }
-    if (!window.confirm(`¿Sincronizar matrícula SFAALST para el periodo ${period.trim()}?\n\nEsto consultará Banner NRC por NRC. Puede tardar varias horas para periodos grandes.`)) return;
+    if (!await confirm({ title: `Sincronizar matrícula ${period.trim()}`, message: 'Esto consultará Banner NRC por NRC vía SFAALST. Puede tardar varias horas para periodos grandes.', confirmLabel: 'Sincronizar', tone: 'primary' })) return;
     setRosterSyncing(true);
     setRosterMsg('Sincronizando... (esto puede tardar varios minutos u horas según la cantidad de NRCs)');
     try {
@@ -1545,45 +1547,61 @@ ${BASE_CSS}
   };
 
   return (
-    <article className="panel">
-      <h2>Reportes de Cierre</h2>
-      <div className="actions">
-        Genera reportes profesionales de cierre de momento con el 100% de la puntuacion (Alistamiento + Ejecucion).
-        Disponibles para docentes, coordinaciones y directivos (Subdireccion, Direccion, Vicerectoria).
-      </div>
+    <article className="premium-card">
+      <PageHero
+        title="Reportes de Cierre"
+        description="Genera reportes profesionales de cierre de momento con el 100% de la puntuación. Disponibles para docentes, coordinaciones y directivos."
+      >
+        <StatusPill tone={loading ? 'warn' : entries.length > 0 ? 'ok' : 'neutral'} dot={loading}>
+          {loading ? 'Cargando' : entries.length > 0 ? `${entries.length} docentes` : 'Sin datos'}
+        </StatusPill>
+        <Button variant="primary" size="sm" onClick={() => void loadData()} disabled={loading} loading={loading}>
+          Cargar datos
+        </Button>
+      </PageHero>
+
+      {entries.length > 0 && (
+        <StatsGrid items={[
+          { label: 'NRC filtrados', value: filtered.length, tone: 'default' },
+          { label: 'Docentes', value: entries.length, tone: 'default' },
+          { label: 'Coordinaciones', value: coordinations.length, tone: 'default' },
+          { label: 'Promedio global', value: avgGlobal !== null ? `${avgGlobal.toFixed(1)}/100` : 'N/A', tone: avgGlobal !== null && avgGlobal >= 70 ? 'ok' : 'warn' },
+          { label: 'Excelente', value: bandCounts.excelente, tone: 'ok' },
+          { label: 'Bueno', value: bandCounts.bueno, tone: 'ok' },
+          { label: 'Aceptable', value: bandCounts.aceptable, tone: 'warn' },
+          { label: 'Insatisfactorio', value: bandCounts.insatisfactorio, tone: bandCounts.insatisfactorio > 0 ? 'danger' : 'ok' },
+        ]} />
+      )}
+
+      <div className="panel-body">
 
       {/* ESTUDIANTES UNICOS — SFAALST */}
-      <div className="subtitle" style={{ marginTop: 16 }}>Estudiantes únicos — Banner (SFAALST)</div>
+      <div className="subtitle" style={{ marginTop: 0 }}>Estudiantes únicos — Banner (SFAALST)</div>
       <div className="actions" style={{ marginBottom: 8 }}>
         Consulta o sincroniza la nómina de estudiantes matriculados desde Banner vía SFAALST.
-        La consulta muestra el conteo de la última sincronización. La sincronización actualiza los datos desde Banner (puede tardar horas para periodos grandes).
       </div>
       <div className="controls" style={{ alignItems: 'flex-start', gap: 10 }}>
         <label>
           Periodo
           <input value={period} onChange={e => setPeriod(e.target.value)} placeholder="ej: 202615" style={{ width: 160 }} />
         </label>
-        <button onClick={() => void loadUniqueStudents()} style={{ background: '#1e40af', color: '#fff', alignSelf: 'flex-end' }}>
+        <Button variant="secondary" size="sm" onClick={() => void loadUniqueStudents()} style={{ alignSelf: 'flex-end' }}>
           Consultar conteo actual
-        </button>
-        <button onClick={() => void runRosterSync()} disabled={rosterSyncing} style={{ background: rosterSyncing ? '#9ca3af' : '#7c3aed', color: '#fff', alignSelf: 'flex-end' }}>
-          {rosterSyncing ? 'Sincronizando SFAALST...' : 'Sincronizar matrícula SFAALST'}
-        </button>
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => void runRosterSync()} disabled={rosterSyncing} loading={rosterSyncing} style={{ alignSelf: 'flex-end' }}>
+          Sincronizar matrícula SFAALST
+        </Button>
       </div>
       {uniqueStudentStats !== null && (
         <div className="badges" style={{ marginTop: 8, gap: 8 }}>
-          <span className="badge" style={{ background: '#ede9fe', color: '#4c1d95', fontSize: 14, fontWeight: 700 }}>
-            Estudiantes únicos: {uniqueStudentStats.uniqueStudents.toLocaleString()}
-          </span>
-          <span className="badge" style={{ background: '#f3f4f6', color: '#374151' }}>
-            Total filas: {uniqueStudentStats.totalRows.toLocaleString()}
-          </span>
+          <StatusPill tone="ok">Estudiantes únicos: {uniqueStudentStats.uniqueStudents.toLocaleString()}</StatusPill>
+          <StatusPill tone="neutral">Total filas: {uniqueStudentStats.totalRows.toLocaleString()}</StatusPill>
         </div>
       )}
       {rosterMsg && (
-        <div className="message" style={{ marginTop: 8, background: rosterMsg.toLowerCase().includes('error') ? '#fee2e2' : '#f0fdf4', color: rosterMsg.toLowerCase().includes('error') ? '#991b1b' : '#166534', border: `1px solid ${rosterMsg.toLowerCase().includes('error') ? '#fca5a5' : '#86efac'}` }}>
+        <AlertBox tone={rosterMsg.toLowerCase().includes('error') ? 'error' : 'success'} style={{ marginTop: 8 }}>
           {rosterMsg}
-        </div>
+        </AlertBox>
       )}
 
       {/* CONFIGURACION */}
@@ -1614,33 +1632,11 @@ ${BASE_CSS}
             style={{ width: 150 }}
           />
         </label>
-        <button className="primary" onClick={() => void loadData()} disabled={loading}>
-          {loading ? 'Cargando datos...' : 'Cargar datos'}
-        </button>
       </div>
 
       {/* RESUMEN */}
       {entries.length > 0 && (
         <>
-          <div className="subtitle" style={{ marginTop: 12 }}>2. Resumen del periodo</div>
-          <div className="badges" style={{ marginTop: 8, gap: 8 }}>
-            <span className="badge" style={{ background: '#dbeafe', color: '#1e40af' }}>
-              NRC filtrados: {filtered.length}
-            </span>
-            <span className="badge" style={{ background: '#dbeafe', color: '#1e40af' }}>
-              Docentes: {entries.length}
-            </span>
-            <span className="badge" style={{ background: '#dbeafe', color: '#1e40af' }}>
-              Coordinaciones: {coordinations.length}
-            </span>
-            <span className="badge" style={{ background: avgGlobal !== null && avgGlobal >= 70 ? '#dcfce7' : '#fef3c7', color: avgGlobal !== null && avgGlobal >= 70 ? '#166534' : '#92400e' }}>
-              Promedio global: {avgGlobal !== null ? avgGlobal.toFixed(1) : 'N/A'} / 100
-            </span>
-            <span className="badge" style={{ background: '#dcfce7', color: '#166534' }}>★ Excelente: {bandCounts.excelente}</span>
-            <span className="badge" style={{ background: '#dbeafe', color: '#1e40af' }}>▲ Bueno: {bandCounts.bueno}</span>
-            <span className="badge" style={{ background: '#fef3c7', color: '#92400e' }}>● Aceptable: {bandCounts.aceptable}</span>
-            <span className="badge" style={{ background: '#fee2e2', color: '#991b1b' }}>▼ Insatisfactorio: {bandCounts.insatisfactorio}</span>
-          </div>
 
           {/* REPORTE DOCENTES */}
           <div className="subtitle" style={{ marginTop: 16 }}>3. Reportes para Docentes</div>
@@ -1648,20 +1644,21 @@ ${BASE_CSS}
             Un reporte individual por docente con su puntuacion total, desglose por aula y mensaje personalizado segun su resultado.
           </div>
           <div className="controls" style={{ marginTop: 8 }}>
-            <button className="primary" onClick={generateAllTeacherReports}>
+            <Button variant="secondary" size="sm" onClick={generateAllTeacherReports}>
               Descargar todos ({entries.length} reportes)
-            </button>
-            <button
-              className="primary"
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
               onClick={() => void sendDocentesReports()}
               disabled={sendingDocentes}
-              style={{ background: '#16a34a' }}
+              loading={sendingDocentes}
             >
               {sendingDocentes ? 'Enviando...' : `Enviar por correo (${entries.filter(e => e.teacherEmail).length} con email)`}
-            </button>
+            </Button>
           </div>
           <div style={{ overflowX: 'auto', marginTop: 10 }}>
-            <table>
+            <table className="fast-table">
               <thead>
                 <tr>
                   <th>Docente</th>
@@ -1754,20 +1751,21 @@ ${BASE_CSS}
             Un reporte por coordinacion con el consolidado de todos sus docentes, estadisticas de distribucion y alertas de mejora.
           </div>
           <div className="controls" style={{ marginTop: 8 }}>
-            <button className="primary" onClick={generateAllCoordReports}>
+            <Button variant="secondary" size="sm" onClick={generateAllCoordReports}>
               Descargar todos ({coordinations.length} reportes)
-            </button>
-            <button
-              className="primary"
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
               onClick={() => void sendCoordsReports()}
               disabled={sendingCoords}
-              style={{ background: '#16a34a' }}
+              loading={sendingCoords}
             >
               {sendingCoords ? 'Enviando...' : `Enviar por correo (${coordinations.filter(coord => !!findCoordinator(coord, coordinators)?.email).length} con coordinador)`}
-            </button>
+            </Button>
           </div>
           <div style={{ overflowX: 'auto', marginTop: 10 }}>
-            <table>
+            <table className="fast-table">
               <thead>
                 <tr>
                   <th>Coordinacion</th>
@@ -1868,16 +1866,15 @@ ${BASE_CSS}
             ) : (
               <>
                 <div style={{ marginBottom: 10 }}>
-                  <button
-                    type="button"
-                    className="primary"
-                    style={{ background: '#16a34a', color: '#fff' }}
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={() => void sendAllCenterReports()}
                   >
                     Enviar a todos los directores ({centerDirectors.filter((d) => (entriesByCenter.get(d.campusCode) ?? []).length > 0 && d.email).length})
-                  </button>
+                  </Button>
                 </div>
-                <table className="table">
+                <table className="fast-table">
                   <thead>
                     <tr>
                       <th>Centro</th>
@@ -1902,15 +1899,15 @@ ${BASE_CSS}
                           <td style={{ textAlign: 'center' }}>{avg !== null ? avg.toFixed(1) : '—'}</td>
                           <td>
                             <button type="button" onClick={() => openPreview(html, `Informe centro ${label}`)}>Preview</button>{' '}
-                            <button
-                              type="button"
-                              className="primary"
+                            <Button
+                              variant="primary"
+                              size="sm"
                               disabled={sendingCenterId === d.id || !list.length}
-                              style={{ background: '#16a34a', color: '#fff' }}
+                              loading={sendingCenterId === d.id}
                               onClick={() => void sendCenterReport(d)}
                             >
                               {sendingCenterId === d.id ? 'Enviando...' : 'Enviar'}
-                            </button>
+                            </Button>
                           </td>
                         </tr>
                       );
@@ -1974,15 +1971,16 @@ ${BASE_CSS}
                 >
                   Descargar
                 </button>
-                <button
-                  type="button"
-                  className="primary"
+                <Button
+                  variant="primary"
+                  size="sm"
                   disabled={sendingDirectivos === key || !directivosEmails[key].trim()}
-                  style={{ background: '#16a34a', color: '#fff', whiteSpace: 'nowrap' }}
+                  loading={sendingDirectivos === key}
                   onClick={() => void sendDirectivosReport(key, directivosEmails[key], label)}
+                  style={{ whiteSpace: 'nowrap' }}
                 >
                   {sendingDirectivos === key ? 'Enviando...' : 'Enviar'}
-                </button>
+                </Button>
               </div>
             ))}
 
@@ -2010,15 +2008,16 @@ ${BASE_CSS}
                 >
                   Preview
                 </button>
-                <button
-                  type="button"
-                  className="primary"
+                <Button
+                  variant="primary"
+                  size="sm"
                   disabled={sendingDirectivos === `extra_${i}` || !r.email.trim()}
-                  style={{ background: '#16a34a', color: '#fff', whiteSpace: 'nowrap' }}
+                  loading={sendingDirectivos === `extra_${i}`}
                   onClick={() => void sendDirectivosReport(`extra_${i}`, r.email, r.label || r.email)}
+                  style={{ whiteSpace: 'nowrap' }}
                 >
                   {sendingDirectivos === `extra_${i}` ? 'Enviando...' : 'Enviar'}
-                </button>
+                </Button>
                 <button
                   type="button"
                   title="Eliminar destinatario"
@@ -2058,8 +2057,9 @@ ${BASE_CSS}
                   Docentes con puntaje inferior a 70 puntos. Se genera una notificacion individual con plan de mejora y acciones concretas para el proximo momento.
                 </div>
                 <div className="controls" style={{ marginTop: 8 }}>
-                  <button
-                    className="primary"
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => {
                       const header = ['Docente', 'Email', 'Coordinacion', 'Campus', 'NRCs', 'Alistamiento', 'Ejecucion', 'Total', 'Deficit'].join(',');
                       const rows = insatisfactorios
@@ -2077,33 +2077,33 @@ ${BASE_CSS}
                         ].join(','));
                       downloadCsv([header, ...rows].join('\n'), `INSATISFACTORIOS_M${moment}_${period}.csv`);
                     }}
-                    style={{ background: '#374151', color: '#fff' }}
                   >
                     Descargar listado CSV
-                  </button>
-                  <button
-                    className="primary"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => insatisfactorios.forEach(e => downloadHtml(buildInsatisfactorioReport(e, displayPeriod, moment, generatedAt), `PLAN_MEJORA_M${moment}_${period}_${e.teacherName.replace(/\s+/g, '_').toUpperCase()}.html`))}
-                    style={{ background: '#b91c1c' }}
                   >
                     Descargar planes HTML ({insatisfactorios.length})
-                  </button>
-                  <button
-                    className="primary"
+                  </Button>
+                  <Button
+                    variant="secondary"
+                    size="sm"
                     onClick={() => printAsPdf(buildCombinedInsatisfactorioPdf(insatisfactorios))}
-                    style={{ background: '#7f1d1d' }}
                     title="Abre todos los planes en una sola ventana lista para imprimir o guardar como PDF"
                   >
                     Descargar todos como PDF ({insatisfactorios.length})
-                  </button>
-                  <button
-                    className="primary"
+                  </Button>
+                  <Button
+                    variant="danger"
+                    size="sm"
                     onClick={() => void sendInsatisfactorioReports()}
                     disabled={sendingInsatisfactorio}
-                    style={{ background: '#b91c1c' }}
+                    loading={sendingInsatisfactorio}
                   >
                     {sendingInsatisfactorio ? 'Enviando...' : `Notificar a todos (${insatisfactorios.filter(e => e.teacherEmail).length} con email)`}
-                  </button>
+                  </Button>
                   <div style={{ display: 'inline-flex', alignItems: 'center', gap: 6, padding: '4px 8px', background: '#fef3c7', border: '1px solid #fcd34d', borderRadius: 6 }}>
                     <label style={{ fontSize: 11.5, fontWeight: 600, color: '#7c2d12' }} htmlFor="cutoff-date-input">
                       Fecha corte del momento:
@@ -2120,8 +2120,9 @@ ${BASE_CSS}
                       title="Fecha de cierre oficial del momento. Se usa para calcular antiguedad >=90 dias de cada docente."
                     />
                   </div>
-                  <button
-                    className="primary"
+                  <Button
+                    variant="primary"
+                    size="sm"
                     onClick={async () => {
                       if (!significantEventCutoffDate) {
                         alert('Define la fecha de corte del momento antes de registrar.');
@@ -2154,11 +2155,10 @@ ${BASE_CSS}
                         alert(`Error: ${err instanceof Error ? err.message : String(err)}`);
                       }
                     }}
-                    style={{ background: '#7c2d12' }}
                     title="Registra estos docentes en la tabla de Eventos Significativos para hacer seguimiento de firma, entrega y cargue en Subdireccion de Docencia."
                   >
                     Registrar eventos significativos ({insatisfactorios.length})
-                  </button>
+                  </Button>
                   {(() => {
                     const byCoord = new Map<string, ReportEntry[]>();
                     for (const e of insatisfactorios) {
@@ -2168,14 +2168,15 @@ ${BASE_CSS}
                     }
                     const withEmail = [...byCoord.keys()].filter(coord => !!findCoordinator(coord, coordinators)?.email);
                     return (
-                      <button
-                        className="primary"
+                      <Button
+                        variant="primary"
+                        size="sm"
                         onClick={() => void sendConvocatoriaToCoords()}
                         disabled={sendingConvocatoria}
-                        style={{ background: '#b45309' }}
+                        loading={sendingConvocatoria}
                       >
                         {sendingConvocatoria ? 'Enviando...' : `Convocar coordinadores (${withEmail.length} con email)`}
-                      </button>
+                      </Button>
                     );
                   })()}
                 </div>
@@ -2243,7 +2244,7 @@ ${BASE_CSS}
                 })()}
 
                 <div style={{ overflowX: 'auto', marginTop: 10 }}>
-                  <table>
+                  <table className="fast-table">
                     <thead>
                       <tr>
                         <th style={{ textAlign: 'center', width: 36 }} title="Incluir en reportes y convocatoria">Incl.</th>
@@ -2540,40 +2541,30 @@ ${BASE_CSS}
         ))}
       </div>
 
-      {sendResult ? (
-        <div className="message" style={{ marginTop: 12, background: sendResult.toLowerCase().includes('error') ? '#fee2e2' : '#dcfce7', color: sendResult.toLowerCase().includes('error') ? '#991b1b' : '#166534', border: `1px solid ${sendResult.toLowerCase().includes('error') ? '#fca5a5' : '#86efac'}` }}>
+      {sendResult && (
+        <AlertBox tone={sendResult.toLowerCase().includes('error') ? 'error' : 'success'} style={{ marginTop: 12 }}>
           {sendResult}
-        </div>
-      ) : null}
-      {message ? <div className="message" style={{ marginTop: 12 }}>{message}</div> : null}
+        </AlertBox>
+      )}
+      {message && <AlertBox tone="info" style={{ marginTop: 12 }}>{message}</AlertBox>}
+
+      </div>{/* /panel-body */}
 
       {/* MODAL PREVIEW */}
-      {previewHtml ? (
-        <div
-          style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', padding: 16, zIndex: 1000 }}
-          onClick={e => { if (e.target === e.currentTarget) { setPreviewHtml(null); } }}
-        >
-          <div style={{ width: 'min(860px, 96vw)', maxHeight: '92vh', background: '#fff', borderRadius: 16, overflow: 'hidden', display: 'flex', flexDirection: 'column', boxShadow: '0 20px 40px rgba(0,0,0,0.3)' }}>
-            <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid #e5e7eb' }}>
-              <strong style={{ fontSize: 14 }}>{previewTitle}</strong>
-              <button
-                type="button"
-                onClick={() => setPreviewHtml(null)}
-                style={{ background: 'transparent', border: '1px solid #d1d5db', borderRadius: 6, padding: '4px 10px', fontSize: 16, cursor: 'pointer', color: '#374151' }}
-                title="Cerrar"
-              >
-                ✕
-              </button>
-            </div>
-            <iframe
-              title="preview-reporte"
-              srcDoc={previewHtml}
-              style={{ flex: 1, border: 'none', minHeight: '80vh' }}
-              sandbox="allow-same-origin"
-            />
-          </div>
-        </div>
-      ) : null}
+      <Modal
+        open={!!previewHtml}
+        onClose={() => setPreviewHtml(null)}
+        title={previewTitle}
+        size="lg"
+        bodyless
+      >
+        <iframe
+          title="preview-reporte"
+          srcDoc={previewHtml ?? ''}
+          style={{ flex: 1, border: 'none', minHeight: '80vh' }}
+          sandbox="allow-same-origin"
+        />
+      </Modal>
     </article>
   );
 }

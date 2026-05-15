@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox } from '../../_components/ui';
 
 type BannerDocentesPanelProps = {
   apiBase: string;
@@ -174,172 +175,158 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
   const visibleItems = onlyUnresolved ? items.filter((i) => !i.bannerResolved) : items;
 
   return (
-    <div className="panel">
-      <div className="panel-header">
-        <h3 className="panel-title">Docentes encontrados por Banner</h3>
-        <p className="panel-desc">
-          NRCs donde el proceso automatizado de Banner identifico un docente. Permite agregar esos docentes a la base local y vincularlos al NRC.
-        </p>
-      </div>
+    <article className="premium-card">
+      <PageHero
+        title="Docentes encontrados por Banner"
+        description="NRCs donde el proceso automatizado de Banner identificó un docente. Permite agregar esos docentes a la base local y vincularlos al NRC."
+      >
+        <StatusPill tone={loading ? 'warn' : (stats?.unresolved ?? 0) > 0 ? 'warn' : 'ok'} dot={loading}>
+          {loading ? 'Cargando' : stats ? `${stats.unresolved} sin vincular` : '—'}
+        </StatusPill>
+        <Button variant="ghost" size="sm" onClick={() => { void load(); }} loading={loading}>
+          ↻ Actualizar
+        </Button>
+      </PageHero>
 
       {stats && (
-        <div className="stats-row" style={{ display: 'flex', gap: '1rem', flexWrap: 'wrap', marginBottom: '1.25rem' }}>
-          <StatCard label="NRCs con docente Banner" value={stats.totalNrcs} />
-          <StatCard label="Docentes unicos" value={stats.uniqueTeachers} />
-          <StatCard label="Vinculados" value={stats.resolved} accent="green" />
-          <StatCard label="Sin vincular" value={stats.unresolved} accent={stats.unresolved > 0 ? 'amber' : 'green'} />
-        </div>
+        <StatsGrid items={[
+          { label: 'NRCs con docente Banner', value: stats.totalNrcs, tone: 'default' },
+          { label: 'Docentes únicos', value: stats.uniqueTeachers, tone: 'default' },
+          { label: 'Vinculados', value: stats.resolved, tone: 'ok' },
+          { label: 'Sin vincular', value: stats.unresolved, tone: stats.unresolved > 0 ? 'warn' : 'ok' },
+        ]} />
       )}
 
-      <div style={{ display: 'flex', gap: '0.75rem', flexWrap: 'wrap', alignItems: 'center', marginBottom: '1rem' }}>
-        <label style={{ display: 'flex', alignItems: 'center', gap: '0.4rem', fontSize: '0.85rem', cursor: 'pointer' }}>
-          <input
-            type="checkbox"
-            checked={onlyUnresolved}
-            onChange={(e) => setOnlyUnresolved(e.target.checked)}
-          />
-          Solo sin vincular
-        </label>
-        <select
-          value={limit}
-          onChange={(e) => setLimit(e.target.value)}
-          style={{ padding: '0.3rem 0.5rem', fontSize: '0.82rem', borderRadius: '4px', border: '1px solid var(--border)' }}
-        >
-          <option value="200">200</option>
-          <option value="500">500</option>
-          <option value="2000">2000</option>
-          <option value="5000">5000</option>
-        </select>
-        <button className="btn btn-primary btn-sm" onClick={() => { void load(); }} disabled={loading}>
-          {loading ? 'Cargando...' : 'Actualizar'}
-        </button>
-        {stats && stats.unresolved > 0 && (
-          <button
-            className="btn btn-secondary btn-sm"
-            onClick={() => { void addAllUnresolved(); }}
-            disabled={loading || adding.size > 0}
+      <div className="panel-body">
+        <div className="controls">
+          <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
+            <input
+              type="checkbox"
+              checked={onlyUnresolved}
+              onChange={(e) => setOnlyUnresolved(e.target.checked)}
+            />
+            Solo sin vincular
+          </label>
+          <select
+            value={limit}
+            onChange={(e) => setLimit(e.target.value)}
+            style={{ padding: '3px 8px', fontSize: 'var(--fs-sm)', borderRadius: 'var(--radius)', border: '1px solid var(--line)' }}
           >
-            Agregar todos sin vincular ({stats.unresolved})
-          </button>
-        )}
-      </div>
-
-      {message && (
-        <div className="alert" style={{ marginBottom: '0.75rem', fontSize: '0.85rem' }}>
-          {message}
+            <option value="200">200</option>
+            <option value="500">500</option>
+            <option value="2000">2000</option>
+            <option value="5000">5000</option>
+          </select>
+          {stats && stats.unresolved > 0 && (
+            <Button
+              variant="secondary"
+              size="sm"
+              onClick={() => { void addAllUnresolved(); }}
+              disabled={loading || adding.size > 0}
+              loading={adding.size > 0}
+            >
+              Agregar todos sin vincular ({stats.unresolved})
+            </Button>
+          )}
         </div>
-      )}
 
-      {loading && !result && (
-        <p style={{ color: 'var(--text-muted)', fontSize: '0.875rem' }}>Cargando...</p>
-      )}
+        {message && <AlertBox tone="info">{message}</AlertBox>}
 
-      {result && (
-        <div style={{ overflowX: 'auto' }}>
-          <p style={{ fontSize: '0.8rem', color: 'var(--text-muted)', marginBottom: '0.5rem' }}>
-            Mostrando {visibleItems.length} de {result.total} NRCs
-          </p>
-          <table className="data-table" style={{ width: '100%', fontSize: '0.82rem' }}>
-            <thead>
-              <tr>
-                <th>NRC</th>
-                <th>Periodo</th>
-                <th>Materia</th>
-                <th>Programa</th>
-                <th>Docente actual</th>
-                <th>Docente Banner</th>
-                <th>Estado</th>
-                <th>Accion</th>
-              </tr>
-            </thead>
-            <tbody>
-              {visibleItems.map((item) => {
-                const addResult = addResults[item.id];
-                const isAdding = adding.has(item.id);
-                const teacherChanged =
-                  !item.bannerResolved &&
-                  !!item.currentTeacherId &&
-                  item.currentTeacherId !== item.bannerTeacherId;
-                return (
-                  <tr key={item.id}>
-                    <td style={{ fontFamily: 'monospace', fontWeight: 600 }}>{item.nrc}</td>
-                    <td>{item.periodCode}</td>
-                    <td style={{ maxWidth: '180px', overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
-                      {item.subjectName ?? '—'}
-                    </td>
-                    <td style={{ color: 'var(--text-muted)' }}>{item.programCode ?? '—'}</td>
-                    <td style={{ fontSize: '0.8rem', color: teacherChanged ? 'var(--amber, #f59e0b)' : 'var(--text-muted)' }}>
-                      {item.currentTeacherName ?? (item.currentTeacherId ? item.currentTeacherId : '—')}
-                    </td>
-                    <td style={{ fontWeight: 500 }}>
-                      {item.bannerTeacherName ?? '—'}
-                      {teacherChanged && (
-                        <span
-                          title="El docente en Banner difiere del docente actual en el sistema"
-                          style={{ marginLeft: '0.3rem', fontSize: '0.72rem', color: 'var(--amber, #f59e0b)' }}
-                        >
-                          ↺
-                        </span>
-                      )}
-                    </td>
-                    <td>
-                      {item.bannerResolved ? (
-                        <span className="badge badge-green">Vinculado</span>
-                      ) : teacherChanged ? (
-                        <span className="badge badge-amber">Cambio</span>
-                      ) : (
-                        <span className="badge badge-amber">Sin vincular</span>
-                      )}
-                    </td>
-                    <td>
-                      {item.bannerResolved ? (
-                        <span style={{ color: 'var(--text-muted)', fontSize: '0.78rem' }}>✓</span>
-                      ) : addResult?.ok ? (
-                        <span style={{ color: 'var(--green)', fontSize: '0.78rem' }}>Actualizado</span>
-                      ) : (
-                        <button
-                          className="btn btn-secondary btn-xs"
-                          onClick={() => { void addToDb(item); }}
-                          disabled={isAdding}
-                          title={addResult?.message ?? (teacherChanged ? `Cambiar de "${item.currentTeacherName}" a "${item.bannerTeacherName}"` : undefined)}
-                        >
-                          {isAdding ? '...' : addResult?.ok === false ? 'Error - reintentar' : teacherChanged ? 'Actualizar' : 'Agregar a BD'}
-                        </button>
-                      )}
+        {loading && !result && (
+          <p style={{ color: 'var(--muted)', fontSize: 'var(--fs-sm)', padding: '8px 0' }}>Cargando...</p>
+        )}
+
+        {result && (
+          <div style={{ overflowX: 'auto', marginTop: 8 }}>
+            <p style={{ fontSize: 'var(--fs-micro)', color: 'var(--muted)', marginBottom: 6 }}>
+              Mostrando {visibleItems.length} de {result.total} NRCs
+            </p>
+            <table className="fast-table" style={{ width: '100%' }}>
+              <thead>
+                <tr>
+                  <th>NRC</th>
+                  <th>Periodo</th>
+                  <th>Materia</th>
+                  <th>Programa</th>
+                  <th>Docente actual</th>
+                  <th>Docente Banner</th>
+                  <th>Estado</th>
+                  <th>Acción</th>
+                </tr>
+              </thead>
+              <tbody>
+                {visibleItems.map((item) => {
+                  const addResult = addResults[item.id];
+                  const isAdding = adding.has(item.id);
+                  const teacherChanged =
+                    !item.bannerResolved &&
+                    !!item.currentTeacherId &&
+                    item.currentTeacherId !== item.bannerTeacherId;
+                  return (
+                    <tr key={item.id}>
+                      <td style={{ fontFamily: 'var(--font-mono)', fontWeight: 600 }}>{item.nrc}</td>
+                      <td>{item.periodCode}</td>
+                      <td style={{ maxWidth: 180, overflow: 'hidden', textOverflow: 'ellipsis', whiteSpace: 'nowrap' }}>
+                        {item.subjectName ?? '—'}
+                      </td>
+                      <td style={{ color: 'var(--muted)' }}>{item.programCode ?? '—'}</td>
+                      <td style={{ color: teacherChanged ? 'var(--amber)' : 'var(--muted)' }}>
+                        {item.currentTeacherName ?? (item.currentTeacherId ? item.currentTeacherId : '—')}
+                      </td>
+                      <td style={{ fontWeight: 500 }}>
+                        {item.bannerTeacherName ?? '—'}
+                        {teacherChanged && (
+                          <span
+                            title="El docente en Banner difiere del docente actual en el sistema"
+                            style={{ marginLeft: 4, fontSize: 'var(--fs-micro)', color: 'var(--amber)' }}
+                          >
+                            ↺
+                          </span>
+                        )}
+                      </td>
+                      <td>
+                        {item.bannerResolved ? (
+                          <StatusPill tone="ok">Vinculado</StatusPill>
+                        ) : teacherChanged ? (
+                          <StatusPill tone="warn">Cambio</StatusPill>
+                        ) : (
+                          <StatusPill tone="warn">Sin vincular</StatusPill>
+                        )}
+                      </td>
+                      <td>
+                        {item.bannerResolved ? (
+                          <span style={{ color: 'var(--muted)', fontSize: 'var(--fs-micro)' }}>✓</span>
+                        ) : addResult?.ok ? (
+                          <span style={{ color: 'var(--green)', fontSize: 'var(--fs-micro)' }}>Actualizado</span>
+                        ) : (
+                          <Button
+                            variant="secondary"
+                            size="sm"
+                            onClick={() => { void addToDb(item); }}
+                            disabled={isAdding}
+                            loading={isAdding}
+                            title={addResult?.message ?? (teacherChanged ? `Cambiar de "${item.currentTeacherName}" a "${item.bannerTeacherName}"` : undefined)}
+                          >
+                            {addResult?.ok === false ? 'Error - reintentar' : teacherChanged ? 'Actualizar' : 'Agregar a BD'}
+                          </Button>
+                        )}
+                      </td>
+                    </tr>
+                  );
+                })}
+                {visibleItems.length === 0 && (
+                  <tr>
+                    <td colSpan={8} style={{ textAlign: 'center', color: 'var(--muted)', padding: '1.5rem' }}>
+                      No hay registros con los filtros actuales.
                     </td>
                   </tr>
-                );
-              })}
-              {visibleItems.length === 0 && (
-                <tr>
-                  <td colSpan={8} style={{ textAlign: 'center', color: 'var(--text-muted)', padding: '1.5rem' }}>
-                    No hay registros con los filtros actuales.
-                  </td>
-                </tr>
-              )}
-            </tbody>
-          </table>
-        </div>
-      )}
-    </div>
+                )}
+              </tbody>
+            </table>
+          </div>
+        )}
+      </div>
+    </article>
   );
 }
 
-function StatCard({ label, value, accent }: { label: string; value: number; accent?: 'green' | 'amber' }) {
-  const color = accent === 'green' ? 'var(--green, #22c55e)' : accent === 'amber' ? 'var(--amber, #f59e0b)' : 'var(--indigo, #6366f1)';
-  return (
-    <div
-      style={{
-        background: 'var(--surface)',
-        border: '1px solid var(--border)',
-        borderRadius: '8px',
-        padding: '0.75rem 1.1rem',
-        minWidth: '130px',
-        flex: '1 1 130px',
-      }}
-    >
-      <div style={{ fontSize: '1.5rem', fontWeight: 700, color }}>{value}</div>
-      <div style={{ fontSize: '0.75rem', color: 'var(--text-muted)', marginTop: '0.15rem' }}>{label}</div>
-    </div>
-  );
-}

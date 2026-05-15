@@ -2,6 +2,7 @@
 
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox, Modal, useConfirm } from '../../_components/ui';
 
 type TeacherStatus = 'NUEVO' | 'ANTIGUO' | 'SIN_CONTRATO';
 
@@ -314,6 +315,7 @@ const EMPTY_COORDINATOR_FORM: ManualCoordinatorForm = {
 };
 
 export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProps) {
+  const confirm = useConfirm();
   const [q, setQ] = useState('');
   const [limit, setLimit] = useState('150');
   const [loading, setLoading] = useState(false);
@@ -495,10 +497,18 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
 
   async function applyBannerKeep() {
     if (!bannerKeepPreview) return;
-    const msg = `¿Confirmas eliminar ${bannerKeepPreview.toDeleteCount} docentes que NO están en el ultimo lote Banner?\n\n` +
-      `Esto dejará ${bannerKeepPreview.coursesToUnlink} cursos sin docente asignado.\n\n` +
-      `Esta acción no se puede deshacer fácilmente.`;
-    if (!window.confirm(msg)) return;
+    const ok = await confirm({
+      title: 'Eliminar docentes fuera del lote Banner',
+      tone: 'danger',
+      confirmLabel: 'Eliminar',
+      message: (
+        <>
+          ¿Confirmas eliminar <strong>{bannerKeepPreview.toDeleteCount}</strong> docentes que NO están en el último lote Banner?
+          Esto dejará <strong>{bannerKeepPreview.coursesToUnlink}</strong> cursos sin docente asignado. Esta acción no se puede deshacer fácilmente.
+        </>
+      ),
+    });
+    if (!ok) return;
     try {
       setBannerKeepApplying(true);
       setMessage('');
@@ -533,7 +543,13 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
   }
 
   async function applyDedup() {
-    if (!window.confirm(`¿Confirmas consolidar los duplicados? Esta accion fusiona docentes con el mismo sourceId y no se puede deshacer facilmente.`)) return;
+    const ok = await confirm({
+      title: 'Consolidar duplicados',
+      tone: 'danger',
+      confirmLabel: 'Consolidar',
+      message: '¿Confirmas consolidar los duplicados? Esta acción fusiona docentes con el mismo sourceId y no se puede deshacer fácilmente.',
+    });
+    if (!ok) return;
     try {
       setDedupApplying(true);
       setMessage('');
@@ -554,10 +570,13 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
   }
 
   async function deleteAllTeachers() {
-    if (!window.confirm(
-      '¿Confirmas ELIMINAR TODOS los docentes?\n\n' +
-      'Esto desvinculara todos los cursos y no se puede deshacer facilmente.'
-    )) return;
+    const ok = await confirm({
+      title: 'Eliminar TODOS los docentes',
+      tone: 'danger',
+      confirmLabel: 'Eliminar todos',
+      message: '¿Confirmas ELIMINAR TODOS los docentes? Esto desvinculará todos los cursos y no se puede deshacer fácilmente.',
+    });
+    if (!ok) return;
     try {
       setDeletingAll(true);
       setMessage('');
@@ -764,7 +783,13 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
   }
 
   async function deleteTeacher(id: string, name: string) {
-    if (!window.confirm(`¿Eliminar al docente "${name}"? Esta accion no se puede deshacer.`)) return;
+    const ok = await confirm({
+      title: 'Eliminar docente',
+      tone: 'danger',
+      confirmLabel: 'Eliminar',
+      message: `¿Eliminar al docente "${name}"? Esta acción no se puede deshacer.`,
+    });
+    if (!ok) return;
     try {
       setLoading(true);
       setMessage('');
@@ -779,7 +804,13 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
   }
 
   async function deleteCoordinator(id: string, name: string) {
-    if (!window.confirm(`¿Eliminar al coordinador "${name}"? Esta accion no se puede deshacer.`)) return;
+    const ok = await confirm({
+      title: 'Eliminar coordinador',
+      tone: 'danger',
+      confirmLabel: 'Eliminar',
+      message: `¿Eliminar al coordinador "${name}"? Esta acción no se puede deshacer.`,
+    });
+    if (!ok) return;
     try {
       setCoordinatorsLoading(true);
       setMessage('');
@@ -812,52 +843,73 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
     }
   }
 
+  const totalDocentes = result?.total ?? 0;
+  const totalCoords = coordinatorsResult?.total ?? 0;
+  const sinContrato = result?.items.filter((i) => !i.tipoContrato).length ?? 0;
+  const sinCorreo = result?.items.filter((i) => !i.email).length ?? 0;
+
   return (
-    <article className="panel">
-      <h2>Base de docentes y coordinadores</h2>
+    <article className="premium-card">
+      <PageHero
+        title="Docentes y coordinadores"
+        description="Base de docentes activos. Vinculación Banner, sincronización SPAIDEN, importación masiva y mantenimiento."
+      >
+        <StatusPill tone={loading ? 'warn' : totalDocentes > 0 ? 'ok' : 'neutral'} dot={loading}>
+          {loading ? 'Cargando' : `${totalDocentes} docentes`}
+        </StatusPill>
+        <Button variant="ghost" size="sm" onClick={() => { void loadTeachers(); void loadCoordinators(); }} loading={loading}>
+          ↻ Actualizar
+        </Button>
+      </PageHero>
+
+      <StatsGrid items={[
+        { label: 'Docentes', value: totalDocentes, tone: 'default' },
+        { label: 'Coordinadores', value: totalCoords, tone: 'default' },
+        { label: 'Sin contrato', value: sinContrato, tone: sinContrato > 0 ? 'warn' : 'ok' },
+        { label: 'Sin correo', value: sinCorreo, tone: sinCorreo > 0 ? 'warn' : 'ok' },
+      ]} />
+
+      <div className="panel-body">
 
       <div className="subtitle">0) Traer nombres y correos desde Banner</div>
       <div className="actions">
         Consulta Banner (SPAIDEN) para completar el nombre completo y el correo institucional de cada docente ya importado.
-        Requiere que los docentes tengan cédula registrada. El proceso puede tardar varios minutos si hay muchos docentes.
+        Requiere que los docentes tengan cédula registrada.
       </div>
 
       {/* Paso 1 */}
-      <div style={{ marginTop: 12, marginBottom: 4, fontWeight: 600, fontSize: 13, color: 'var(--primary-dark)' }}>
-        Paso 1 — Vincular cédulas con Banner
-      </div>
+      <div className="subtitle">Paso 1 — Vincular cédulas con Banner</div>
       <div className="actions" style={{ marginBottom: 6 }}>
         Cruza las cédulas de los docentes importados con los NRC ya resueltos en Banner para obtener el ID interno de Banner.
         Hazlo primero si acabas de importar docentes nuevos.
       </div>
       <div className="controls">
-        <button
-          className="primary"
-          type="button"
+        <Button
+          variant="primary"
+          size="sm"
           onClick={() => void runBannerIdConsolidation()}
           disabled={consolidatingBannerIds || spaidenSyncing}
+          loading={consolidatingBannerIds}
         >
-          {consolidatingBannerIds ? 'Vinculando...' : 'Vincular cédulas con Banner'}
-        </button>
+          Vincular cédulas con Banner
+        </Button>
       </div>
       {bannerIdConsolidation ? (
         <div className="badges" style={{ marginTop: 8 }}>
-          <span className="badge" style={{ background: '#dcfce7', color: '#166534' }}>✓ IDs vinculados nuevos: {bannerIdConsolidation.updatedTeachers}</span>
-          <span className="badge">Ya estaban vinculados: {bannerIdConsolidation.alreadyConsistent}</span>
+          <StatusPill tone="ok">✓ IDs vinculados nuevos: {bannerIdConsolidation.updatedTeachers}</StatusPill>
+          <StatusPill tone="neutral">Ya vinculados: {bannerIdConsolidation.alreadyConsistent}</StatusPill>
           {bannerIdConsolidation.conflicts > 0 && (
-            <span className="badge" style={{ background: '#fee2e2', color: '#991b1b' }}>Conflictos: {bannerIdConsolidation.conflicts}</span>
+            <StatusPill tone="danger">Conflictos: {bannerIdConsolidation.conflicts}</StatusPill>
           )}
-          <span className="badge">Docentes candidatos: {bannerIdConsolidation.candidateTeachers}</span>
+          <StatusPill tone="neutral">Candidatos: {bannerIdConsolidation.candidateTeachers}</StatusPill>
         </div>
       ) : null}
 
       {/* Paso 2 */}
-      <div style={{ marginTop: 16, marginBottom: 4, fontWeight: 600, fontSize: 13, color: 'var(--primary-dark)' }}>
-        Paso 2 — Traer nombre y correo desde Banner
-      </div>
+      <div className="subtitle" style={{ marginTop: 16 }}>Paso 2 — Traer nombre y correo desde Banner</div>
       <div className="actions" style={{ marginBottom: 6 }}>
         Con los IDs ya vinculados, consulta Banner para actualizar el nombre completo y el correo institucional.
-        Usa <strong>Solo docentes</strong> para el caso habitual. <strong>Todo</strong> incluye coordinadores y estudiantes.
+        Usa <strong>Solo docentes</strong> para el caso habitual.
       </div>
       <div className="controls">
         <label style={{ fontSize: 12 }}>
@@ -869,55 +921,42 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
             style={{ width: 110 }}
           />
         </label>
-        <button className="primary" type="button" onClick={() => void runSpaidenSync('teachers')} disabled={spaidenSyncing}>
-          {spaidenSyncing ? 'Consultando Banner...' : 'Solo docentes'}
-        </button>
-        <button
-          type="button"
-          style={{ background: '#374151', color: '#fff' }}
-          onClick={() => void runSpaidenSync('coordinators')} disabled={spaidenSyncing}
-        >
-          {spaidenSyncing ? 'Consultando Banner...' : 'Solo coordinadores'}
-        </button>
-        <button
-          type="button"
-          style={{ background: '#374151', color: '#fff' }}
-          onClick={() => void runSpaidenSync('all')} disabled={spaidenSyncing}
-        >
-          {spaidenSyncing ? 'Consultando Banner...' : 'Todo (docentes + coordinadores + estudiantes)'}
-        </button>
+        <Button variant="primary" size="sm" onClick={() => void runSpaidenSync('teachers')} disabled={spaidenSyncing} loading={spaidenSyncing}>
+          Solo docentes
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => void runSpaidenSync('coordinators')} disabled={spaidenSyncing}>
+          Solo coordinadores
+        </Button>
+        <Button variant="secondary" size="sm" onClick={() => void runSpaidenSync('all')} disabled={spaidenSyncing}>
+          Todo (docentes + coordinadores + estudiantes)
+        </Button>
       </div>
       {spaidenResult ? (
-        <div style={{ marginTop: 10, padding: '10px 14px', background: '#f0fdf4', border: '1px solid #bbf7d0', borderRadius: 8 }}>
-          <div style={{ fontWeight: 600, fontSize: 13, color: '#166534', marginBottom: 6 }}>Resultado de la sincronización</div>
+        <AlertBox tone="success" style={{ marginTop: 10 }}>
+          <strong style={{ display: 'block', marginBottom: 6 }}>Resultado sincronización SPAIDEN</strong>
           <div className="badges">
-            <span className="badge" style={{ background: '#dcfce7', color: '#166534' }}>✓ Docentes actualizados: {spaidenResult.updates.teachersSynced}</span>
-            <span className="badge" style={{ background: '#dcfce7', color: '#166534' }}>✓ Coordinadores actualizados: {spaidenResult.updates.coordinatorsSynced}</span>
-            <span className="badge">Personas consultadas en Banner: {spaidenResult.candidates.personIds}</span>
-            <span className="badge">Encontradas: {spaidenResult.batch.found}</span>
+            <StatusPill tone="ok">✓ Docentes: {spaidenResult.updates.teachersSynced}</StatusPill>
+            <StatusPill tone="ok">✓ Coordinadores: {spaidenResult.updates.coordinatorsSynced}</StatusPill>
+            <StatusPill tone="neutral">Consultados: {spaidenResult.candidates.personIds}</StatusPill>
+            <StatusPill tone="neutral">Encontrados: {spaidenResult.batch.found}</StatusPill>
             {spaidenResult.batch.notFound > 0 && (
-              <span className="badge" style={{ background: '#fef9c3', color: '#854d0e' }}>No encontradas en Banner: {spaidenResult.batch.notFound}</span>
+              <StatusPill tone="warn">No encontrados: {spaidenResult.batch.notFound}</StatusPill>
             )}
             {spaidenResult.batch.failed > 0 && (
-              <span className="badge" style={{ background: '#fee2e2', color: '#991b1b' }}>Fallos de consulta: {spaidenResult.batch.failed}</span>
+              <StatusPill tone="danger">Fallos: {spaidenResult.batch.failed}</StatusPill>
             )}
           </div>
           {(spaidenResult.skipped.teachersWithoutId > 0 || spaidenResult.skipped.coordinatorsWithoutMatch > 0) && (
-            <div style={{ marginTop: 8, fontSize: 12, color: '#6b7280' }}>
+            <div style={{ marginTop: 8, fontSize: '0.78rem', color: 'var(--muted)' }}>
               Omitidos por falta de ID: {spaidenResult.skipped.teachersWithoutId} docente(s), {spaidenResult.skipped.coordinatorsWithoutMatch} coordinador(es).
-              Si hay muchos omitidos, ejecuta primero el Paso 1.
             </div>
           )}
           {spaidenResult.samples?.notFoundEntities?.length ? (
-            <div style={{ marginTop: 8, fontSize: 12, color: '#9ca3af' }}>
-              Muestra de no encontrados:{' '}
-              {spaidenResult.samples.notFoundEntities
-                .slice(0, 5)
-                .map((item) => `${item.entityId}`)
-                .join(', ')}
+            <div style={{ marginTop: 6, fontSize: '0.78rem', color: 'var(--muted)' }}>
+              Muestra no encontrados: {spaidenResult.samples.notFoundEntities.slice(0, 5).map((item) => item.entityId).join(', ')}
             </div>
           ) : null}
-        </div>
+        </AlertBox>
       ) : null}
 
       <div className="subtitle">1) Tabla de docentes</div>
@@ -930,38 +969,29 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
           Limite
           <input value={limit} onChange={(event) => setLimit(event.target.value)} placeholder="150" />
         </label>
-        <button className="primary" type="button" onClick={() => void loadTeachers()} disabled={loading}>
-          {loading ? 'Cargando...' : 'Actualizar tabla'}
-        </button>
-        <button
-          type="button"
-          onClick={downloadTeachersCsv}
-          disabled={!result?.items.length}
-          style={{ background: '#374151', color: '#fff' }}
-        >
-          Descargar lista CSV ({result?.items.length ?? 0})
-        </button>
-        <button
-          className="danger"
-          type="button"
-          onClick={() => void deleteAllTeachers()}
-          disabled={deletingAll || loading}
-        >
-          {deletingAll ? 'Eliminando...' : 'Eliminar todos los docentes'}
-        </button>
-        <button
-          type="button"
+        <Button variant="primary" size="sm" onClick={() => void loadTeachers()} disabled={loading} loading={loading}>
+          Actualizar tabla
+        </Button>
+        <Button variant="secondary" size="sm" onClick={downloadTeachersCsv} disabled={!result?.items.length}>
+          CSV ({result?.items.length ?? 0})
+        </Button>
+        <Button variant="danger" size="sm" onClick={() => void deleteAllTeachers()} disabled={deletingAll || loading} loading={deletingAll}>
+          Eliminar todos
+        </Button>
+        <Button
+          variant="secondary"
+          size="sm"
           onClick={() => setShowFilters((v) => !v)}
-          style={{ background: '#1e40af', color: '#fff' }}
         >
           {(() => {
             const total = filterCoords.length + filterCampus.length + filterMissing.length + filterEscalafon.length + filterDedicacion.length + filterStatus.length;
             return showFilters ? 'Ocultar filtros' : `Filtros${total > 0 ? ` (${total})` : ''}`;
           })()}
-        </button>
+        </Button>
         {(filterCoords.length + filterCampus.length + filterMissing.length + filterEscalafon.length + filterDedicacion.length + filterStatus.length > 0) && (
-          <button
-            type="button"
+          <Button
+            variant="danger"
+            size="sm"
             onClick={() => {
               setFilterCoords([]);
               setFilterCampus([]);
@@ -970,10 +1000,9 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
               setFilterDedicacion([]);
               setFilterStatus([]);
             }}
-            style={{ background: '#dc2626', color: '#fff', fontSize: 12 }}
           >
             Limpiar filtros
-          </button>
+          </Button>
         )}
       </div>
 
@@ -1141,11 +1170,11 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                   <Fragment key={item.id}>
                     <tr style={editingTeacherId === item.id ? { background: 'var(--surface-2, #f0f4ff)' } : undefined}>
                       <td>
-                        <span style={{ display: 'inline-block', padding: '2px 8px', borderRadius: 999, background: sb.bg, color: sb.color, border: `1px solid ${sb.border}`, fontSize: 10, fontWeight: 700 }}>
+                        <StatusPill tone={status === 'NUEVO' ? 'neutral' : status === 'ANTIGUO' ? 'ok' : 'danger'}>
                           {sb.label}
-                        </span>
+                        </StatusPill>
                         <br />
-                        <span style={{ fontSize: 10, color: '#64748b' }}>{item.id}</span>
+                        <span style={{ fontSize: '0.68rem', color: 'var(--muted)' }}>{item.id}</span>
                       </td>
                       <td>
                         <strong>{item.fullName}</strong>
@@ -1197,17 +1226,13 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                         )}
                       </td>
                       <td style={{ whiteSpace: 'nowrap' }}>
-                        <button
-                          type="button"
-                          style={{ background: '#0891b2', color: '#fff', marginRight: 6, fontSize: 11 }}
-                          onClick={() => setDetailTeacher(item)}
-                        >
-                          Ver ficha
-                        </button>
-                        <button
-                          className={editingTeacherId === item.id ? 'danger' : 'primary'}
-                          type="button"
-                          style={{ marginRight: 6 }}
+                        <Button variant="ghost" size="sm" onClick={() => setDetailTeacher(item)}>
+                          Ficha
+                        </Button>
+                        <Button
+                          variant={editingTeacherId === item.id ? 'danger' : 'primary'}
+                          size="sm"
+                          style={{ marginLeft: 4 }}
                           onClick={() => {
                             if (editingTeacherId === item.id) {
                               setEditingTeacherId(null);
@@ -1239,25 +1264,26 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                           }}
                         >
                           {editingTeacherId === item.id ? 'Cancelar' : 'Editar'}
-                        </button>
-                        <button
-                          className="danger"
-                          type="button"
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          style={{ marginLeft: 4 }}
                           onClick={() => void deleteTeacher(item.id, item.fullName)}
                           disabled={loading}
                         >
                           Eliminar
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                     {editingTeacherId === item.id ? (
                       <tr>
                         <td colSpan={10} style={{ padding: 0 }}>
-                          <div className="controls" style={{ padding: '12px 16px', background: 'var(--surface-2, #f0f4ff)', borderLeft: '3px solid var(--indigo, #6366f1)', margin: 0 }}>
-                            <div style={{ fontSize: '0.82rem', fontWeight: 600, marginBottom: 8, color: 'var(--indigo, #6366f1)' }}>
+                          <div className="controls" style={{ padding: '12px 16px', background: 'var(--primary-light)', borderLeft: '3px solid var(--primary)', margin: 0 }}>
+                            <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 8, color: 'var(--primary)' }}>
                               Editando: {item.fullName}
                             </div>
-                            <label>ID docente<input value={form.id} readOnly style={{ background: 'var(--surface-muted, #e8eaf0)' }} /></label>
+                            <label>ID docente<input value={form.id} readOnly style={{ background: 'var(--line)' }} /></label>
                             <label>sourceId<input value={form.sourceId} onChange={(e) => setForm((p) => ({ ...p, sourceId: e.target.value }))} /></label>
                             <label>documentId<input value={form.documentId} onChange={(e) => setForm((p) => ({ ...p, documentId: e.target.value }))} /></label>
                             <label style={{ minWidth: 260 }}>Nombre<input value={form.fullName} onChange={(e) => setForm((p) => ({ ...p, fullName: e.target.value }))} /></label>
@@ -1267,12 +1293,12 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                             <label>Region<input value={form.region} onChange={(e) => setForm((p) => ({ ...p, region: e.target.value }))} /></label>
                             <label>Centro costo<input value={form.costCenter} onChange={(e) => setForm((p) => ({ ...p, costCenter: e.target.value }))} /></label>
                             <label style={{ minWidth: 220 }}>Coordinacion<input value={form.coordination} onChange={(e) => setForm((p) => ({ ...p, coordination: e.target.value }))} /></label>
-                            <button className="primary" type="button" onClick={() => void saveTeacher()} disabled={saving}>
-                              {saving ? 'Guardando...' : 'Guardar cambios'}
-                            </button>
-                            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => { setEditingTeacherId(null); setForm(EMPTY_FORM); }}>
+                            <Button variant="primary" size="sm" onClick={() => void saveTeacher()} disabled={saving} loading={saving}>
+                              Guardar cambios
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => { setEditingTeacherId(null); setForm(EMPTY_FORM); }}>
                               Cancelar
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -1311,9 +1337,9 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
             placeholder="120"
           />
         </label>
-        <button className="primary" type="button" onClick={() => void loadCoordinators()} disabled={coordinatorsLoading}>
-          {coordinatorsLoading ? 'Cargando...' : 'Actualizar coordinadores'}
-        </button>
+        <Button variant="primary" size="sm" onClick={() => void loadCoordinators()} disabled={coordinatorsLoading} loading={coordinatorsLoading}>
+          Actualizar coordinadores
+        </Button>
       </div>
 
       {coordinatorsResult ? (
@@ -1345,10 +1371,9 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                       <td>{item.region ?? '-'}</td>
                       <td>{item.sourceSheet ?? '-'}</td>
                       <td style={{ whiteSpace: 'nowrap' }}>
-                        <button
-                          className={editingCoordinatorId === item.id ? 'danger' : 'primary'}
-                          type="button"
-                          style={{ marginRight: 6 }}
+                        <Button
+                          variant={editingCoordinatorId === item.id ? 'danger' : 'primary'}
+                          size="sm"
                           onClick={() => {
                             if (editingCoordinatorId === item.id) {
                               setEditingCoordinatorId(null);
@@ -1367,22 +1392,23 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                           }}
                         >
                           {editingCoordinatorId === item.id ? 'Cancelar' : 'Editar'}
-                        </button>
-                        <button
-                          className="danger"
-                          type="button"
+                        </Button>
+                        <Button
+                          variant="danger"
+                          size="sm"
+                          style={{ marginLeft: 4 }}
                           onClick={() => void deleteCoordinator(item.id, item.fullName)}
                           disabled={coordinatorsLoading}
                         >
                           Eliminar
-                        </button>
+                        </Button>
                       </td>
                     </tr>
                     {editingCoordinatorId === item.id ? (
                       <tr>
                         <td colSpan={7} style={{ padding: 0 }}>
-                          <div className="controls" style={{ padding: '12px 16px', background: 'var(--surface-2, #f0f4ff)', borderLeft: '3px solid var(--indigo, #6366f1)', margin: 0 }}>
-                            <div style={{ fontSize: '0.82rem', fontWeight: 600, marginBottom: 8, color: 'var(--indigo, #6366f1)' }}>
+                          <div className="controls" style={{ padding: '12px 16px', background: 'var(--primary-light)', borderLeft: '3px solid var(--primary)', margin: 0 }}>
+                            <div style={{ fontSize: 'var(--fs-sm)', fontWeight: 600, marginBottom: 8, color: 'var(--primary)' }}>
                               Editando: {item.fullName}
                             </div>
                             <label style={{ minWidth: 260 }}>Programa<input value={coordinatorForm.programId} onChange={(e) => setCoordinatorForm((p) => ({ ...p, programId: e.target.value }))} /></label>
@@ -1390,12 +1416,12 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                             <label style={{ minWidth: 260 }}>Correo<input value={coordinatorForm.email} onChange={(e) => setCoordinatorForm((p) => ({ ...p, email: e.target.value }))} /></label>
                             <label>Campus<input value={coordinatorForm.campus} onChange={(e) => setCoordinatorForm((p) => ({ ...p, campus: e.target.value }))} /></label>
                             <label>Region<input value={coordinatorForm.region} onChange={(e) => setCoordinatorForm((p) => ({ ...p, region: e.target.value }))} /></label>
-                            <button className="primary" type="button" onClick={() => void saveCoordinator()} disabled={savingCoordinator}>
-                              {savingCoordinator ? 'Guardando...' : 'Guardar cambios'}
-                            </button>
-                            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => { setEditingCoordinatorId(null); setCoordinatorForm(EMPTY_COORDINATOR_FORM); }}>
+                            <Button variant="primary" size="sm" onClick={() => void saveCoordinator()} disabled={savingCoordinator} loading={savingCoordinator}>
+                              Guardar cambios
+                            </Button>
+                            <Button variant="ghost" size="sm" onClick={() => { setEditingCoordinatorId(null); setCoordinatorForm(EMPTY_COORDINATOR_FORM); }}>
                               Cancelar
-                            </button>
+                            </Button>
                           </div>
                         </td>
                       </tr>
@@ -1417,23 +1443,19 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
         {editingTeacherId ? `Editando docente: ${form.fullName || form.id}` : '2) Agregar / Editar docente'}
       </div>
       <div className="controls">
-        <button
-          type="button"
-          style={{ background: editingTeacherId ? '#16a34a' : '#1e40af', color: '#fff' }}
+        <Button
+          variant={editingTeacherId ? 'secondary' : 'primary'}
+          size="sm"
           onClick={() => {
             if (!editingTeacherId) setShowTeacherForm((v) => !v);
           }}
         >
           {editingTeacherId ? 'Formulario abierto (modo edición)' : showTeacherForm ? 'Cerrar formulario' : '+ Agregar docente nuevo'}
-        </button>
+        </Button>
         {editingTeacherId && (
-          <button
-            type="button"
-            style={{ background: '#dc2626', color: '#fff' }}
-            onClick={() => { setEditingTeacherId(null); setForm(EMPTY_FORM); }}
-          >
+          <Button variant="danger" size="sm" onClick={() => { setEditingTeacherId(null); setForm(EMPTY_FORM); }}>
             Cancelar edición
-          </button>
+          </Button>
         )}
       </div>
 
@@ -1554,20 +1576,12 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
           </div>
 
           <div style={{ display: 'flex', gap: 8 }}>
-            <button className="primary" type="button" onClick={() => void saveTeacher()} disabled={saving}>
-              {saving ? 'Guardando...' : (editingTeacherId ? 'Guardar cambios' : 'Crear docente')}
-            </button>
-            <button
-              type="button"
-              style={{ background: '#6b7280', color: '#fff' }}
-              onClick={() => {
-                setEditingTeacherId(null);
-                setForm(EMPTY_FORM);
-                setShowTeacherForm(false);
-              }}
-            >
+            <Button variant="primary" size="sm" onClick={() => void saveTeacher()} disabled={saving} loading={saving}>
+              {editingTeacherId ? 'Guardar cambios' : 'Crear docente'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => { setEditingTeacherId(null); setForm(EMPTY_FORM); setShowTeacherForm(false); }}>
               Cancelar
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -1576,23 +1590,15 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
         2.1) Agregar / Editar coordinador
       </div>
       <div className="controls">
-        <button
-          type="button"
-          style={{ background: coordinatorForm.id ? '#16a34a' : '#1e40af', color: '#fff' }}
-          onClick={() => setShowCoordinatorForm((v) => !v)}
-        >
+        <Button variant={coordinatorForm.id ? 'secondary' : 'primary'} size="sm" onClick={() => setShowCoordinatorForm((v) => !v)}>
           {coordinatorForm.id
             ? `Editando: ${coordinatorForm.fullName || coordinatorForm.id}`
             : showCoordinatorForm ? 'Cerrar formulario' : '+ Agregar coordinador nuevo'}
-        </button>
+        </Button>
         {coordinatorForm.id && (
-          <button
-            type="button"
-            style={{ background: '#dc2626', color: '#fff' }}
-            onClick={() => setCoordinatorForm(EMPTY_COORDINATOR_FORM)}
-          >
+          <Button variant="danger" size="sm" onClick={() => setCoordinatorForm(EMPTY_COORDINATOR_FORM)}>
             Cancelar edición
-          </button>
+          </Button>
         )}
       </div>
 
@@ -1623,16 +1629,12 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
             </label>
           </div>
           <div style={{ display: 'flex', gap: 8, marginTop: 8 }}>
-            <button className="primary" type="button" onClick={() => void saveCoordinator()} disabled={savingCoordinator}>
-              {savingCoordinator ? 'Guardando...' : (coordinatorForm.id ? 'Guardar cambios' : 'Crear coordinador')}
-            </button>
-            <button
-              type="button"
-              style={{ background: '#6b7280', color: '#fff' }}
-              onClick={() => { setCoordinatorForm(EMPTY_COORDINATOR_FORM); setShowCoordinatorForm(false); }}
-            >
+            <Button variant="primary" size="sm" onClick={() => void saveCoordinator()} disabled={savingCoordinator} loading={savingCoordinator}>
+              {coordinatorForm.id ? 'Guardar cambios' : 'Crear coordinador'}
+            </Button>
+            <Button variant="ghost" size="sm" onClick={() => { setCoordinatorForm(EMPTY_COORDINATOR_FORM); setShowCoordinatorForm(false); }}>
               Cancelar
-            </button>
+            </Button>
           </div>
         </div>
       )}
@@ -1645,13 +1647,9 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
         Acciones masivas: importar desde archivo (CSV/Excel) o limpiar la base.
       </div>
       <div className="controls">
-        <button
-          type="button"
-          style={{ background: showMaintenance ? '#dc2626' : '#1e40af', color: '#fff' }}
-          onClick={() => setShowMaintenance((v) => !v)}
-        >
+        <Button variant={showMaintenance ? 'danger' : 'primary'} size="sm" onClick={() => setShowMaintenance((v) => !v)}>
           {showMaintenance ? 'Ocultar herramientas' : 'Mostrar herramientas de importación / limpieza'}
-        </button>
+        </Button>
       </div>
 
       {showMaintenance && (<>
@@ -1662,27 +1660,25 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
         Encuentra y fusiona docentes duplicados (mismo sourceId Banner). Util para limpiar la base antes de sincronizar.
       </div>
       <div className="controls" style={{ marginTop: 6 }}>
-        <button className="primary" type="button" onClick={() => void loadDedupPreview()} disabled={dedupLoading}>
-          {dedupLoading ? 'Analizando...' : 'Analizar duplicados'}
-        </button>
-        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: '0.85rem', cursor: 'pointer' }}>
+        <Button variant="primary" size="sm" onClick={() => void loadDedupPreview()} disabled={dedupLoading} loading={dedupLoading}>
+          Analizar duplicados
+        </Button>
+        <label style={{ display: 'flex', alignItems: 'center', gap: 6, fontSize: 'var(--fs-sm)', cursor: 'pointer' }}>
           <input type="checkbox" checked={dedupRemoveOrphans} onChange={(e) => setDedupRemoveOrphans(e.target.checked)} />
           Eliminar tambien docentes sin cursos asignados
         </label>
       </div>
 
       {dedupPreviewResult ? (
-        <div style={{ marginTop: 10, padding: '12px 16px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+        <div style={{ marginTop: 10, padding: '12px 16px', background: 'var(--bg)', border: '1px solid var(--line)', borderRadius: 8 }}>
           <div className="badges" style={{ marginBottom: 10 }}>
-            <span className="badge">Total docentes: {dedupPreviewResult.totalTeachers}</span>
-            <span className="badge">Grupos duplicados: {dedupPreviewResult.duplicateGroupCount}</span>
-            <span className="badge" style={{ background: dedupPreviewResult.teachersThatWouldBeDeleted > 0 ? 'var(--amber, #fef3c7)' : undefined }}>
-              Se eliminarian: {dedupPreviewResult.teachersThatWouldBeDeleted}
-            </span>
-            <span className="badge">Sin cursos asignados: {dedupPreviewResult.orphansWithNoCourses}</span>
-            <span className="badge" style={{ background: 'var(--green-light, #dcfce7)' }}>
-              Resultado estimado: {dedupPreviewResult.estimatedAfterMerge}
-            </span>
+            <StatusPill tone="neutral">Total: {dedupPreviewResult.totalTeachers}</StatusPill>
+            <StatusPill tone="neutral">Grupos: {dedupPreviewResult.duplicateGroupCount}</StatusPill>
+            <StatusPill tone={dedupPreviewResult.teachersThatWouldBeDeleted > 0 ? 'warn' : 'ok'}>
+              Eliminarían: {dedupPreviewResult.teachersThatWouldBeDeleted}
+            </StatusPill>
+            <StatusPill tone="neutral">Sin cursos: {dedupPreviewResult.orphansWithNoCourses}</StatusPill>
+            <StatusPill tone="ok">Resultado estimado: {dedupPreviewResult.estimatedAfterMerge}</StatusPill>
           </div>
           {dedupPreviewResult.duplicateGroupCount > 0 ? (
             <>
@@ -1690,7 +1686,7 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                 Primeros {Math.min(dedupPreviewResult.groups.length, 10)} grupos (se conserva el de mas cursos):
               </div>
               <div style={{ overflowX: 'auto', maxHeight: 200, overflowY: 'auto' }}>
-                <table className="compact-table" style={{ fontSize: '0.78rem' }}>
+                <table className="fast-table" style={{ fontSize: '0.78rem' }}>
                   <thead><tr><th>sourceId</th><th>Conservar</th><th>Duplicados</th><th>Cursos</th></tr></thead>
                   <tbody>
                     {dedupPreviewResult.groups.slice(0, 10).map((g) => (
@@ -1705,14 +1701,9 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                 </table>
               </div>
               <div className="controls" style={{ marginTop: 10 }}>
-                <button
-                  className="danger"
-                  type="button"
-                  onClick={() => void applyDedup()}
-                  disabled={dedupApplying}
-                >
-                  {dedupApplying ? 'Consolidando...' : `Consolidar duplicados (${dedupPreviewResult.teachersThatWouldBeDeleted} registros)`}
-                </button>
+                <Button variant="danger" size="sm" onClick={() => void applyDedup()} disabled={dedupApplying} loading={dedupApplying}>
+                  Consolidar duplicados ({dedupPreviewResult.teachersThatWouldBeDeleted} registros)
+                </Button>
               </div>
             </>
           ) : (
@@ -1725,11 +1716,11 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
 
       {dedupApplyResult ? (
         <div className="badges" style={{ marginTop: 8 }}>
-          <span className="badge">Grupos fusionados: {dedupApplyResult.mergedGroups}</span>
-          <span className="badge">Docentes eliminados: {dedupApplyResult.deletedTeachers}</span>
-          <span className="badge">Cursos reasignados: {dedupApplyResult.coursesReassigned}</span>
-          {dedupApplyResult.orphansDeleted > 0 ? <span className="badge">Huerfanos eliminados: {dedupApplyResult.orphansDeleted}</span> : null}
-          <span className="badge" style={{ background: 'var(--green-light, #dcfce7)' }}>Total docentes ahora: {dedupApplyResult.finalTeacherCount}</span>
+          <StatusPill tone="neutral">Fusionados: {dedupApplyResult.mergedGroups}</StatusPill>
+          <StatusPill tone="warn">Eliminados: {dedupApplyResult.deletedTeachers}</StatusPill>
+          <StatusPill tone="neutral">Cursos reasignados: {dedupApplyResult.coursesReassigned}</StatusPill>
+          {dedupApplyResult.orphansDeleted > 0 ? <StatusPill tone="warn">Huérfanos: {dedupApplyResult.orphansDeleted}</StatusPill> : null}
+          <StatusPill tone="ok">Total ahora: {dedupApplyResult.finalTeacherCount}</StatusPill>
         </div>
       ) : null}
 
@@ -1740,20 +1731,20 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
         Elimina todos los docentes que NO aparecen como <span className="code">ENCONTRADO</span> en el ultimo CSV exportado por Banner. Util para dejar solo los docentes activos del semestre en curso.
       </div>
       <div className="controls" style={{ marginTop: 6 }}>
-        <button className="primary" type="button" onClick={() => void loadBannerKeepPreview()} disabled={bannerKeepLoading || bannerKeepApplying}>
-          {bannerKeepLoading ? 'Analizando...' : 'Analizar (usar lote Banner actual)'}
-        </button>
+        <Button variant="primary" size="sm" onClick={() => void loadBannerKeepPreview()} disabled={bannerKeepLoading || bannerKeepApplying} loading={bannerKeepLoading}>
+          Analizar (usar lote Banner actual)
+        </Button>
       </div>
 
       {bannerKeepPreview ? (
-        <div style={{ marginTop: 10, padding: '12px 16px', background: '#fff7ed', border: '1px solid #fed7aa', borderRadius: 8 }}>
+        <div style={{ marginTop: 10, padding: '12px 16px', background: 'var(--amber-light)', border: '1px solid var(--amber)', borderRadius: 8 }}>
           <div className="badges" style={{ marginBottom: 10 }}>
-            <span className="badge" style={{ background: '#dcfce7' }}>Conservar: {bannerKeepPreview.toKeepCount}</span>
-            <span className="badge" style={{ background: bannerKeepPreview.toDeleteCount > 0 ? '#fef3c7' : '#dcfce7' }}>
+            <StatusPill tone="ok">Conservar: {bannerKeepPreview.toKeepCount}</StatusPill>
+            <StatusPill tone={bannerKeepPreview.toDeleteCount > 0 ? 'warn' : 'ok'}>
               Eliminar: {bannerKeepPreview.toDeleteCount}
-            </span>
-            <span className="badge">Cursos que quedan sin docente: {bannerKeepPreview.coursesToUnlink}</span>
-            <span className="badge" style={{ background: '#e0e7ff' }}>Docentes unicos en lote: {bannerKeepPreview.uniqueTeachersInBatch}</span>
+            </StatusPill>
+            <StatusPill tone="neutral">Sin docente: {bannerKeepPreview.coursesToUnlink}</StatusPill>
+            <StatusPill tone="neutral">En lote: {bannerKeepPreview.uniqueTeachersInBatch}</StatusPill>
           </div>
           <div style={{ fontSize: '0.78rem', color: '#78716c', marginBottom: 8 }}>
             Fuente: <span style={{ fontFamily: 'monospace' }}>{bannerKeepPreview.csvFile}</span>
@@ -1764,7 +1755,7 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                 Muestra de docentes que se eliminarian ({bannerKeepPreview.samples.length} de {bannerKeepPreview.toDeleteCount}):
               </div>
               <div style={{ overflowX: 'auto', maxHeight: 220, overflowY: 'auto' }}>
-                <table className="compact-table" style={{ fontSize: '0.78rem' }}>
+                <table className="fast-table" style={{ fontSize: '0.78rem' }}>
                   <thead>
                     <tr><th>Nombre</th><th>sourceId</th><th>Cursos vinculados</th></tr>
                   </thead>
@@ -1783,14 +1774,9 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
           ) : null}
           {bannerKeepPreview.toDeleteCount > 0 ? (
             <div className="controls" style={{ marginTop: 12 }}>
-              <button
-                className="danger"
-                type="button"
-                onClick={() => void applyBannerKeep()}
-                disabled={bannerKeepApplying}
-              >
-                {bannerKeepApplying ? 'Aplicando...' : `Aplicar limpieza (eliminar ${bannerKeepPreview.toDeleteCount} docentes)`}
-              </button>
+              <Button variant="danger" size="sm" onClick={() => void applyBannerKeep()} disabled={bannerKeepApplying} loading={bannerKeepApplying}>
+                Aplicar limpieza (eliminar {bannerKeepPreview.toDeleteCount} docentes)
+              </Button>
             </div>
           ) : (
             <div style={{ color: 'var(--green, #16a34a)', fontSize: '0.85rem', marginTop: 8 }}>
@@ -1802,10 +1788,10 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
 
       {bannerKeepResult ? (
         <div className="badges" style={{ marginTop: 8 }}>
-          <span className="badge" style={{ background: '#fef3c7' }}>Docentes eliminados: {bannerKeepResult.deletedTeachers}</span>
-          <span className="badge">Cursos desvinculados: {bannerKeepResult.unlinkedCourses}</span>
-          <span className="badge" style={{ background: '#dcfce7' }}>Total docentes ahora: {bannerKeepResult.finalTeacherCount}</span>
-          <span className="badge" style={{ background: '#e0e7ff' }}>Docentes en lote: {bannerKeepResult.uniqueTeachersInBatch}</span>
+          <StatusPill tone="warn">Eliminados: {bannerKeepResult.deletedTeachers}</StatusPill>
+          <StatusPill tone="neutral">Desvinculados: {bannerKeepResult.unlinkedCourses}</StatusPill>
+          <StatusPill tone="ok">Total ahora: {bannerKeepResult.finalTeacherCount}</StatusPill>
+          <StatusPill tone="neutral">En lote: {bannerKeepResult.uniqueTeachersInBatch}</StatusPill>
         </div>
       ) : null}
 
@@ -1829,14 +1815,14 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
               onChange={(event) => setCsvFiles(Array.from(event.target.files ?? []))}
             />
           </label>
-          <button
-            type="button"
-            style={{ background: '#f3f4f6', color: '#111827' }}
+          <Button
+            variant="secondary"
+            size="sm"
             onClick={() => {
               const csv = 'tipo,id,cedula,nombre,correo,correo2,sede,region,centrocosto,coordinacion,programa_id\n'
                 + 'DOCENTE,12345,1001234567,Juan Pérez García,jperez@universidad.edu.co,jperez@universidad.edu,Bogotá,Centro,CC-001,Ingeniería de Sistemas,\n'
                 + 'COORDINADOR,,,María López Ruiz,mlopez@universidad.edu,,Bogotá,Centro,,,Ingeniería de Sistemas\n';
-              const blob = new Blob(['\uFEFF' + csv], { type: 'text/csv;charset=utf-8' });
+              const blob = new Blob(['﻿' + csv], { type: 'text/csv;charset=utf-8' });
               const url = URL.createObjectURL(blob);
               const a = document.createElement('a');
               a.href = url;
@@ -1845,31 +1831,31 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
               URL.revokeObjectURL(url);
             }}
           >
-            Descargar plantilla CSV
-          </button>
-          <button className="primary" type="button" onClick={() => void importUnifiedCsv()} disabled={importing}>
-            {importing ? 'Importando...' : 'Importar CSV'}
-          </button>
+            Plantilla CSV
+          </Button>
+          <Button variant="primary" size="sm" onClick={() => void importUnifiedCsv()} disabled={importing} loading={importing}>
+            Importar CSV
+          </Button>
         </div>
         {csvFiles.length ? (
-          <div className="actions">Archivos seleccionados: <span className="code">{csvFiles.map(f => f.name).join(', ')}</span></div>
+          <div className="actions">Archivos seleccionados: <span className="code">{csvFiles.map(f => f.name).join(", ")}</span></div>
         ) : null}
         {importResult ? (
           <div className="badges" style={{ marginTop: 8 }}>
-            <span className="badge">Filas docentes: {importResult.totalRows}</span>
-            <span className="badge">Nuevos: {importResult.created}</span>
-            <span className="badge">Actualizados: {importResult.updated}</span>
-            <span className="badge">Omitidos: {importResult.skipped}</span>
+            <StatusPill tone="neutral">Filas: {importResult.totalRows}</StatusPill>
+            <StatusPill tone="ok">Nuevos: {importResult.created}</StatusPill>
+            <StatusPill tone="neutral">Actualizados: {importResult.updated}</StatusPill>
+            <StatusPill tone="neutral">Omitidos: {importResult.skipped}</StatusPill>
           </div>
         ) : null}
         {importResult?.errors?.length ? (
-          <div className="actions" style={{ marginTop: 6, color: '#991b1b' }}>
-            Errores: {importResult.errors.slice(0, 5).join(' | ')}
+          <div className="actions" style={{ marginTop: 6, color: "var(--red)" }}>
+            Errores: {importResult.errors.slice(0, 5).join(" | ")}
           </div>
         ) : null}
       </div>
 
-      <div style={{ marginTop: 10, padding: '10px 14px', background: '#f8fafc', border: '1px solid #e2e8f0', borderRadius: 8 }}>
+      <div style={{ marginTop: 10, padding: "10px 14px", background: "var(--bg)", border: "1px solid var(--line)", borderRadius: 8 }}>
         <strong style={{ fontSize: 13 }}>Opción B — Excel maestro (.xlsx)</strong>
         <div className="controls" style={{ marginTop: 8 }}>
           <label style={{ minWidth: 360 }}>
@@ -1888,7 +1874,7 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
               placeholder="Opcional: nombre exacto de la hoja"
             />
           </label>
-          <label style={{ display: 'flex', alignItems: 'center', gap: 8, minWidth: 220 }}>
+          <label style={{ display: "flex", alignItems: "center", gap: 8, minWidth: 220 }}>
             <input
               type="checkbox"
               checked={includeCoordinators}
@@ -1896,9 +1882,9 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
             />
             Incluir coordinadores
           </label>
-          <button className="primary" type="button" onClick={() => void importWorkbook()} disabled={importingWorkbook}>
-            {importingWorkbook ? 'Importando Excel...' : 'Importar Excel'}
-          </button>
+          <Button variant="primary" size="sm" onClick={() => void importWorkbook()} disabled={importingWorkbook} loading={importingWorkbook}>
+            Importar Excel
+          </Button>
         </div>
         {workbookFile ? (
           <div className="actions">Archivo: <span className="code">{workbookFile.name}</span></div>
@@ -1906,18 +1892,19 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
         {workbookImportResult ? (
           <>
             <div className="badges" style={{ marginTop: 8 }}>
-              <span className="badge">Docentes nuevos: {workbookImportResult.createdTeachers}</span>
-              <span className="badge">Actualizados: {workbookImportResult.updatedTeachers}</span>
-              <span className="badge">Omitidos: {workbookImportResult.skippedRows}</span>
-              <span className="badge">Coordinadores nuevos: {workbookImportResult.createdCoordinators}</span>
-              <span className="badge">Coordinadores actualizados: {workbookImportResult.updatedCoordinators}</span>
+              <StatusPill tone="ok">Docentes nuevos: {workbookImportResult.createdTeachers}</StatusPill>
+              <StatusPill tone="neutral">Actualizados: {workbookImportResult.updatedTeachers}</StatusPill>
+              <StatusPill tone="neutral">Omitidos: {workbookImportResult.skippedRows}</StatusPill>
+              <StatusPill tone="ok">Coordinadores nuevos: {workbookImportResult.createdCoordinators}</StatusPill>
+              <StatusPill tone="neutral">Coordinadores actualizados: {workbookImportResult.updatedCoordinators}</StatusPill>
             </div>
           </>
         ) : null}
       </div>
       </>)}
 
-      {message ? <div className="message">{message}</div> : null}
+      {message ? <AlertBox tone="info">{message}</AlertBox> : null}
+      </div>
 
       {detailTeacher && (() => {
         const t = detailTeacher;
@@ -1954,39 +1941,57 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
           { label: 'Antigüedad', value: t.antiguedadText },
         ];
         return (
-          <div
-            onClick={() => setDetailTeacher(null)}
-            style={{ position: 'fixed', inset: 0, background: 'rgba(15,23,42,0.6)', display: 'flex', alignItems: 'center', justifyContent: 'center', zIndex: 1000, padding: 20 }}
+          <Modal
+            open
+            onClose={() => setDetailTeacher(null)}
+            size="lg"
+            title={
+              <span style={{ display: 'inline-flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
+                {t.fullName}
+                <span style={{ padding: '2px 9px', borderRadius: 999, background: sb.bg, color: sb.color, border: `1px solid ${sb.border}`, fontSize: 10, fontWeight: 700 }}>{sb.label}</span>
+                {weeks !== null && (
+                  <span style={{ padding: '2px 9px', borderRadius: 999, background: '#eef2ff', color: '#1e40af', fontSize: 10, fontWeight: 600 }}>
+                    {weeks} semana{weeks !== 1 ? 's' : ''} en la institución
+                  </span>
+                )}
+              </span>
+            }
+            footer={
+              <Button
+                variant="primary"
+                size="sm"
+                onClick={() => {
+                  setEditingTeacherId(t.id);
+                  setForm({
+                    id: t.id,
+                    sourceId: t.sourceId ?? '',
+                    documentId: t.documentId ?? '',
+                    fullName: t.fullName,
+                    email: t.email ?? '',
+                    email2: t.email2 ?? '',
+                    campus: t.campus ?? '',
+                    region: t.region ?? '',
+                    costCenter: t.costCenter ?? '',
+                    coordination: t.coordination ?? '',
+                    escalafon: t.escalafon ?? '',
+                    dedicacion: t.dedicacion ?? '',
+                    tipoContrato: t.tipoContrato ?? '',
+                    fechaInicio: t.fechaInicio ? t.fechaInicio.slice(0, 10) : '',
+                    fechaFin: t.fechaFin ? t.fechaFin.slice(0, 10) : '',
+                    antiguedadText: t.antiguedadText ?? '',
+                    programaAcademico: t.programaAcademico ?? '',
+                    programaCodigo: t.programaCodigo ?? '',
+                    previousEmployment: t.previousEmployment ?? false,
+                  });
+                  setShowTeacherForm(true);
+                  setDetailTeacher(null);
+                  setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
+                }}
+              >
+                Editar este docente
+              </Button>
+            }
           >
-            <div
-              onClick={(e) => e.stopPropagation()}
-              style={{ background: '#fff', borderRadius: 12, maxWidth: 720, width: '100%', maxHeight: '90vh', overflowY: 'auto', boxShadow: '0 25px 50px -12px rgba(0,0,0,0.4)' }}
-            >
-              {/* Header */}
-              <div style={{ padding: '20px 24px', background: 'linear-gradient(135deg, #1e3a8a, #1e40af)', color: '#fff', borderRadius: '12px 12px 0 0' }}>
-                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12 }}>
-                  <div>
-                    <h2 style={{ margin: 0, fontSize: 22, color: '#fff' }}>{t.fullName}</h2>
-                    <div style={{ marginTop: 6, display: 'flex', gap: 8, flexWrap: 'wrap' }}>
-                      <span style={{ padding: '3px 10px', borderRadius: 999, background: sb.bg, color: sb.color, border: `1px solid ${sb.border}`, fontSize: 11, fontWeight: 700 }}>{sb.label}</span>
-                      {weeks !== null && (
-                        <span style={{ padding: '3px 10px', borderRadius: 999, background: 'rgba(255,255,255,0.15)', color: '#fff', fontSize: 11, fontWeight: 600 }}>
-                          {weeks} semana{weeks !== 1 ? 's' : ''} en la institución
-                        </span>
-                      )}
-                    </div>
-                  </div>
-                  <button
-                    onClick={() => setDetailTeacher(null)}
-                    style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', border: 'none', borderRadius: 6, width: 32, height: 32, fontSize: 18, cursor: 'pointer' }}
-                  >
-                    ×
-                  </button>
-                </div>
-              </div>
-
-              {/* Body */}
-              <div style={{ padding: 24 }}>
                 <h3 style={{ margin: '0 0 12px 0', fontSize: 14, color: '#1e40af', textTransform: 'uppercase', letterSpacing: 0.5 }}>Información general</h3>
                 <div style={{ display: 'grid', gridTemplateColumns: '1fr 1fr', gap: '8px 16px', marginBottom: 24 }}>
                   {fields.map((f) => (
@@ -2060,48 +2065,10 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                   </ul>
                 </div>
 
-                {/* Acciones */}
-                <div style={{ display: 'flex', gap: 8, justifyContent: 'flex-end' }}>
-                  <button
-                    type="button"
-                    style={{ background: '#1e40af', color: '#fff', padding: '8px 16px' }}
-                    onClick={() => {
-                      setEditingTeacherId(t.id);
-                      setForm({
-                        id: t.id,
-                        sourceId: t.sourceId ?? '',
-                        documentId: t.documentId ?? '',
-                        fullName: t.fullName,
-                        email: t.email ?? '',
-                        email2: t.email2 ?? '',
-                        campus: t.campus ?? '',
-                        region: t.region ?? '',
-                        costCenter: t.costCenter ?? '',
-                        coordination: t.coordination ?? '',
-                        escalafon: t.escalafon ?? '',
-                        dedicacion: t.dedicacion ?? '',
-                        tipoContrato: t.tipoContrato ?? '',
-                        fechaInicio: t.fechaInicio ? t.fechaInicio.slice(0, 10) : '',
-                        fechaFin: t.fechaFin ? t.fechaFin.slice(0, 10) : '',
-                        antiguedadText: t.antiguedadText ?? '',
-                        programaAcademico: t.programaAcademico ?? '',
-                        programaCodigo: t.programaCodigo ?? '',
-                        previousEmployment: t.previousEmployment ?? false,
-                      });
-                      setShowTeacherForm(true);
-                      setDetailTeacher(null);
-                      // scroll to form
-                      setTimeout(() => window.scrollTo({ top: 0, behavior: 'smooth' }), 100);
-                    }}
-                  >
-                    Editar este docente
-                  </button>
-                </div>
-              </div>
-            </div>
-          </div>
+          </Modal>
         );
       })()}
+
     </article>
   );
 }

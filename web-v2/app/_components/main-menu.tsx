@@ -23,7 +23,8 @@ export type MainMenuSection =
   | 'automatizacion-moodle'
   | 'analitica-moodle'
   | 'reportes'
-  | 'eventos-significativos';
+  | 'eventos-significativos'
+  | 'design-system';
 
 const ICON_HOME = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
@@ -134,12 +135,22 @@ const ICON_CALENDAR = (
   </svg>
 );
 
+const ICON_PALETTE = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <circle cx="13.5" cy="6.5" r="0.5" fill="currentColor" />
+    <circle cx="17.5" cy="10.5" r="0.5" fill="currentColor" />
+    <circle cx="8.5" cy="7.5" r="0.5" fill="currentColor" />
+    <circle cx="6.5" cy="12.5" r="0.5" fill="currentColor" />
+    <path d="M12 2C6.5 2 2 6.5 2 12s4.5 10 10 10c.83 0 1.5-.67 1.5-1.5 0-.39-.15-.74-.39-1.01-.23-.26-.38-.61-.38-.99 0-.83.67-1.5 1.5-1.5H16c3.31 0 6-2.69 6-6 0-5.52-4.48-9-10-9z" />
+  </svg>
+);
+
 type NavItem = {
   href: string;
   label: string;
   section: MainMenuSection;
   icon: React.ReactNode;
-  group: 'main' | 'data' | 'automation';
+  group: 'main' | 'data' | 'automation' | 'system';
 };
 
 const NAV_ITEMS: NavItem[] = [
@@ -163,6 +174,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/analitica-moodle', label: 'Analitica Moodle', section: 'analitica-moodle', icon: ICON_CHART, group: 'data' },
   { href: '/automatizacion-banner', label: 'Banner', section: 'automatizacion-banner', icon: ICON_ZAP, group: 'automation' },
   { href: '/automatizacion-moodle', label: 'Moodle Sidecar', section: 'automatizacion-moodle', icon: ICON_SETTINGS, group: 'automation' },
+  { href: '/design-system', label: 'Design System', section: 'design-system', icon: ICON_PALETTE, group: 'system' },
 ];
 
 function getActiveSection(pathname: string): MainMenuSection {
@@ -181,6 +193,7 @@ function SidebarContent({
   const mainItems = NAV_ITEMS.filter((i) => i.group === 'main');
   const dataItems = NAV_ITEMS.filter((i) => i.group === 'data');
   const autoItems = NAV_ITEMS.filter((i) => i.group === 'automation');
+  const sysItems = NAV_ITEMS.filter((i) => i.group === 'system');
 
   return (
     <>
@@ -217,6 +230,19 @@ function SidebarContent({
 
         <div className="sidebar-section-label">Automatizacion</div>
         {autoItems.map((item) => (
+          <a
+            key={item.href}
+            href={item.href}
+            className={`sidebar-link${active === item.section ? ' active' : ''}`}
+            onClick={onNavigate}
+          >
+            {item.icon}
+            <span>{item.label}</span>
+          </a>
+        ))}
+
+        <div className="sidebar-section-label">Sistema</div>
+        {sysItems.map((item) => (
           <a
             key={item.href}
             href={item.href}

@@ -1,6 +1,7 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
+import { Button, PageHero, AlertBox, useConfirm } from '../../_components/ui';
 
 type Item = {
   id: string;
@@ -56,6 +57,7 @@ function classroomStatus(item: Item, nowHHMM: string): 'PROXIMO' | 'EN_CURSO' | 
 }
 
 export function HorariosPanel({ apiBase }: { apiBase: string }) {
+  const confirm = useConfirm();
   const [tab, setTab] = useState<Tab>('docente');
   const [items, setItems] = useState<Item[]>([]);
   const [loading, setLoading] = useState(false);
@@ -235,7 +237,7 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
 
   async function sendEmailToTeacher(teacherId: string, audience: 'SEMESTRE' | 'PRE_MOMENTO') {
     if (!filters.periodCode) { setEmailMessage('Periodo requerido.'); return; }
-    if (!window.confirm(`Enviar correo (${audience}) al docente para ${filters.periodCode}${filters.moment ? `/${filters.moment}` : ''}?`)) return;
+    if (!await confirm({ title: 'Enviar correo a docente', message: `Enviar correo (${audience}) al docente para ${filters.periodCode}${filters.moment ? `/${filters.moment}` : ''}.`, confirmLabel: 'Enviar', tone: 'primary' })) return;
     setSending(true);
     try {
       const r = await fetch(`${apiBase}/teacher-schedule-email/send`, {
@@ -255,7 +257,7 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
 
   async function sendEmailToAll(audience: 'SEMESTRE' | 'PRE_MOMENTO') {
     if (!filters.periodCode) { setEmailMessage('Periodo requerido.'); return; }
-    if (!window.confirm(`Enviar a TODOS los docentes del periodo ${filters.periodCode}${filters.moment ? `/${filters.moment}` : ''}? Esto encolara correos masivos.`)) return;
+    if (!await confirm({ title: 'Envío masivo de correos', message: `Se enviarán correos a TODOS los docentes del periodo ${filters.periodCode}${filters.moment ? `/${filters.moment}` : ''}. Esto encolará correos masivos.`, confirmLabel: 'Enviar a todos', tone: 'danger' })) return;
     setSending(true);
     try {
       const r = await fetch(`${apiBase}/teacher-schedule-email/send`, {
@@ -287,10 +289,16 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
   }
 
   return (
-    <div className="panel">
+    <article className="premium-card">
+      <PageHero
+        title="Horarios"
+        description="Consulta de horarios por docente, coordinación, centro académico, estudiante o salón."
+      />
+
+      <div className="panel-body">
       <div style={{ display: 'flex', gap: 6, marginBottom: 12 }}>
         {TABS.map((t) => (
-          <button key={t} type="button" onClick={() => setTab(t)} className={tab === t ? 'primary' : ''} style={{ textTransform: 'capitalize' }}>{t}</button>
+          <Button key={t} variant={tab === t ? 'primary' : 'ghost'} size="sm" onClick={() => setTab(t)} style={{ textTransform: 'capitalize' }}>{t}</Button>
         ))}
       </div>
 
@@ -344,17 +352,17 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
           </>
         )}
         <div className="toolbar wide">
-          <button type="button" className="primary" onClick={() => void load()} disabled={loading}>{loading ? 'Cargando...' : 'Buscar'}</button>
+          <Button variant="primary" size="sm" onClick={() => void load()} disabled={loading} loading={loading}>Buscar</Button>
           {tab === 'docente' && (
             <>
-              <button type="button" onClick={() => void sendEmailToAll('SEMESTRE')} disabled={sending} style={{ background: '#16a34a', color: '#fff' }}>Enviar inicio semestre (todos)</button>
-              <button type="button" onClick={() => void sendEmailToAll('PRE_MOMENTO')} disabled={sending} style={{ background: '#d97706', color: '#fff' }}>Enviar pre-momento (todos)</button>
+              <Button variant="secondary" size="sm" onClick={() => void sendEmailToAll('SEMESTRE')} disabled={sending} loading={sending}>Enviar inicio semestre (todos)</Button>
+              <Button variant="secondary" size="sm" onClick={() => void sendEmailToAll('PRE_MOMENTO')} disabled={sending} loading={sending}>Enviar pre-momento (todos)</Button>
             </>
           )}
         </div>
       </div>
 
-      {emailMessage && <div className="message" style={{ marginBottom: 8 }}>{emailMessage}</div>}
+      {emailMessage && <AlertBox tone="info" style={{ marginBottom: 8 }}>{emailMessage}</AlertBox>}
       <div className="muted" style={{ fontSize: 12, marginBottom: 8 }}>Mostrando {filtered.length} NRC.</div>
 
       {tab === 'docente' && [...byTeacher.entries()].map(([tid, list]) => {
@@ -367,10 +375,10 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
                 <span className="muted" style={{ fontSize: 11 }}>{t.teacherEmail ?? ''}{t.teacherEmail2 ? ` · ${t.teacherEmail2}` : ''}</span>
                 <span className="muted" style={{ fontSize: 11, marginLeft: 8 }}>centro={t.campus ?? '—'}</span>
               </div>
-              <div>
-                <button type="button" onClick={() => void previewTeacher(tid)}>Preview email</button>{' '}
-                <button type="button" onClick={() => void sendEmailToTeacher(tid, 'SEMESTRE')} disabled={sending} style={{ background: '#16a34a', color: '#fff' }}>Enviar semestre</button>{' '}
-                <button type="button" onClick={() => void sendEmailToTeacher(tid, 'PRE_MOMENTO')} disabled={sending} style={{ background: '#d97706', color: '#fff' }}>Enviar pre-momento</button>
+              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                <Button variant="ghost" size="sm" onClick={() => void previewTeacher(tid)}>Preview email</Button>
+                <Button variant="secondary" size="sm" onClick={() => void sendEmailToTeacher(tid, 'SEMESTRE')} disabled={sending} loading={sending}>Enviar semestre</Button>
+                <Button variant="secondary" size="sm" onClick={() => void sendEmailToTeacher(tid, 'PRE_MOMENTO')} disabled={sending} loading={sending}>Enviar pre-momento</Button>
               </div>
             </div>
             <ScheduleTable items={list} />
@@ -476,13 +484,14 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
           )}
         </div>
       )}
-    </div>
+      </div>{/* /panel-body */}
+    </article>
   );
 }
 
 function ScheduleTable({ items, showTeacher }: { items: Item[]; showTeacher?: boolean }) {
   return (
-    <table className="table">
+    <table className="fast-table">
       <thead>
         <tr>
           <th>NRC</th>

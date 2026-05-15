@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { useConfirm, AlertBox, Button } from '../../_components/ui';
 
 type SidecarRunCommand = 'classify' | 'revalidate' | 'backup' | 'attendance' | 'activity' | 'participants' | 'gui';
 type RevalidateMode = 'sin_matricula' | 'aulas_vacias' | 'ambos';
@@ -353,6 +354,7 @@ function buildEmptyRevalidateMessage(mode: RevalidateMode) {
 }
 
 export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationPanelProps) {
+  const confirm = useConfirm();
   const [config, setConfig] = useState<SidecarConfigResponse | null>(null);
   const [status, setStatus] = useState<SidecarStatus | null>(null);
   const [batchOptions, setBatchOptions] = useState<SidecarBatchOptions | null>(null);
@@ -978,9 +980,12 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
       return;
     }
 
-    const confirmed = window.confirm(
-      `Se van a desactivar ${courseIds.length} NRC. Esta accion los marca como descartados y ajusta muestreo/replicas si aplica. ¿Deseas continuar?`,
-    );
+    const confirmed = await confirm({
+      title: 'Desactivar lote de NRCs',
+      message: `Se van a desactivar ${courseIds.length} NRC. Esta acción los marca como descartados y ajusta muestreo/réplicas si aplica.`,
+      confirmLabel: 'Desactivar',
+      tone: 'danger',
+    });
     if (!confirmed) return;
 
     try {
@@ -1009,16 +1014,16 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
   }
 
   return (
-    <article className="panel">
+    <div className="premium-card">
       <h2>Automatizacion Moodle</h2>
       <div className="actions">
         Revisa aulas de Moodle en lote, sigue el avance y guarda el resultado en el sistema.
       </div>
 
       <div className="controls" style={{ marginTop: 8 }}>
-        <button style={{ background: '#f3f4f6', color: '#111827' }} onClick={loadAll} disabled={loading || actionLoading}>
+        <Button variant="secondary" size="sm" onClick={loadAll} disabled={loading || actionLoading} loading={loading}>
           {loading ? 'Actualizando...' : 'Actualizar estado del proceso'}
-        </button>
+        </Button>
       </div>
 
       <div className="badges" style={{ marginTop: 8 }}>
@@ -1130,9 +1135,10 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
 
       <div className="subtitle" style={{ marginTop: 12 }}>Atajos frecuentes</div>
       <div className="controls" style={{ marginTop: 8 }}>
-        <button
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
-          style={{ background: '#f3f4f6', color: '#111827' }}
           onClick={() => {
             setCommand('revalidate');
             setMode('aulas_vacias');
@@ -1140,10 +1146,11 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           disabled={actionLoading}
         >
           Ir a aulas vacias
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
-          style={{ background: '#f3f4f6', color: '#111827' }}
           onClick={() => {
             setCommand('revalidate');
             setMode('sin_matricula');
@@ -1152,10 +1159,11 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           disabled={actionLoading}
         >
           Ir a no registrado
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
-          style={{ background: '#f3f4f6', color: '#111827' }}
           onClick={() => {
             setCommand('revalidate');
             setMode('ambos');
@@ -1164,7 +1172,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           disabled={actionLoading}
         >
           Ir a ambos casos
-        </button>
+        </Button>
       </div>
 
       {command === 'classify' ? (
@@ -1237,17 +1245,18 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                 Periodos a revisar
               </div>
               <div className="controls">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   type="button"
                   onClick={() => setSelectedPeriodCodes((batchOptions?.periods ?? []).map((period) => period.code))}
                   disabled={actionLoading}
-                  style={{ background: '#f3f4f6', color: '#111827' }}
                 >
                   Marcar todos los periodos
-                </button>
-                <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+                </Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
                   Limpiar seleccion
-                </button>
+                </Button>
               </div>
               <div className="badges" style={{ marginTop: 8 }}>
                 {(batchOptions?.periods ?? []).map((period) => (
@@ -1268,17 +1277,18 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                 Momentos a revisar
               </div>
               <div className="controls">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   type="button"
                   onClick={() => setSelectedMoments(batchOptions?.moments ?? [])}
                   disabled={actionLoading}
-                  style={{ background: '#f3f4f6', color: '#111827' }}
                 >
                   Marcar todos los momentos
-                </button>
-                <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedMoments([])} disabled={actionLoading}>
+                </Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedMoments([])} disabled={actionLoading}>
                   Usar todos los momentos
-                </button>
+                </Button>
               </div>
               <div className="badges" style={{ marginTop: 8 }}>
                 {(batchOptions?.moments ?? []).map((moment) => (
@@ -1294,9 +1304,9 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               </div>
 
               <div className="controls" style={{ marginTop: 10 }}>
-                <button className="primary" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
+                <Button variant="primary" size="sm" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running} loading={actionLoading}>
                   {actionLoading ? 'Procesando...' : 'Previsualizar cursos a revisar'}
-                </button>
+                </Button>
               </div>
 
               {batchPreview ? (
@@ -1416,17 +1426,18 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             Periodos a revalidar
           </div>
           <div className="controls">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               type="button"
-              style={{ background: '#f3f4f6', color: '#111827' }}
               onClick={() => setSelectedPeriodCodes((batchOptions?.periods ?? []).map((period) => period.code))}
               disabled={actionLoading}
             >
               Marcar todos los periodos
-            </button>
-            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+            </Button>
+            <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
               Limpiar seleccion
-            </button>
+            </Button>
           </div>
           <div className="badges" style={{ marginTop: 8 }}>
             {(batchOptions?.periods ?? []).map((period) => (
@@ -1447,12 +1458,12 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             Momentos a incluir
           </div>
           <div className="controls">
-            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
+            <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
               Marcar todos los momentos
-            </button>
-            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedMoments([])} disabled={actionLoading}>
+            </Button>
+            <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedMoments([])} disabled={actionLoading}>
               Usar todos los momentos
-            </button>
+            </Button>
           </div>
           <div className="badges" style={{ marginTop: 8 }}>
             {(batchOptions?.moments ?? []).map((moment) => (
@@ -1468,25 +1479,29 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           </div>
 
           <div className="controls" style={{ marginTop: 10 }}>
-            <button
-              className="primary"
+            <Button
+              variant="primary"
+              size="sm"
               type="button"
               onClick={() => void previewRevalidateMode('aulas_vacias')}
               disabled={actionLoading || !hasBatchSelection || !!status?.running}
+              loading={actionLoading}
             >
               {actionLoading ? 'Procesando...' : 'Previsualizar aulas vacias'}
-            </button>
-            <button
-              className="primary"
+            </Button>
+            <Button
+              variant="primary"
+              size="sm"
               type="button"
               onClick={() => void previewRevalidateMode('sin_matricula')}
               disabled={actionLoading || !hasBatchSelection || !!status?.running}
+              loading={actionLoading}
             >
               {actionLoading ? 'Procesando...' : 'Previsualizar sin matricula / no registrado'}
-            </button>
-            <button className="primary" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
+            </Button>
+            <Button variant="primary" size="sm" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running} loading={actionLoading}>
               {actionLoading ? 'Procesando...' : 'Previsualizar cursos a revalidar'}
-            </button>
+            </Button>
           </div>
 
           {batchPreview ? (
@@ -1598,17 +1613,18 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                 Periodos a respaldar
               </div>
               <div className="controls">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   type="button"
                   onClick={() => setSelectedPeriodCodes((batchOptions?.periods ?? []).map((period) => period.code))}
                   disabled={actionLoading}
-                  style={{ background: '#f3f4f6', color: '#111827' }}
                 >
                   Marcar todos los periodos
-                </button>
-                <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+                </Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
                   Limpiar seleccion
-                </button>
+                </Button>
               </div>
               <div className="badges" style={{ marginTop: 8 }}>
                 {(batchOptions?.periods ?? []).map((period) => (
@@ -1629,12 +1645,12 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                 Momentos a incluir
               </div>
               <div className="controls">
-                <button type="button" onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
+                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
                   Marcar todos los momentos
-                </button>
-                <button type="button" onClick={() => setSelectedMoments([])} disabled={actionLoading}>
+                </Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedMoments([])} disabled={actionLoading}>
                   Usar todos los momentos
-                </button>
+                </Button>
               </div>
               <div className="badges" style={{ marginTop: 8 }}>
                 {(batchOptions?.moments ?? []).map((moment) => (
@@ -1653,17 +1669,18 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                 Tipos de aula a respaldar
               </div>
               <div className="controls">
-                <button
+                <Button
+                  variant="ghost"
+                  size="sm"
                   type="button"
                   onClick={() => setSelectedTemplates((batchOptions?.templates ?? []).map((template) => template.code))}
                   disabled={actionLoading}
-                  style={{ background: '#f3f4f6', color: '#111827' }}
                 >
                   Marcar todos los tipos
-                </button>
-                <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedTemplates([])} disabled={actionLoading}>
+                </Button>
+                <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedTemplates([])} disabled={actionLoading}>
                   Usar todos los tipos
-                </button>
+                </Button>
               </div>
               <div className="badges" style={{ marginTop: 8 }}>
                 {(batchOptions?.templates ?? []).map((template) => (
@@ -1696,9 +1713,9 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               </div>
 
               <div className="controls" style={{ marginTop: 10 }}>
-                <button className="primary" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
+                <Button variant="primary" size="sm" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running} loading={actionLoading}>
                   {actionLoading ? 'Procesando...' : 'Previsualizar cursos para respaldo'}
-                </button>
+                </Button>
               </div>
 
               {batchPreview ? (
@@ -1841,17 +1858,18 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             Periodos a incluir
           </div>
           <div className="controls">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               type="button"
-              style={{ background: '#f3f4f6', color: '#111827' }}
               onClick={() => setSelectedPeriodCodes((batchOptions?.periods ?? []).map((period) => period.code))}
               disabled={actionLoading}
             >
               Marcar todos los periodos
-            </button>
-            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
+            </Button>
+            <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedPeriodCodes([])} disabled={actionLoading}>
               Limpiar seleccion
-            </button>
+            </Button>
           </div>
           <div className="badges" style={{ marginTop: 8 }}>
             {(batchOptions?.periods ?? []).map((period) => (
@@ -1872,12 +1890,12 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             Momentos a incluir
           </div>
           <div className="controls">
-            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
+            <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedMoments(batchOptions?.moments ?? [])} disabled={actionLoading}>
               Marcar todos los momentos
-            </button>
-            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedMoments([])} disabled={actionLoading}>
+            </Button>
+            <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedMoments([])} disabled={actionLoading}>
               Usar todos los momentos
-            </button>
+            </Button>
           </div>
           <div className="badges" style={{ marginTop: 8 }}>
             {(batchOptions?.moments ?? []).map((moment) => (
@@ -1896,17 +1914,18 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             Tipos de aula
           </div>
           <div className="controls">
-            <button
+            <Button
+              variant="ghost"
+              size="sm"
               type="button"
               onClick={() => setSelectedTemplates((batchOptions?.templates ?? []).map((template) => template.code))}
               disabled={actionLoading}
-              style={{ background: '#f3f4f6', color: '#111827' }}
             >
               Marcar todos los tipos
-            </button>
-            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedTemplates([])} disabled={actionLoading}>
+            </Button>
+            <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedTemplates([])} disabled={actionLoading}>
               Usar todos los tipos
-            </button>
+            </Button>
           </div>
           <div className="badges" style={{ marginTop: 8 }}>
             {(batchOptions?.templates ?? []).map((template) => (
@@ -1924,7 +1943,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           </div>
 
           <div className="controls" style={{ marginTop: 10 }}>
-            <button className="primary" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running}>
+            <Button variant="primary" size="sm" type="button" onClick={previewBatch} disabled={actionLoading || !hasBatchSelection || !!status?.running} loading={actionLoading}>
               {actionLoading
                 ? 'Procesando...'
                 : command === 'attendance'
@@ -1932,7 +1951,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                   : command === 'participants'
                     ? 'Previsualizar cursos para participantes'
                     : 'Previsualizar cursos para actividad'}
-            </button>
+            </Button>
           </div>
 
           {batchPreview ? (
@@ -1998,12 +2017,12 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
       ) : null}
 
       <div className="controls" style={{ marginTop: 10 }}>
-        <button className="primary" onClick={startRun} disabled={!canStart}>
+        <Button variant="primary" size="sm" onClick={startRun} disabled={!canStart} loading={actionLoading}>
           {actionLoading ? 'Procesando...' : startButtonLabel}
-        </button>
-        <button className="danger" onClick={cancelRun} disabled={!status?.running || actionLoading}>
+        </Button>
+        <Button variant="danger" size="sm" onClick={cancelRun} disabled={!status?.running || actionLoading}>
           Cancelar proceso actual
-        </button>
+        </Button>
       </div>
 
       {command === 'attendance' || command === 'activity' || command === 'participants' ? (
@@ -2031,9 +2050,9 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           <input type="checkbox" checked={importDryRun} onChange={(event) => setImportDryRun(event.target.checked)} />
           <span>Solo simular la importacion</span>
         </label>
-        <button className="primary" onClick={importToSystem} disabled={actionLoading || status?.running}>
+        <Button variant="primary" size="sm" onClick={importToSystem} disabled={actionLoading || !!status?.running} loading={actionLoading}>
           {actionLoading ? 'Procesando...' : 'Importar resultado al sistema'}
-        </button>
+        </Button>
       </div>
       <div className="actions">
         Si dejas el archivo vacio, el sistema toma automaticamente el ultimo resultado valido de clasificacion o
@@ -2083,38 +2102,39 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
         disponibles.
       </div>
       <div className="controls" style={{ marginTop: 8 }}>
-        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => void loadFollowupCases('sin_matricula')} disabled={actionLoading}>
+        <Button variant="ghost" size="sm" type="button" onClick={() => void loadFollowupCases('sin_matricula')} disabled={actionLoading} loading={actionLoading}>
           {actionLoading ? 'Procesando...' : 'Cargar no registrados'}
-        </button>
-        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => void loadFollowupCases('no_encontrado')} disabled={actionLoading}>
+        </Button>
+        <Button variant="ghost" size="sm" type="button" onClick={() => void loadFollowupCases('no_encontrado')} disabled={actionLoading} loading={actionLoading}>
           {actionLoading ? 'Procesando...' : 'Cargar no encontrados'}
-        </button>
-        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => void loadFollowupCases('ambos')} disabled={actionLoading}>
+        </Button>
+        <Button variant="ghost" size="sm" type="button" onClick={() => void loadFollowupCases('ambos')} disabled={actionLoading} loading={actionLoading}>
           {actionLoading ? 'Procesando...' : 'Cargar ambos'}
-        </button>
-        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => void loadFollowupCases()} disabled={actionLoading}>
+        </Button>
+        <Button variant="ghost" size="sm" type="button" onClick={() => void loadFollowupCases()} disabled={actionLoading} loading={actionLoading}>
           {actionLoading ? 'Procesando...' : 'Cargar lista de seguimiento'}
-        </button>
-        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={exportFollowupCsv} disabled={actionLoading || !followupItems.length}>
+        </Button>
+        <Button variant="ghost" size="sm" type="button" onClick={exportFollowupCsv} disabled={actionLoading || !followupItems.length}>
           Descargar CSV de la lista
-        </button>
-        <button
+        </Button>
+        <Button
+          variant="ghost"
+          size="sm"
           type="button"
-          style={{ background: '#f3f4f6', color: '#111827' }}
           onClick={downloadAuditorTemplate}
           disabled={actionLoading || !visibleAuditorFollowupItems.length}
         >
           Descargar formato oficial de auditor
-        </button>
-        <button className="primary" type="button" onClick={sendNotFoundToBanner} disabled={actionLoading || !followupItems.some((item) => item.canSendToBanner)}>
+        </Button>
+        <Button variant="primary" size="sm" type="button" onClick={sendNotFoundToBanner} disabled={actionLoading || !followupItems.some((item) => item.canSendToBanner)}>
           Enviar no encontrados a Banner
-        </button>
-        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={importLatestBannerResult} disabled={actionLoading}>
+        </Button>
+        <Button variant="ghost" size="sm" type="button" onClick={importLatestBannerResult} disabled={actionLoading}>
           Importar ultimo resultado Banner
-        </button>
-        <button className="danger" type="button" onClick={deactivateFollowupCourses} disabled={actionLoading || !followupItems.some((item) => item.canDeactivate)}>
+        </Button>
+        <Button variant="danger" size="sm" type="button" onClick={deactivateFollowupCourses} disabled={actionLoading || !followupItems.some((item) => item.canDeactivate)}>
           Desactivar no encontrados en Moodle y Banner
-        </button>
+        </Button>
       </div>
 
       {followupData ? (
@@ -2133,36 +2153,39 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             ))}
           </div>
           <div className="controls" style={{ marginTop: 8 }}>
-            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedFollowupIds(followupItems.map((item) => item.id))} disabled={actionLoading || !followupItems.length}>
+            <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedFollowupIds(followupItems.map((item) => item.id))} disabled={actionLoading || !followupItems.length}>
               Marcar visibles
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               type="button"
-              style={{ background: '#f3f4f6', color: '#111827' }}
               onClick={() => setSelectedFollowupIds(unique(followupItems.filter((item) => item.canSendToBanner).map((item) => item.id)))}
               disabled={actionLoading || !followupItems.some((item) => item.canSendToBanner)}
             >
               Marcar no encontrados para Banner
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               type="button"
-              style={{ background: '#f3f4f6', color: '#111827' }}
               onClick={() => setSelectedFollowupIds(unique(followupItems.filter((item) => item.canDeactivate).map((item) => item.id)))}
               disabled={actionLoading || !followupItems.some((item) => item.canDeactivate)}
             >
               Marcar eliminables
-            </button>
-            <button
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               type="button"
-              style={{ background: '#f3f4f6', color: '#111827' }}
               onClick={() => setSelectedFollowupIds(unique(visibleAuditorFollowupItems.map((item) => item.id)))}
               disabled={actionLoading || !visibleAuditorFollowupItems.length}
             >
               Marcar sin matricula para formato
-            </button>
-            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setSelectedFollowupIds([])} disabled={actionLoading || !selectedFollowupIds.length}>
+            </Button>
+            <Button variant="ghost" size="sm" type="button" onClick={() => setSelectedFollowupIds([])} disabled={actionLoading || !selectedFollowupIds.length}>
               Limpiar seleccion
-            </button>
+            </Button>
           </div>
           <div className="actions" style={{ marginTop: 8 }}>
             Seleccionados: {selectedFollowupIds.length}. Para desactivar, el NRC debe aparecer tambien con estado Banner{' '}
@@ -2335,7 +2358,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
         </>
       ) : null}
 
-      {message ? <div className="message">{message}</div> : null}
+      {message ? <AlertBox tone={message.startsWith('No se pudo') || message.startsWith('No fue posible') ? 'error' : message.startsWith('Selecciona') ? 'warn' : 'info'}>{message}</AlertBox> : null}
 
       {status?.logTail ? (
         <>
@@ -2409,6 +2432,6 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
           )}
         </>
       ) : null}
-    </article>
+    </div>
   );
 }

@@ -1,5 +1,7 @@
 'use client';
 
+import { Button, useToast } from '../../_components/ui';
+
 type ReviewLauncherPanelProps = {
   initialPeriodCode?: string;
   initialMoment?: 'MD1' | 'MD2' | '1';
@@ -46,6 +48,8 @@ export function ReviewLauncherPanel({
   initialMoment = 'MD1',
   initialPhase = 'ALISTAMIENTO',
 }: ReviewLauncherPanelProps) {
+  const toast = useToast();
+
   function openChecklistPopup() {
     const params = new URLSearchParams({
       periodCode: initialPeriodCode,
@@ -71,11 +75,11 @@ export function ReviewLauncherPanel({
       return;
     }
 
-    window.alert('El navegador bloqueó la ventana emergente. Permite pop-ups para localhost.');
+    toast.warn('El navegador bloqueó la ventana emergente. Permite pop-ups para localhost.');
   }
 
   return (
-    <article className="panel">
+    <div className="premium-card">
       <h2>Checklist</h2>
       <div className="actions">
         Abre directamente el checklist en ventana emergente para revisar NRC por muestreo.
@@ -86,10 +90,10 @@ export function ReviewLauncherPanel({
         <span className="badge">Fase: {initialPhase}</span>
       </div>
       <div className="controls" style={{ marginTop: 12 }}>
-        <button type="button" className="primary" onClick={openChecklistPopup}>
+        <Button variant="primary" size="sm" onClick={openChecklistPopup}>
           Abrir checklist
-        </button>
+        </Button>
       </div>
-    </article>
+    </div>
   );
 }

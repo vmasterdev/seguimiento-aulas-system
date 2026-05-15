@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import React, { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { AlertBox, Button } from '../../_components/ui';
 
 type AnalyticsOptionsResponse = {
   ok: boolean;
@@ -661,14 +662,19 @@ function MetricCard({
   hint?: string;
   tone?: 'default' | 'warm' | 'danger' | 'cool';
 }) {
-  const toneClass =
-    tone === 'warm' ? 'tone-amber' : tone === 'danger' ? 'tone-red' : tone === 'cool' ? 'tone-teal' : 'tone-default';
-
+  const bg =
+    tone === 'warm'
+      ? 'linear-gradient(135deg,#fffbeb 0%,#fef3c7 100%)'
+      : tone === 'danger'
+      ? 'linear-gradient(135deg,#fff1f2 0%,#fce7f3 100%)'
+      : tone === 'cool'
+      ? 'linear-gradient(135deg,#f0fdfa 0%,#ccfbf1 100%)'
+      : 'linear-gradient(135deg,var(--n-50) 0%,#f1f5f9 100%)';
   return (
-    <article className={`stat-card ${toneClass}`}>
-      <div className="stat-label">{label}</div>
-      <div className="stat-value">{value}</div>
-      {hint ? <div className="stat-hint">{hint}</div> : null}
+    <article className="ds-stat-card" style={{ background: bg }}>
+      <div className="ds-stat-label">{label}</div>
+      <div className="ds-stat-value">{value}</div>
+      {hint ? <div className="ds-stat-hint">{hint}</div> : null}
     </article>
   );
 }
@@ -686,24 +692,23 @@ function BarList({
 }) {
   const max = Math.max(...items.map((item) => item.value), 1);
   return (
-    <section className="analytics-panel">
-      <div className="analytics-panel-head">
-        <h3>{title}</h3>
+    <section className="premium-card" style={{ padding: '16px 20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+        <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '0.95rem', fontWeight: 700, letterSpacing: '-0.02em' }}>{title}</h3>
       </div>
-      <div className="bar-list">
+      <div style={{ display: 'grid', gap: 8 }}>
         {items.length ? (
           items.map((item) => (
-            <div className="bar-row" key={`${title}-${item.label}`}>
+            <div key={`${title}-${item.label}`} style={{ display: 'grid', gridTemplateColumns: '1fr 3fr auto', gap: 8, alignItems: 'center', fontSize: '0.8rem' }}>
               <div>
-                <strong>{item.label}</strong>
-                {item.meta ? <small>{item.meta}</small> : null}
+                <strong style={{ fontSize: '0.8rem' }}>{item.label}</strong>
+                {item.meta ? <small style={{ display: 'block', color: 'var(--muted)', fontSize: '0.72rem' }}>{item.meta}</small> : null}
               </div>
-              <div className="bar-track">
-                <span className="bar-fill" style={{ width: `${Math.max(6, (item.value / max) * 100)}%`, background: accent }} />
+              <div style={{ height: 8, background: 'var(--n-100)', borderRadius: 4, overflow: 'hidden' }}>
+                <span style={{ display: 'block', height: '100%', width: `${Math.max(6, (item.value / max) * 100)}%`, background: accent, borderRadius: 4 }} />
               </div>
-              <div className="bar-value">
-                {item.value}
-                {suffix}
+              <div style={{ fontSize: '0.8rem', fontWeight: 600, color: 'var(--slate-700)', minWidth: 32, textAlign: 'right' }}>
+                {item.value}{suffix}
               </div>
             </div>
           ))
@@ -725,25 +730,25 @@ function DayBars({
   tone?: 'warm' | 'cool';
 }) {
   const max = Math.max(...items.map((item) => item.count), 1);
+  const barColor = tone === 'cool' ? 'var(--teal)' : 'var(--amber)';
   return (
-    <section className="analytics-panel">
-      <div className="analytics-panel-head">
-        <h3>{title}</h3>
+    <section className="premium-card" style={{ padding: '16px 20px' }}>
+      <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', marginBottom: 12 }}>
+        <h3 style={{ margin: 0, fontFamily: 'var(--font-display)', fontSize: '0.95rem', fontWeight: 700, letterSpacing: '-0.02em' }}>{title}</h3>
       </div>
-      <div className="day-bars">
+      <div style={{ display: 'flex', alignItems: 'flex-end', gap: 6, height: 80, paddingBottom: 4 }}>
         {items.length ? (
           items.map((item) => (
-            <div className="day-bar" key={`${title}-${item.day}`}>
+            <div key={`${title}-${item.day}`} style={{ flex: 1, display: 'flex', flexDirection: 'column', alignItems: 'center', gap: 4, height: '100%', justifyContent: 'flex-end' }}>
               <div
-                className={`day-bar-fill ${tone}`}
-                style={{ height: `${Math.max(10, (item.count / max) * 100)}%` }}
+                style={{ width: '100%', background: barColor, borderRadius: '3px 3px 0 0', height: `${Math.max(10, (item.count / max) * 100)}%`, minHeight: 4, transition: 'height 200ms ease' }}
                 title={`${item.day}: ${item.count}`}
               />
-              <span>{item.day.slice(5)}</span>
+              <span style={{ fontSize: '0.65rem', color: 'var(--muted)', whiteSpace: 'nowrap' }}>{item.day.slice(5)}</span>
             </div>
           ))
         ) : (
-          <div className="empty-state">Sin serie temporal.</div>
+          <div className="empty-state" style={{ alignSelf: 'center' }}>Sin serie temporal.</div>
         )}
       </div>
     </section>
@@ -1570,43 +1575,41 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           : 'Todavia no hay una corrida de matricula Banner registrada en esta pantalla.';
 
   return (
-    <div className="moodle-analytics-root">
-      <section className="analytics-hero analytics-hero-compact">
-        <div className="analytics-hero-copy">
-          <h2>Revision masiva de asistencia y uso</h2>
-          <p>
-            Ejecuta la extraccion de Moodle por periodos RPACA y deja la analitica actualizada sin ir a otras
-            pantallas ni importar archivos a mano.
-          </p>
-        </div>
-        <div className="analytics-actions analytics-actions-wrap">
-          <button
-            type="button"
-            className="primary"
-            onClick={() => void runMoodleQuickSync('all')}
-            disabled={moodleSyncLoading || !!importingKind}
-          >
-            {moodleSyncLoading && moodleQuickRun?.kind === 'all' ? 'Actualizando Moodle...' : 'Actualizar todo Moodle'}
-          </button>
-          <button type="button" className="ghost" onClick={() => void loadOptionsAndOverview(filters)} disabled={loading}>
-            {loading ? 'Actualizando...' : 'Refrescar indicadores'}
-          </button>
-          {sidecarStatus?.running && (
+    <div style={{ display: 'grid', gap: 16 }}>
+      <section className="hero-banner">
+        <div className="hero-banner-body">
+          <div className="hero-banner-copy">
+            <h2 className="hero-banner-title">Revision masiva de asistencia y uso</h2>
+            <p style={{ margin: '6px 0 0', maxWidth: '72ch', color: 'rgba(255,255,255,0.75)', lineHeight: 1.45 }}>
+              Ejecuta la extraccion de Moodle por periodos RPACA y deja la analitica actualizada sin ir a otras
+              pantallas ni importar archivos a mano.
+            </p>
+          </div>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
             <button
               type="button"
-              className="ghost"
-              onClick={() => void cancelMoodleQuickSync()}
+              style={{ background: '#fff', color: 'var(--teal)', border: 'none', borderRadius: 8, padding: '8px 16px', fontSize: '0.85rem', fontWeight: 700, cursor: 'pointer' }}
+              onClick={() => void runMoodleQuickSync('all')}
+              disabled={moodleSyncLoading || !!importingKind}
             >
-              Cancelar corrida
+              {moodleSyncLoading && moodleQuickRun?.kind === 'all' ? 'Actualizando Moodle...' : 'Actualizar todo Moodle'}
             </button>
-          )}
+            <Button variant="ghost" size="sm" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' } as React.CSSProperties} onClick={() => void loadOptionsAndOverview(filters)} disabled={loading}>
+              {loading ? 'Actualizando...' : 'Refrescar indicadores'}
+            </Button>
+            {sidecarStatus?.running && (
+              <Button variant="ghost" size="sm" style={{ background: 'rgba(255,255,255,0.15)', color: '#fff', borderColor: 'rgba(255,255,255,0.3)' } as React.CSSProperties} onClick={() => void cancelMoodleQuickSync()}>
+                Cancelar corrida
+              </Button>
+            )}
+          </div>
         </div>
       </section>
 
-      {message ? <div className="message-strip">{message}</div> : null}
+      {message ? <AlertBox tone={message.startsWith('No se pud') ? 'error' : message.startsWith('Ya hay') || message.startsWith('Escribe') ? 'warn' : 'info'}>{message}</AlertBox> : null}
 
-      <section className="analytics-panel quick-sync-panel">
-        <div className="analytics-panel-head">
+      <section className="premium-card" style={{ padding: '20px', display: 'grid', gap: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
           <div>
             <h3>Periodos para la corrida masiva</h3>
             <small>
@@ -1619,89 +1622,98 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                   )} aulas)`}
             </small>
           </div>
-          <div className="analytics-actions">
-            <button
-              type="button"
-              className="ghost"
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setMoodleSyncPeriodCodes(sidecarAvailablePeriods.map((period) => period.code))}
               disabled={!sidecarAvailablePeriods.length}
             >
               Seleccionar todos
-            </button>
-            <button
-              type="button"
-              className="ghost"
+            </Button>
+            <Button
+              variant="ghost"
+              size="sm"
               onClick={() => setMoodleSyncPeriodCodes([])}
               disabled={!moodleSyncPeriodCodes.length}
             >
               Usar todos sin marcar
-            </button>
+            </Button>
           </div>
         </div>
 
-        <div className="chip-grid">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
           {sidecarAvailablePeriods.length ? (
             sidecarAvailablePeriods.map((period) => (
               <button
                 type="button"
                 key={`sidecar-period-${period.code}`}
-                className={`chip-button${moodleSyncPeriodCodes.includes(period.code) ? ' active' : ''}`}
+                style={{
+                  border: `1px solid ${moodleSyncPeriodCodes.includes(period.code) ? 'var(--teal)' : 'var(--line)'}`,
+                  background: moodleSyncPeriodCodes.includes(period.code) ? 'var(--teal)' : 'var(--surface)',
+                  color: moodleSyncPeriodCodes.includes(period.code) ? '#fff' : 'var(--slate-700)',
+                  borderRadius: 6,
+                  padding: '5px 10px',
+                  fontSize: '0.78rem',
+                  fontWeight: 500,
+                  cursor: 'pointer',
+                }}
                 onClick={() => setMoodleSyncPeriodCodes((current) => togglePeriodCode(current, period.code))}
               >
                 {period.code}
               </button>
             ))
           ) : (
-            <span className="inline-note">Todavia no hay periodos RPACA con aulas Moodle listas para la corrida masiva.</span>
+            <span style={{ fontSize: '0.8rem', color: 'var(--muted)', fontStyle: 'italic' }}>Todavia no hay periodos RPACA con aulas Moodle listas para la corrida masiva.</span>
           )}
         </div>
 
-        <div className="analytics-actions">
-          <button
-            type="button"
-            className="ghost"
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => void runMoodleQuickSync('participants')}
             disabled={moodleSyncLoading || !!importingKind}
           >
             {moodleSyncLoading && moodleQuickRun?.currentCommand === 'participants' ? 'Extrayendo...' : 'Solo participantes'}
-          </button>
-          <button
-            type="button"
-            className="ghost"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => void runMoodleQuickSync('activity')}
             disabled={moodleSyncLoading || !!importingKind}
           >
             {moodleSyncLoading && moodleQuickRun?.currentCommand === 'activity' ? 'Extrayendo...' : 'Solo actividad'}
-          </button>
-          <button
-            type="button"
-            className="ghost"
+          </Button>
+          <Button
+            variant="ghost"
+            size="sm"
             onClick={() => void runMoodleQuickSync('attendance')}
             disabled={moodleSyncLoading || !!importingKind}
           >
             {moodleSyncLoading && moodleQuickRun?.currentCommand === 'attendance' ? 'Extrayendo...' : 'Solo asistencia'}
-          </button>
+          </Button>
         </div>
       </section>
 
-      <section className="analytics-panel quick-progress-panel">
-        <div className="analytics-panel-head">
+      <section className="premium-card" style={{ padding: '20px', display: 'grid', gap: 14 }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
           <div>
             <h3>Seguimiento de la extraccion Moodle</h3>
             <small>{moodleQuickRunCopy}</small>
           </div>
-          <div className="analytics-actions">
-            <span className={`banner-run-badge is-${sidecarVisibleRun?.status?.toLowerCase() ?? 'completed'}`}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+            <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: (sidecarVisibleRun?.status ?? 'COMPLETED') === 'RUNNING' ? 'var(--teal)' : (sidecarVisibleRun?.status ?? 'COMPLETED') === 'FAILED' ? 'var(--red)' : (sidecarVisibleRun?.status ?? 'COMPLETED') === 'CANCELLED' ? 'var(--amber)' : 'var(--n-200)', color: (sidecarVisibleRun?.status ?? 'COMPLETED') === 'RUNNING' || (sidecarVisibleRun?.status ?? 'COMPLETED') === 'FAILED' ? '#fff' : 'var(--slate-700)', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>
               {sidecarVisibleRun?.status ?? 'LISTO'}
             </span>
-            <button type="button" className="ghost" onClick={() => void loadSidecarStatus()} disabled={moodleSyncLoading}>
+            <Button variant="ghost" size="sm" onClick={() => void loadSidecarStatus()} disabled={moodleSyncLoading}>
               Actualizar seguimiento
-            </button>
+            </Button>
           </div>
         </div>
 
-        <div className="quick-progress-grid">
-          <div className="quick-progress-card">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 10 }}>
+          <div style={{ border: '1px solid var(--line)', background: 'var(--n-50)', borderRadius: 8, padding: 12, display: 'grid', gap: 4 }}>
             <span>Bloque actual</span>
             <strong>{formatSidecarCommand(moodleQuickRun?.currentCommand ?? sidecarVisibleRun?.command ?? null)}</strong>
             <small>
@@ -1712,17 +1724,17 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                   : 'Sin corrida registrada'}
             </small>
           </div>
-          <div className="quick-progress-card">
+          <div style={{ border: '1px solid var(--line)', background: 'var(--n-50)', borderRadius: 8, padding: 12, display: 'grid', gap: 4 }}>
             <span>Inicio</span>
             <strong>{formatDateTime(sidecarVisibleRun?.startedAt)}</strong>
             <small>Ultima lectura {formatDateTime(sidecarStatusCheckedAt)}</small>
           </div>
-          <div className="quick-progress-card">
+          <div style={{ border: '1px solid var(--line)', background: 'var(--n-50)', borderRadius: 8, padding: 12, display: 'grid', gap: 4 }}>
             <span>Duracion</span>
             <strong>{formatDuration(sidecarVisibleRun?.startedAt, sidecarVisibleRun?.endedAt)}</strong>
             <small>{sidecarStatus?.running ? 'Extraccion en curso' : 'Proceso inactivo'}</small>
           </div>
-          <div className="quick-progress-card">
+          <div style={{ border: '1px solid var(--line)', background: 'var(--n-50)', borderRadius: 8, padding: 12, display: 'grid', gap: 4 }}>
             <span>Cobertura del lote</span>
             <strong>
               {sidecarArtifact
@@ -1735,14 +1747,11 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           </div>
         </div>
 
-        <div className="banner-progress-track quick-progress-track" aria-hidden="true">
-          <span
-            className={`banner-progress-fill${sidecarStatus?.running ? ' is-running' : ''}`}
-            style={{ width: `${sidecarProgressPercent ?? (sidecarStatus?.running ? 8 : 100)}%` }}
-          />
+        <div style={{ height: 6, background: 'var(--n-100)', borderRadius: 3, overflow: 'hidden' }} aria-hidden="true">
+          <span style={{ display: 'block', height: '100%', width: `${sidecarProgressPercent ?? (sidecarStatus?.running ? 8 : 100)}%`, background: 'var(--teal)', borderRadius: 3, transition: 'width 500ms ease' }} />
         </div>
 
-        <div className="quick-progress-counters">
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 16px', color: 'var(--muted)', fontSize: '0.78rem' }}>
           <span>Total aulas: <strong>{formatCompactCount(sidecarArtifact?.totalCourses ?? sidecarSelectedCourseCount)}</strong></span>
           <span>Completadas: <strong>{formatCompactCount(sidecarArtifact?.completedCourses ?? 0)}</strong></span>
           <span>Fallidas: <strong>{formatCompactCount(sidecarArtifact?.failedCourses ?? 0)}</strong></span>
@@ -1750,24 +1759,24 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
         </div>
 
         {sidecarStatus?.logTail ? (
-          <details className="banner-log-detail">
+          <details style={{ marginTop: 8 }}>
             <summary>Ver ultimo tramo de la extraccion Moodle</summary>
             <pre>{sidecarStatus.logTail}</pre>
           </details>
         ) : null}
       </section>
 
-      <details className="analytics-panel analytics-disclosure banner-source-panel">
-        <summary>
+      <details className="premium-card" style={{ padding: 0, overflow: 'hidden', display: 'grid', gap: 18 }}>
+        <summary style={{ listStyle: 'none', display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', cursor: 'pointer', padding: '18px 20px', borderBottom: '1px solid var(--line)' }}>
           <div>
             <strong>Herramientas avanzadas y matricula Banner</strong>
             <small>Importaciones manuales, automatizacion Banner y ajustes puntuales.</small>
           </div>
           <span>Abrir</span>
         </summary>
-        <div className="advanced-tools-stack">
-          <div className="banner-source-block">
-            <div className="section-lead">
+        <div style={{ display: 'grid', gap: 18, padding: '18px 20px 20px' }}>
+          <div>
+            <div style={{ marginBottom: 12 }}>
               <h4>Logs de acceso Moodle por docente</h4>
               <p>
                 Exporta el log de actividad desde Moodle para cada NRC y guardalo en{' '}
@@ -1775,10 +1784,10 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                 (ej: <code>logs_15-79471_20260328.csv</code>). El sistema identifica al docente, cuenta sus dias de acceso y actualiza el puntaje de ingresos.
               </p>
             </div>
-            <div className="analytics-actions">
-              <button type="button" className="primary" onClick={() => void importMoodleLogsFromFolder()} disabled={moodleLogsLoading}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              <Button variant="primary" size="sm" onClick={() => void importMoodleLogsFromFolder()} disabled={moodleLogsLoading}>
                 {moodleLogsLoading ? 'Procesando logs...' : 'Procesar logs de acceso Moodle'}
-              </button>
+              </Button>
             </div>
             {moodleLogsResult && (
               <div>
@@ -1798,18 +1807,18 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
               </div>
             )}
           </div>
-          <div className="banner-source-block">
-            <div className="section-lead">
+          <div style={{ marginTop: 18 }}>
+            <div style={{ marginBottom: 12 }}>
               <h4>Fechas Banner desde carpeta</h4>
               <p>
                 Coloca un CSV con columnas <code>nrc, period, start_date, end_date</code> en{' '}
                 <code>storage/imports/banner-dates/</code> y haz clic para importar. Los ingresos se recalculan automaticamente.
               </p>
             </div>
-            <div className="analytics-actions">
-              <button type="button" className="primary" onClick={() => void importBannerDatesFromFolder()} disabled={bannerDatesLoading}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              <Button variant="primary" size="sm" onClick={() => void importBannerDatesFromFolder()} disabled={bannerDatesLoading}>
                 {bannerDatesLoading ? 'Importando fechas...' : 'Importar fechas Banner desde carpeta'}
-              </button>
+              </Button>
             </div>
             {bannerDatesResult && (
               <small>
@@ -1818,28 +1827,28 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
               </small>
             )}
           </div>
-          <div className="analytics-actions analytics-actions-wrap advanced-actions">
-            <button type="button" className="primary" onClick={() => void importLatest('participants')} disabled={!!importingKind}>
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+            <Button variant="primary" size="sm" onClick={() => void importLatest('participants')} disabled={!!importingKind}>
               {importingKind === 'participants' ? 'Importando participantes...' : 'Importar ultimos participantes'}
-            </button>
-            <button type="button" className="primary" onClick={() => void importLatest('activity')} disabled={!!importingKind}>
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => void importLatest('activity')} disabled={!!importingKind}>
               {importingKind === 'activity' ? 'Importando actividad...' : 'Importar ultima actividad'}
-            </button>
-            <button type="button" className="primary" onClick={() => void importLatest('attendance')} disabled={!!importingKind}>
+            </Button>
+            <Button variant="primary" size="sm" onClick={() => void importLatest('attendance')} disabled={!!importingKind}>
               {importingKind === 'attendance' ? 'Importando asistencia...' : 'Importar ultima asistencia'}
-            </button>
+            </Button>
           </div>
-          <div className="analytics-panel-head">
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
             <h3>Matricula oficial Banner</h3>
             <small>Si este archivo existe, la analitica toma Banner como roster principal por NRC y periodo.</small>
           </div>
-        <div className="banner-source-block">
-          <div className="section-lead">
+        <div style={{ marginTop: 18 }}>
+          <div style={{ marginBottom: 12 }}>
             <h4>Importar archivo ya descargado</h4>
             <p>Usa esta opcion si ya tienes un export de matricula oficial generado fuera de esta pantalla.</p>
           </div>
-          <div className="banner-import-grid">
-            <label className="filter-block filter-block-wide">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginTop: 8 }}>
+            <label style={{ gridColumn: 'span 2', display: 'grid', gap: 6 }}>
               <span>Ruta del archivo Banner</span>
               <input
                 value={bannerImportPath}
@@ -1847,7 +1856,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                 placeholder="storage/exports/banner_matricula_oficial.xlsx"
               />
             </label>
-            <label className="filter-block">
+            <label style={{ display: 'grid', gap: 6 }}>
               <span>Periodo por defecto</span>
               <input
                 value={bannerImportPeriodCode}
@@ -1856,12 +1865,12 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
               />
               <small>Usalo si el archivo no trae columna de periodo.</small>
             </label>
-            <label className="filter-block">
+            <label style={{ display: 'grid', gap: 6 }}>
               <span>NRC por defecto</span>
               <input value={bannerImportNrc} onChange={(event) => setBannerImportNrc(event.target.value)} placeholder="15-72305" />
               <small>Solo aplica si el export corresponde a un NRC puntual.</small>
             </label>
-            <label className="filter-block filter-block-wide">
+            <label style={{ gridColumn: 'span 2', display: 'grid', gap: 6 }}>
               <span>Etiqueta del corte</span>
               <input
                 value={bannerImportSourceLabel}
@@ -1870,20 +1879,20 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
               />
               <small>Sirve para identificar la importacion en los snapshots internos.</small>
             </label>
-            <div className="analytics-actions">
-              <button type="button" className="primary" onClick={() => void importLatest('banner-enrollment')} disabled={!!importingKind}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              <Button variant="primary" size="sm" onClick={() => void importLatest('banner-enrollment')} disabled={!!importingKind}>
                 {importingKind === 'banner-enrollment' ? 'Importando Banner...' : 'Importar matricula Banner'}
-              </button>
+              </Button>
             </div>
           </div>
         </div>
-        <div className="banner-source-block">
-          <div className="section-lead">
+        <div style={{ marginTop: 18 }}>
+          <div style={{ marginBottom: 12 }}>
             <h4>Consultar Banner desde esta pantalla</h4>
             <p>El sistema entra a Banner, busca el periodo y los NRC indicados, y luego importa la matricula oficial.</p>
           </div>
-          <div className="banner-import-grid">
-            <label className="filter-block">
+          <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(200px, 1fr))', gap: 12, marginTop: 8 }}>
+            <label style={{ display: 'grid', gap: 6 }}>
               <span>Periodo Banner</span>
               <input
                 value={bannerAutomationPeriodCode}
@@ -1898,7 +1907,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
               />
               <small>Usalo para una consulta puntual o para forzar un unico periodo. Si lo dejas vacio, puedes usar la seleccion multiple de abajo.</small>
             </label>
-            <label className="filter-block filter-block-wide">
+            <label style={{ gridColumn: 'span 2', display: 'grid', gap: 6 }}>
               <span>NRCs a consultar en Banner</span>
               <textarea
                 value={bannerAutomationNrcsText}
@@ -1908,45 +1917,54 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
               />
               <small>Si lo dejas vacio, recorre todas las aulas RPACA de los periodos elegidos abajo. Si no eliges periodos, usa todos los periodos RPACA disponibles. Si escribes NRCs, usa ese listado puntual.</small>
             </label>
-            <div className="analytics-actions">
-              <button type="button" className="primary" onClick={() => void importBannerFromAutomation()} disabled={bannerAutomationLoading}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              <Button variant="primary" size="sm" onClick={() => void importBannerFromAutomation()} disabled={bannerAutomationLoading}>
                 {bannerAutomationLoading ? 'Consultando Banner...' : 'Buscar matricula en Banner e importar'}
-              </button>
+              </Button>
             </div>
           </div>
 
-          <div className="banner-period-selector">
-            <div className="banner-period-selector-head">
+          <div style={{ marginTop: 14, border: '1px solid var(--line)', borderRadius: 8, background: 'var(--n-50)', padding: 14, display: 'grid', gap: 12 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap' }}>
               <div>
                 <h5>Periodos RPACA para la corrida masiva</h5>
                 <p>Esta lista sale de los periodos cargados en la base por RPACA. Puedes marcar varios o dejar todo vacio para recorrerlos todos.</p>
               </div>
-              <div className="analytics-actions">
-                <button
-                  type="button"
-                  className="ghost"
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setBannerAutomationPeriodCodes((bannerBatchOptions?.periods ?? []).map((item) => item.code))}
                   disabled={!(bannerBatchOptions?.periods?.length)}
                 >
                   Seleccionar todos
-                </button>
-                <button
-                  type="button"
-                  className="ghost"
+                </Button>
+                <Button
+                  variant="ghost"
+                  size="sm"
                   onClick={() => setBannerAutomationPeriodCodes([])}
                   disabled={!bannerAutomationPeriodCodes.length}
                 >
                   Limpiar seleccion
-                </button>
+                </Button>
               </div>
             </div>
-            <div className="chip-grid">
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {(bannerBatchOptions?.periods ?? []).length ? (
                 bannerBatchOptions?.periods.map((period) => (
                   <button
                     type="button"
                     key={`banner-period-${period.code}`}
-                    className={`chip-button${bannerAutomationPeriodCodes.includes(period.code) ? ' active' : ''}`}
+                    style={{
+                      border: `1px solid ${bannerAutomationPeriodCodes.includes(period.code) ? 'var(--teal)' : 'var(--line)'}`,
+                      background: bannerAutomationPeriodCodes.includes(period.code) ? 'var(--teal)' : 'var(--surface)',
+                      color: bannerAutomationPeriodCodes.includes(period.code) ? '#fff' : 'var(--slate-700)',
+                      borderRadius: 6,
+                      padding: '5px 10px',
+                      fontSize: '0.78rem',
+                      fontWeight: 500,
+                      cursor: 'pointer',
+                    }}
                     onClick={() =>
                       setBannerAutomationPeriodCodes((current) => togglePeriodCode(current, period.code))
                     }
@@ -1955,10 +1973,10 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                   </button>
                 ))
               ) : (
-                <span className="inline-note">Todavia no hay periodos RPACA disponibles para Banner.</span>
+                <span style={{ fontSize: '0.8rem', color: 'var(--muted)', fontStyle: 'italic' }}>Todavia no hay periodos RPACA disponibles para Banner.</span>
               )}
             </div>
-            <div className="banner-period-summary">
+            <div style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>
               {bannerAutomationPeriodCodes.length ? (
                 <span>
                   Periodos seleccionados para la automatizacion: <strong>{bannerAutomationPeriodCodes.join(', ')}</strong>
@@ -1969,62 +1987,62 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </div>
           </div>
 
-          <div className="banner-run-panel">
-            <div className="banner-run-head">
+          <div style={{ marginTop: 16, border: '1px solid var(--line)', borderRadius: 8, background: 'var(--n-50)', padding: 16, display: 'grid', gap: 14 }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start' }}>
               <div>
                 <h4>Seguimiento de Banner</h4>
                 <p>{bannerRunStateText}</p>
               </div>
-              <div className="banner-run-actions">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
                 {bannerVisibleRun ? (
-                  <span className={`banner-run-badge is-${bannerVisibleRun.status.toLowerCase()}`}>
+                  <span style={{ fontSize: '0.72rem', fontWeight: 700, padding: '3px 8px', borderRadius: 4, background: bannerVisibleRun.status === 'RUNNING' ? 'var(--teal)' : bannerVisibleRun.status === 'FAILED' ? 'var(--red)' : bannerVisibleRun.status === 'CANCELLED' ? 'var(--amber)' : 'var(--n-200)', color: bannerVisibleRun.status === 'RUNNING' || bannerVisibleRun.status === 'FAILED' ? '#fff' : 'var(--slate-700)', textTransform: 'uppercase' as const, letterSpacing: '0.05em' }}>
                     {bannerVisibleRun.status === 'RUNNING' ? 'En curso' : bannerVisibleRun.status}
                   </span>
                 ) : null}
-                <button type="button" className="ghost" onClick={() => void loadBannerStatus()} disabled={bannerStatusLoading}>
+                <Button variant="ghost" size="sm" onClick={() => void loadBannerStatus()} disabled={bannerStatusLoading}>
                   {bannerStatusLoading ? 'Actualizando...' : 'Actualizar seguimiento'}
-                </button>
+                </Button>
               </div>
             </div>
 
-            <div className="banner-run-stats">
-              <div className="banner-run-stat">
-                <span>Tarea</span>
-                <strong>{formatBannerCommandLabel(bannerVisibleRun?.command)}</strong>
+            <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 10 }}>
+              <div style={{ display: 'grid', gap: 4 }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Tarea</span>
+                <strong style={{ fontSize: '0.88rem' }}>{formatBannerCommandLabel(bannerVisibleRun?.command)}</strong>
               </div>
-              <div className="banner-run-stat">
-                <span>Inicio</span>
-                <strong>{formatDateTime(bannerVisibleRun?.startedAt)}</strong>
+              <div style={{ display: 'grid', gap: 4 }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Inicio</span>
+                <strong style={{ fontSize: '0.88rem' }}>{formatDateTime(bannerVisibleRun?.startedAt)}</strong>
               </div>
-              <div className="banner-run-stat">
-                <span>Duracion</span>
-                <strong>{formatDuration(bannerVisibleRun?.startedAt, bannerVisibleRun?.endedAt)}</strong>
+              <div style={{ display: 'grid', gap: 4 }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Duracion</span>
+                <strong style={{ fontSize: '0.88rem' }}>{formatDuration(bannerVisibleRun?.startedAt, bannerVisibleRun?.endedAt)}</strong>
               </div>
-              <div className="banner-run-stat">
-                <span>Ultima lectura</span>
-                <strong>{formatDateTime(bannerStatusCheckedAt)}</strong>
+              <div style={{ display: 'grid', gap: 4 }}>
+                <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Ultima lectura</span>
+                <strong style={{ fontSize: '0.88rem' }}>{formatDateTime(bannerStatusCheckedAt)}</strong>
               </div>
             </div>
 
-            <div className="banner-live-board">
-              <div className="banner-live-strip">
-                <div className="banner-live-state">
-                  <span className={`banner-live-dot${bannerCurrentRun ? ' is-running' : ''}`} aria-hidden="true" />
-                  <div className="banner-live-copy">
-                    <strong>{bannerPhaseLabel}</strong>
-                    <span>{bannerRunStateText}</span>
+            <div style={{ display: 'grid', gap: 10 }}>
+              <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', gap: 12, flexWrap: 'wrap' }}>
+                <div style={{ display: 'flex', alignItems: 'center', gap: 10 }}>
+                  <span style={{ width: 10, height: 10, borderRadius: '50%', background: bannerCurrentRun ? 'var(--teal)' : 'var(--n-300)', display: 'inline-block', flexShrink: 0 }} aria-hidden="true" />
+                  <div style={{ display: 'grid', gap: 2 }}>
+                    <strong style={{ fontSize: '0.88rem' }}>{bannerPhaseLabel}</strong>
+                    <span style={{ fontSize: '0.8rem', color: 'var(--muted)' }}>{bannerRunStateText}</span>
                   </div>
                 </div>
-                <div className="banner-live-current">
-                  <span>Ahora</span>
+                <div style={{ textAlign: 'right' }}>
+                  <span style={{ fontSize: '0.72rem', color: 'var(--muted)', display: 'block' }}>Ahora</span>
                   <strong>{bannerCurrentTarget}</strong>
-                  <small>{formatRelativeTime(bannerLiveActivity?.lastEventAt)}</small>
+                  <small style={{ color: 'var(--muted)', fontSize: '0.72rem', display: 'block' }}>{formatRelativeTime(bannerLiveActivity?.lastEventAt)}</small>
                 </div>
               </div>
 
               {bannerLiveActivity ? (
                 <>
-                  <div className="banner-progress-copy">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
                     <strong>
                       {bannerLiveActivity.totalRequested != null
                         ? `${formatCompactCount(bannerLiveActivity.processed)} de ${formatCompactCount(
@@ -2032,46 +2050,43 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                           )} NRC revisados`
                         : `${formatCompactCount(bannerLiveActivity.processed)} NRC revisados`}
                     </strong>
-                    <span>
+                    <span style={{ color: 'var(--muted)', fontSize: '0.82rem' }}>
                       {bannerLiveActivity.pending != null
                         ? `${formatCompactCount(bannerLiveActivity.pending)} pendientes`
                         : 'Banner sigue preparando o cerrando la corrida.'}
                     </span>
                   </div>
-                  <div className="banner-progress-track" aria-hidden="true">
-                    <span
-                      className={`banner-progress-fill${bannerCurrentRun ? ' is-running' : ''}`}
-                      style={{ width: `${bannerProgressPercent ?? (bannerCurrentRun ? 8 : 100)}%` }}
-                    />
+                  <div style={{ height: 6, background: 'var(--n-100)', borderRadius: 3, overflow: 'hidden' }} aria-hidden="true">
+                    <span style={{ display: 'block', height: '100%', width: `${bannerProgressPercent ?? (bannerCurrentRun ? 8 : 100)}%`, background: 'var(--teal)', borderRadius: 3, transition: 'width 500ms ease' }} />
                   </div>
-                  <div className="banner-progress-labels">
+                  <div style={{ display: 'flex', justifyContent: 'space-between', color: 'var(--muted)', fontSize: '0.78rem' }}>
                     <span>{bannerProgressPercent != null ? `${bannerProgressPercent}% completado` : 'Sin porcentaje aun'}</span>
                     <span>Ritmo {bannerRateLabel}</span>
                     <span>ETA {bannerEtaLabel}</span>
                   </div>
-                  <div className="banner-live-stats">
-                    <div className="banner-live-stat">
-                      <span>Encontrados</span>
-                      <strong>{formatCompactCount(bannerLiveActivity.found)}</strong>
+                  <div style={{ display: 'grid', gridTemplateColumns: 'repeat(4, minmax(0,1fr))', gap: 8 }}>
+                    <div style={{ display: 'grid', gap: 2 }}>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Encontrados</span>
+                      <strong style={{ fontSize: '0.9rem' }}>{formatCompactCount(bannerLiveActivity.found)}</strong>
                     </div>
-                    <div className="banner-live-stat">
-                      <span>Sin estudiantes</span>
-                      <strong>{formatCompactCount(bannerLiveActivity.empty)}</strong>
+                    <div style={{ display: 'grid', gap: 2 }}>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Sin estudiantes</span>
+                      <strong style={{ fontSize: '0.9rem' }}>{formatCompactCount(bannerLiveActivity.empty)}</strong>
                     </div>
-                    <div className="banner-live-stat">
-                      <span>Con fallo</span>
-                      <strong>{formatCompactCount(bannerLiveActivity.failed)}</strong>
+                    <div style={{ display: 'grid', gap: 2 }}>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Con fallo</span>
+                      <strong style={{ fontSize: '0.9rem' }}>{formatCompactCount(bannerLiveActivity.failed)}</strong>
                     </div>
-                    <div className="banner-live-stat">
-                      <span>Estudiantes leidos</span>
-                      <strong>{formatCompactCount(bannerLiveActivity.totalStudents)}</strong>
+                    <div style={{ display: 'grid', gap: 2 }}>
+                      <span style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>Estudiantes leidos</span>
+                      <strong style={{ fontSize: '0.9rem' }}>{formatCompactCount(bannerLiveActivity.totalStudents)}</strong>
                     </div>
                   </div>
                 </>
               ) : (
-                <div className="banner-progress-copy">
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 8, flexWrap: 'wrap' }}>
                   <strong>{bannerCurrentRun ? 'Banner ya recibio la solicitud.' : 'Sin progreso en pantalla todavia.'}</strong>
-                  <span>
+                  <span style={{ color: 'var(--muted)', fontSize: '0.82rem' }}>
                     {bannerCurrentRun
                       ? 'Todavia no hay eventos suficientes en el log. Normalmente esto pasa durante el arranque o la autenticacion.'
                       : 'En cuanto haya una corrida de matricula, aqui veras el avance y el ultimo tramo del proceso.'}
@@ -2079,50 +2094,36 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                 </div>
               )}
 
-              <div className="banner-phase-strip" aria-label="etapas del proceso">
-                <div
-                  className={`banner-phase-step${
-                    bannerLiveActivity?.phase === 'BOOTSTRAP' || bannerLiveActivity?.phase === 'LOOKUP' || bannerLiveActivity?.phase === 'IMPORT' || bannerVisibleRun?.status === 'COMPLETED'
-                      ? ' is-complete'
-                      : ''
-                  }${bannerLiveActivity?.phase === 'BOOTSTRAP' ? ' is-current' : ''}`}
-                >
-                  Preparar
-                </div>
-                <div
-                  className={`banner-phase-step${
-                    bannerLiveActivity?.phase === 'LOOKUP' || bannerLiveActivity?.phase === 'IMPORT' || bannerVisibleRun?.status === 'COMPLETED'
-                      ? ' is-complete'
-                      : ''
-                  }${bannerLiveActivity?.phase === 'LOOKUP' ? ' is-current' : ''}`}
-                >
-                  Consultar
-                </div>
-                <div
-                  className={`banner-phase-step${
-                    bannerLiveActivity?.phase === 'IMPORT' || bannerVisibleRun?.status === 'COMPLETED' ? ' is-complete' : ''
-                  }${bannerLiveActivity?.phase === 'IMPORT' ? ' is-current' : ''}`}
-                >
-                  Importar
-                </div>
-                <div
-                  className={`banner-phase-step${bannerVisibleRun?.status === 'COMPLETED' ? ' is-complete is-current' : ''}${
-                    bannerVisibleRun?.status === 'FAILED' ? ' is-danger' : ''
-                  }`}
-                >
-                  Finalizar
-                </div>
+              <div style={{ display: 'flex', gap: 4 }} aria-label="etapas del proceso">
+                {(() => {
+                  const bootstrapComplete = bannerLiveActivity?.phase === 'BOOTSTRAP' || bannerLiveActivity?.phase === 'LOOKUP' || bannerLiveActivity?.phase === 'IMPORT' || bannerVisibleRun?.status === 'COMPLETED';
+                  const bootstrapCurrent = bannerLiveActivity?.phase === 'BOOTSTRAP';
+                  const lookupComplete = bannerLiveActivity?.phase === 'LOOKUP' || bannerLiveActivity?.phase === 'IMPORT' || bannerVisibleRun?.status === 'COMPLETED';
+                  const lookupCurrent = bannerLiveActivity?.phase === 'LOOKUP';
+                  const importComplete = bannerLiveActivity?.phase === 'IMPORT' || bannerVisibleRun?.status === 'COMPLETED';
+                  const importCurrent = bannerLiveActivity?.phase === 'IMPORT';
+                  const finalComplete = bannerVisibleRun?.status === 'COMPLETED';
+                  const finalDanger = bannerVisibleRun?.status === 'FAILED';
+                  return (
+                    <>
+                      <div style={{ padding: '4px 10px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600, background: bootstrapComplete ? 'var(--teal)' : 'var(--n-100)', color: bootstrapComplete ? '#fff' : 'var(--muted)', border: bootstrapCurrent ? '2px solid var(--teal-dark)' : '2px solid transparent' }}>Preparar</div>
+                      <div style={{ padding: '4px 10px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600, background: lookupComplete ? 'var(--teal)' : 'var(--n-100)', color: lookupComplete ? '#fff' : 'var(--muted)', border: lookupCurrent ? '2px solid var(--teal-dark)' : '2px solid transparent' }}>Consultar</div>
+                      <div style={{ padding: '4px 10px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600, background: importComplete ? 'var(--teal)' : 'var(--n-100)', color: importComplete ? '#fff' : 'var(--muted)', border: importCurrent ? '2px solid var(--teal-dark)' : '2px solid transparent' }}>Importar</div>
+                      <div style={{ padding: '4px 10px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 600, background: finalComplete ? 'var(--teal)' : 'var(--n-100)', color: finalComplete ? '#fff' : 'var(--muted)', border: finalComplete ? '2px solid var(--teal-dark)' : '2px solid transparent', outline: finalDanger ? '2px solid var(--red)' : 'none' }}>Finalizar</div>
+                    </>
+                  );
+                })()}
               </div>
             </div>
 
-            <div className="banner-event-list">
+            <div style={{ display: 'grid', gap: 0, borderTop: '1px solid var(--line)' }}>
               {(bannerLiveActivity?.recentEvents ?? []).length ? (
                 bannerLiveActivity?.recentEvents.map((event, index) => (
-                  <div className="banner-event-row" key={`banner-event-${event.at}-${event.nrc ?? 'none'}-${index}`}>
-                    <div className={`banner-event-stage stage-${event.stage.toLowerCase()}`}>{formatBannerStage(event.stage)}</div>
-                    <div className="banner-event-body">
-                      <strong>{describeBannerEvent(event)}</strong>
-                      <small>
+                  <div style={{ display: 'flex', gap: 10, padding: '8px 0', borderBottom: '1px solid var(--line2)', alignItems: 'flex-start' }} key={`banner-event-${event.at}-${event.nrc ?? 'none'}-${index}`}>
+                    <div style={{ fontSize: '0.7rem', fontWeight: 600, padding: '2px 6px', borderRadius: 4, background: 'var(--n-100)', color: 'var(--slate-700)', whiteSpace: 'nowrap' }}>{formatBannerStage(event.stage)}</div>
+                    <div style={{ display: 'grid', gap: 2 }}>
+                      <strong style={{ fontSize: '0.82rem' }}>{describeBannerEvent(event)}</strong>
+                      <small style={{ color: 'var(--muted)', fontSize: '0.72rem' }}>
                         {formatDateTime(event.at)}
                         {event.worker ? ` · canal ${event.worker}` : ''}
                         {event.status ? ` · ${event.status}` : ''}
@@ -2136,7 +2137,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </div>
 
             {bannerStatus?.runner.logTail ? (
-              <details className="banner-log-detail">
+              <details style={{ marginTop: 8 }}>
                 <summary>Ver ultimo tramo del log</summary>
                 <pre>{bannerStatus.runner.logTail}</pre>
               </details>
@@ -2146,28 +2147,38 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
         </div>
       </details>
 
-      <details className="analytics-panel analytics-disclosure filter-panel">
-        <summary>
+      <details className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <summary style={{ listStyle: 'none', display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', cursor: 'pointer', padding: '18px 20px', borderBottom: '1px solid var(--line)' }}>
           <div>
             <strong>Filtros y reporte puntual</strong>
             <small>Abre este bloque solo cuando necesites refinar por programa, sede, docente o fecha.</small>
           </div>
           <span>Abrir</span>
         </summary>
-        <div className="analytics-panel-head">
+        <div style={{ padding: '18px 20px 20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
           <h3>Filtros ejecutivos</h3>
           <small>Combina periodos, programas, sedes, docente y NRCs especificos.</small>
         </div>
 
-        <div className="filter-grid">
-          <div className="filter-block">
-            <span>Periodos</span>
-            <div className="chip-grid">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(220px, 1fr))', gap: 16 }}>
+          <div style={{ display: 'grid', gap: 6 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>Periodos</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {(options?.periods ?? []).map((period) => (
                 <button
                   type="button"
                   key={period.code}
-                  className={`chip-button${filters.periodCodes.includes(period.code) ? ' active' : ''}`}
+                  style={{
+                    border: `1px solid ${filters.periodCodes.includes(period.code) ? 'var(--teal)' : 'var(--line)'}`,
+                    background: filters.periodCodes.includes(period.code) ? 'var(--teal)' : 'var(--surface)',
+                    color: filters.periodCodes.includes(period.code) ? '#fff' : 'var(--slate-700)',
+                    borderRadius: 6,
+                    padding: '5px 10px',
+                    fontSize: '0.78rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
                   onClick={() => setFilters((current) => ({ ...current, periodCodes: toggleSelection(current.periodCodes, period.code) }))}
                 >
                   {period.code}
@@ -2176,14 +2187,23 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </div>
           </div>
 
-          <div className="filter-block">
-            <span>Momento</span>
-            <div className="chip-grid">
+          <div style={{ display: 'grid', gap: 6 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>Momento</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {['1', '2', '3', '4'].map((m) => (
                 <button
                   type="button"
                   key={m}
-                  className={`chip-button${filters.moments.includes(m) ? ' active' : ''}`}
+                  style={{
+                    border: `1px solid ${filters.moments.includes(m) ? 'var(--teal)' : 'var(--line)'}`,
+                    background: filters.moments.includes(m) ? 'var(--teal)' : 'var(--surface)',
+                    color: filters.moments.includes(m) ? '#fff' : 'var(--slate-700)',
+                    borderRadius: 6,
+                    padding: '5px 10px',
+                    fontSize: '0.78rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
                   onClick={() => setFilters((current) => ({ ...current, moments: toggleSelection(current.moments, m) }))}
                 >
                   Momento {m}
@@ -2192,14 +2212,23 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </div>
           </div>
 
-          <div className="filter-block">
-            <span>Sedes</span>
-            <div className="chip-grid">
+          <div style={{ display: 'grid', gap: 6 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>Sedes</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6 }}>
               {(options?.campuses ?? []).map((campus) => (
                 <button
                   type="button"
                   key={campus.code}
-                  className={`chip-button${filters.campusCodes.includes(campus.code) ? ' active' : ''}`}
+                  style={{
+                    border: `1px solid ${filters.campusCodes.includes(campus.code) ? 'var(--teal)' : 'var(--line)'}`,
+                    background: filters.campusCodes.includes(campus.code) ? 'var(--teal)' : 'var(--surface)',
+                    color: filters.campusCodes.includes(campus.code) ? '#fff' : 'var(--slate-700)',
+                    borderRadius: 6,
+                    padding: '5px 10px',
+                    fontSize: '0.78rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
                   onClick={() => setFilters((current) => ({ ...current, campusCodes: toggleSelection(current.campusCodes, campus.code) }))}
                 >
                   {campus.code}
@@ -2208,14 +2237,23 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </div>
           </div>
 
-          <div className="filter-block filter-block-wide">
-            <span>Programas</span>
-            <div className="chip-grid chip-grid-tall">
+          <div style={{ gridColumn: 'span 2', display: 'grid', gap: 6 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>Programas</span>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, maxHeight: 120, overflowY: 'auto' }}>
               {(options?.programs ?? []).map((program) => (
                 <button
                   type="button"
                   key={program.code}
-                  className={`chip-button${filters.programCodes.includes(program.code) ? ' active' : ''}`}
+                  style={{
+                    border: `1px solid ${filters.programCodes.includes(program.code) ? 'var(--teal)' : 'var(--line)'}`,
+                    background: filters.programCodes.includes(program.code) ? 'var(--teal)' : 'var(--surface)',
+                    color: filters.programCodes.includes(program.code) ? '#fff' : 'var(--slate-700)',
+                    borderRadius: 6,
+                    padding: '5px 10px',
+                    fontSize: '0.78rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
                   onClick={() => setFilters((current) => ({ ...current, programCodes: toggleSelection(current.programCodes, program.code) }))}
                 >
                   {program.label}
@@ -2224,8 +2262,8 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </div>
           </div>
 
-          <label className="filter-block">
-            <span>Docente</span>
+          <label style={{ display: 'grid', gap: 6 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>Docente</span>
             <select
               multiple
               value={filters.teacherIds}
@@ -2244,8 +2282,8 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </select>
           </label>
 
-          <label className="filter-block filter-block-wide">
-            <span>NRCs especificos</span>
+          <label style={{ gridColumn: 'span 2', display: 'grid', gap: 6 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>NRCs especificos</span>
             <textarea
               value={filters.nrcsText}
               onChange={(event) => setFilters((current) => ({ ...current, nrcsText: event.target.value }))}
@@ -2255,8 +2293,8 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             <small>{nrcCount ? `${nrcCount} NRC cargados para filtrar.` : 'Si lo dejas vacio, toma todos los cursos importados.'}</small>
           </label>
 
-          <label className="filter-block">
-            <span>Fecha puntual de asistencia</span>
+          <label style={{ display: 'grid', gap: 6 }}>
+            <span style={{ fontSize: '0.75rem', fontWeight: 600, textTransform: 'uppercase', letterSpacing: '0.05em', color: 'var(--muted)' }}>Fecha puntual de asistencia</span>
             <select
               value={filters.sessionDay}
               onChange={(event) => setFilters((current) => ({ ...current, sessionDay: event.target.value }))}
@@ -2270,7 +2308,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </select>
           </label>
 
-          <label className="filter-block">
+          <label style={{ display: 'grid', gap: 6 }}>
             <span>Fechas para reporte de estudiantes</span>
             <select
               multiple
@@ -2292,26 +2330,27 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           </label>
         </div>
 
-        <div className="analytics-actions analytics-actions-spaced">
-          <button type="button" className="primary" onClick={() => void loadOptionsAndOverview(filters)} disabled={loading}>
+        <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginTop: 16 }}>
+          <Button variant="primary" size="sm" onClick={() => void loadOptionsAndOverview(filters)} disabled={loading}>
             {loading ? 'Aplicando...' : 'Aplicar filtros'}
-          </button>
-          <button type="button" className="ghost" onClick={() => void loadDateReport()} disabled={dateLoading}>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={() => void loadDateReport()} disabled={dateLoading}>
             {dateLoading ? 'Consultando fecha...' : 'Consultar reporte del dia'}
-          </button>
-          <button type="button" className="ghost" onClick={exportDateReportCsv} disabled={!dateReport?.courses.length}>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={exportDateReportCsv} disabled={!dateReport?.courses.length}>
             Descargar CSV del reporte diario
-          </button>
-          <button type="button" className="primary" onClick={() => void loadStudentAttendanceReport()} disabled={studentReportLoading}>
+          </Button>
+          <Button variant="primary" size="sm" onClick={() => void loadStudentAttendanceReport()} disabled={studentReportLoading}>
             {studentReportLoading ? 'Generando...' : 'Generar reporte estudiantes'}
-          </button>
-          <button type="button" className="ghost" onClick={exportStudentAttendanceCsv} disabled={!studentReport?.rows.length}>
+          </Button>
+          <Button variant="ghost" size="sm" onClick={exportStudentAttendanceCsv} disabled={!studentReport?.rows.length}>
             Descargar CSV estudiantes
-          </button>
+          </Button>
+        </div>
         </div>
       </details>
 
-      <section className="stats-grid analytics-stats-grid">
+      <section className="ds-stats-grid" style={{ gridTemplateColumns: 'repeat(6, minmax(0,1fr))' }}>
         <MetricCard
           label="Cobertura asistencia"
           value={formatCompactCount(overview?.attendance.courseCount ?? 0)}
@@ -2352,15 +2391,16 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
         />
       </section>
 
-      <details className="analytics-panel analytics-disclosure">
-        <summary>
+      <details className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <summary style={{ listStyle: 'none', display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', cursor: 'pointer', padding: '18px 20px', borderBottom: '1px solid var(--line)' }}>
           <div>
             <strong>Alertas y seguimiento detallado</strong>
             <small>Abre este bloque para revisar cursos en riesgo, usuarios marcados y el detalle del cruce.</small>
           </div>
           <span>Abrir</span>
         </summary>
-        <div className="analytics-panel-head">
+        <div style={{ padding: '18px 20px 20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
           <h3>Alertas de consistencia y seguimiento</h3>
           <small>
             Cruce entre participantes, asistencia y logs para detectar roles raros, huecos de clasificacion e
@@ -2368,7 +2408,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           </small>
         </div>
 
-        <div className="stats-grid analytics-stats-grid analytics-stats-grid-compact">
+        <div className="ds-stats-grid">
           <MetricCard
             label="Cursos con alertas"
             value={overview?.alerts.totals.courseCount ?? '-'}
@@ -2413,7 +2453,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           />
         </div>
 
-        <div className="analytics-grid" style={{ marginTop: 16 }}>
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16, marginTop: 16 }}>
           <BarList
             title="Alertas por tipo"
             items={(overview?.alerts.byType ?? []).map((item) => ({
@@ -2434,14 +2474,14 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           />
         </div>
 
-        <div className="analytics-grid" style={{ marginTop: 16 }}>
-          <section className="analytics-panel analytics-panel-subtle">
-            <div className="analytics-panel-head">
+        <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16, marginTop: 16 }}>
+          <section className="premium-card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
               <h3>Cursos a revisar</h3>
               <small>Ordenados por riesgo para seguimiento operativo.</small>
             </div>
-            <div className="table-wrap">
-              <table className="analytics-table">
+            <div style={{ overflowX: 'auto' }}>
+              <table className="fast-table">
                 <thead>
                   <tr>
                     <th>NRC</th>
@@ -2464,7 +2504,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                         <td>{course.subjectName ?? '-'}</td>
                         <td>{course.programName ?? '-'}</td>
                         <td>
-                          <span className={`risk-text risk-${course.riskLevel.toLowerCase()}`}>{course.riskLevel}</span>
+                          <span style={{ fontWeight: 700, color: course.riskLevel === 'ALTO' ? 'var(--red)' : course.riskLevel === 'MEDIO' ? 'var(--amber)' : 'var(--teal)' }}>{course.riskLevel}</span>
                         </td>
                         <td>{course.rosterSource === 'BANNER' ? 'Banner' : course.rosterSource === 'MOODLE_PARTICIPANTS' ? 'Moodle' : '-'}</td>
                         <td>{course.totalAlerts}</td>
@@ -2476,7 +2516,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={10} className="empty-table-cell">
+                      <td colSpan={10} style={{ textAlign: 'center', color: 'var(--muted)', padding: 16, fontSize: '0.82rem' }}>
                         No hay cursos con alertas para los filtros actuales.
                       </td>
                     </tr>
@@ -2486,18 +2526,18 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </div>
           </section>
 
-          <section className="analytics-panel analytics-panel-subtle">
-            <div className="analytics-panel-head">
+          <section className="premium-card" style={{ padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
               <h3>Usuarios a revisar</h3>
               <small>Casos concretos para seguimiento manual y depuracion.</small>
             </div>
-            <div className="analytics-actions analytics-actions-spaced">
-              <button type="button" className="ghost" onClick={exportAlertsCsv} disabled={!overview?.alerts.users.length}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', marginTop: 16 }}>
+              <Button variant="ghost" size="sm" onClick={exportAlertsCsv} disabled={!overview?.alerts.users.length}>
                 Descargar CSV de alertas
-              </button>
+              </Button>
             </div>
-            <div className="table-wrap">
-              <table className="analytics-table">
+            <div style={{ overflowX: 'auto' }}>
+              <table className="fast-table">
                 <thead>
                   <tr>
                     <th>Tipo</th>
@@ -2515,7 +2555,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                         <td>{user.nrc}</td>
                         <td>
                           <strong>{user.fullName}</strong>
-                          <div className="table-support">
+                          <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
                             {user.email ?? '-'}
                             {user.institutionalId ? ` · ${user.institutionalId}` : ''}
                           </div>
@@ -2523,13 +2563,13 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                         <td>{user.rolesLabel ?? user.actorCategory ?? '-'}</td>
                         <td>
                           {user.detail}
-                          {user.count > 0 ? <div className="table-support">{user.count} eventos</div> : null}
+                          {user.count > 0 ? <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{user.count} eventos</div> : null}
                         </td>
                       </tr>
                     ))
                   ) : (
                     <tr>
-                      <td colSpan={5} className="empty-table-cell">
+                      <td colSpan={5} style={{ textAlign: 'center', color: 'var(--muted)', padding: 16, fontSize: '0.82rem' }}>
                         No hay usuarios marcados para seguimiento con los filtros actuales.
                       </td>
                     </tr>
@@ -2539,18 +2579,20 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </div>
           </section>
         </div>
+        </div>
       </details>
 
-      <details className="analytics-panel analytics-disclosure">
-        <summary>
+      <details className="premium-card" style={{ padding: 0, overflow: 'hidden' }}>
+        <summary style={{ listStyle: 'none', display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', cursor: 'pointer', padding: '18px 20px', borderBottom: '1px solid var(--line)' }}>
           <div>
             <strong>Analisis adicional</strong>
             <small>Series por fecha, cursos criticos, actividad del aula y reporte puntual por fecha.</small>
           </div>
           <span>Abrir</span>
         </summary>
+        <div style={{ padding: '18px 20px 20px' }}>
 
-      <div className="analytics-grid">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
         <DayBars title="Presencias por fecha" items={attendanceDayBars} tone="warm" />
         <DayBars title="Actividad por fecha" items={activityDayBars} tone="cool" />
         <BarList
@@ -2575,14 +2617,14 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
         />
       </div>
 
-      <div className="analytics-grid">
-        <section className="analytics-panel">
-          <div className="analytics-panel-head">
+      <div style={{ display: 'grid', gridTemplateColumns: 'repeat(auto-fill, minmax(340px, 1fr))', gap: 16 }}>
+        <section className="premium-card" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
             <h3>Cursos que mas concentran inasistencia</h3>
             <small>Usalo para escalar priorizacion y acompanamiento.</small>
           </div>
-          <div className="table-wrap">
-            <table className="analytics-table">
+          <div style={{ overflowX: 'auto' }}>
+            <table className="fast-table">
               <thead>
                 <tr>
                   <th>NRC</th>
@@ -2609,12 +2651,12 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           </div>
         </section>
 
-        <section className="analytics-panel">
-          <div className="analytics-panel-head">
+        <section className="premium-card" style={{ padding: '20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
             <h3>Actividad dentro del aula</h3>
             <small>Lectura rapida para coordinacion academica y monitoreo de uso.</small>
           </div>
-          <div className="stacked-lists">
+          <div style={{ display: 'grid', gap: 16 }}>
             <BarList
               title="Participantes por categoria"
               items={(overview?.participants.byActorCategory ?? []).map((item) => ({ label: item.key, value: item.value }))}
@@ -2634,8 +2676,8 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
         </section>
       </div>
 
-      <section className="analytics-panel">
-        <div className="analytics-panel-head">
+      <section className="premium-card" style={{ padding: '20px' }}>
+        <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
           <h3>Reporte puntual por fecha de asistencia</h3>
           <small>
             Selecciona una fecha y el sistema te devuelve los NRC, los participantes del curso y los estudiantes que
@@ -2643,7 +2685,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           </small>
         </div>
 
-        <div className="stats-grid analytics-stats-grid analytics-stats-grid-compact">
+        <div className="ds-stats-grid" style={{ gridTemplateColumns: 'repeat(6, minmax(0,1fr))' }}>
           <MetricCard label="Cursos ese dia" value={dateReport?.summary.courseCount ?? '-'} tone="warm" />
           <MetricCard label="Participantes" value={dateReport?.summary.participantCount ?? '-'} tone="default" />
           <MetricCard label="Presentes" value={dateReport?.summary.presentCount ?? '-'} tone="cool" />
@@ -2653,14 +2695,14 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
         </div>
 
         {studentReport ? (
-          <section className="analytics-panel analytics-panel-subtle" style={{ marginTop: 16 }}>
-            <div className="analytics-panel-head">
+          <section className="premium-card" style={{ marginTop: 16, padding: '20px' }}>
+            <div style={{ display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', marginBottom: 14 }}>
               <h3>Reporte de estudiantes por fechas seleccionadas</h3>
               <small>
                 {studentReport.summary.selectedDayCount} fechas · {studentReport.summary.courseCount} NRC · {studentReport.summary.rowCount} registros
               </small>
             </div>
-            <div className="stats-grid analytics-stats-grid analytics-stats-grid-compact">
+            <div className="ds-stats-grid" style={{ gridTemplateColumns: 'repeat(6, minmax(0,1fr))' }}>
               <MetricCard label="Estudiantes" value={studentReport.summary.studentCount} tone="default" />
               <MetricCard label="Presentes" value={studentReport.summary.presentCount} tone="cool" />
               <MetricCard label="Ausentes" value={studentReport.summary.absentCount} tone="danger" />
@@ -2668,8 +2710,8 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
               <MetricCard label="Asistencia" value={formatPercent(studentReport.summary.attendanceRate)} tone="cool" />
               <MetricCard label="Inasistencia" value={formatPercent(studentReport.summary.inattendanceRate)} tone="danger" />
             </div>
-            <div className="table-wrap" style={{ marginTop: 12 }}>
-              <table className="analytics-table">
+            <div style={{ overflowX: 'auto', marginTop: 12 }}>
+              <table className="fast-table">
                 <thead>
                   <tr>
                     <th>Fecha</th>
@@ -2684,12 +2726,12 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                     <tr key={`student-attendance-${row.sessionDay}-${row.nrc}-${row.studentName}-${index}`}>
                       <td>
                         {row.sessionDay}
-                        <div className="table-support">{row.sessionLabel}</div>
+                        <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>{row.sessionLabel}</div>
                       </td>
                       <td>{row.nrc}</td>
                       <td>
                         <strong>{row.studentName}</strong>
-                        <div className="table-support">
+                        <div style={{ fontSize: '0.72rem', color: 'var(--muted)' }}>
                           {row.studentEmail ?? '-'}
                           {row.studentId ? ` · ${row.studentId}` : ''}
                         </div>
@@ -2701,7 +2743,7 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                 </tbody>
               </table>
               {studentReport.rows.length > 500 ? (
-                <div className="table-support" style={{ padding: 10 }}>
+                <div style={{ fontSize: '0.72rem', color: 'var(--muted)', padding: 10 }}>
                   Vista limitada a 500 registros. Descarga el CSV para ver el reporte completo.
                 </div>
               ) : null}
@@ -2709,10 +2751,10 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           </section>
         ) : null}
 
-        <div className="course-report-list">
+        <div style={{ display: 'grid', gap: 8 }}>
           {(dateReport?.courses ?? []).length ? (
             dateReport?.courses.map((course) => (
-              <details className="course-report-item" key={`date-course-${course.nrc}`}>
+              <details style={{ border: '1px solid var(--line)', borderRadius: 8, overflow: 'hidden' }} key={`date-course-${course.nrc}`}>
                 <summary>
                   <div>
                     <strong>
@@ -2722,21 +2764,21 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                       {course.programName ?? 'Sin programa'} · {course.campusCode ?? 'Sin sede'} · {course.teacherName ?? 'Sin docente'}
                     </small>
                   </div>
-                  <div className="summary-metrics">
+                  <div style={{ display: 'flex', gap: 12, fontSize: '0.8rem', color: 'var(--muted)' }}>
                     <span>{course.participantCount} participantes</span>
                     <span>{course.presentCount} presentes</span>
                     <span>{formatPercent(course.attendanceRate)}</span>
                   </div>
                 </summary>
-                <div className="report-card-body">
-                  <div className="badge-strip">
+                <div style={{ padding: '12px 16px' }}>
+                  <div style={{ display: 'flex', flexWrap: 'wrap', gap: 6, marginBottom: 10 }}>
                     {course.sessionLabels.map((label) => (
-                      <span className="mini-badge" key={`${course.nrc}-${label}`}>
+                      <span style={{ fontSize: '0.72rem', background: 'var(--n-100)', color: 'var(--slate-700)', padding: '2px 8px', borderRadius: 4 }} key={`${course.nrc}-${label}`}>
                         {label}
                       </span>
                     ))}
                   </div>
-                  <table className="analytics-table nested">
+                  <table className="fast-table">
                     <thead>
                       <tr>
                         <th>Nombre completo</th>
@@ -2762,32 +2804,42 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
           )}
         </div>
       </section>
+        </div>
       </details>
 
-      <details className="analytics-panel analytics-disclosure" open>
-        <summary>
+      <details className="premium-card" style={{ padding: 0, overflow: 'hidden' }} open>
+        <summary style={{ listStyle: 'none', display: 'flex', justifyContent: 'space-between', gap: 12, alignItems: 'flex-start', cursor: 'pointer', padding: '18px 20px', borderBottom: '1px solid var(--line)' }}>
           <strong>Ingresos docente</strong>
           <small>Cumplimiento de 3 dias/semana — solo NRCs seleccionados en revision (muestreo)</small>
         </summary>
-        <div className="disclosure-body">
-          <div className="teacher-sync-bar">
-            <div className="teacher-sync-moments">
+        <div style={{ padding: '18px 20px 20px' }}>
+          <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'flex-start', gap: 12, flexWrap: 'wrap', marginBottom: 16 }}>
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center', fontSize: '0.82rem', color: 'var(--muted)' }}>
               <span>Momento a sincronizar:</span>
               {['1', 'MD1', 'MD2', 'INTER'].map((m) => (
                 <button
                   type="button"
                   key={m}
-                  className={`chip-button${syncActivityMoments.includes(m) ? ' active' : ''}`}
+                  style={{
+                    border: `1px solid ${syncActivityMoments.includes(m) ? 'var(--teal)' : 'var(--line)'}`,
+                    background: syncActivityMoments.includes(m) ? 'var(--teal)' : 'var(--surface)',
+                    color: syncActivityMoments.includes(m) ? '#fff' : 'var(--slate-700)',
+                    borderRadius: 6,
+                    padding: '5px 10px',
+                    fontSize: '0.78rem',
+                    fontWeight: 500,
+                    cursor: 'pointer',
+                  }}
                   onClick={() => setSyncActivityMoments((current) => toggleSelection(current, m))}
                 >
                   {m}
                 </button>
               ))}
             </div>
-            <div className="analytics-actions">
-              <button
-                type="button"
-                className="primary"
+            <div style={{ display: 'flex', flexWrap: 'wrap', gap: 8, alignItems: 'center' }}>
+              <Button
+                variant="primary"
+                size="sm"
                 onClick={() => void runMoodleQuickSync('activity', { moments: syncActivityMoments, autoCalcTeacherReport: true, source: 'SAMPLING', workers: 3 })}
                 disabled={moodleSyncLoading || !!importingKind || !syncActivityMoments.length}
                 title="Descarga logs de actividad solo para NRCs seleccionados en revision (muestreo)"
@@ -2797,31 +2849,29 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                     ? 'Importando logs...'
                     : `Descargando logs... (${sidecarArtifact ? `${sidecarProgressCount}/${sidecarArtifact.totalCourses}` : '...'})`
                   : `Sincronizar logs NRCs en revision${syncActivityMoments.length ? ` — momento ${syncActivityMoments.join('+')}` : ''}`}
-              </button>
-              <button
-                type="button"
+              </Button>
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => void loadTeacherAccessReport()}
                 disabled={teacherAccessLoading || moodleSyncLoading}
               >
                 {teacherAccessLoading ? 'Calculando...' : 'Solo calcular ingresos'}
-              </button>
+              </Button>
               {moodleSyncLoading && moodleQuickRun?.currentCommand === 'activity' && (
-                <button type="button" className="ghost" onClick={() => void cancelMoodleQuickSync()}>
+                <Button variant="ghost" size="sm" onClick={() => void cancelMoodleQuickSync()}>
                   Cancelar descarga
-                </button>
+                </Button>
               )}
             </div>
           </div>
 
           {moodleSyncLoading && moodleQuickRun?.currentCommand === 'activity' && (
-            <div className="teacher-sync-progress">
-              <div className="banner-progress-track quick-progress-track" aria-hidden="true">
-                <span
-                  className="banner-progress-fill is-running"
-                  style={{ width: `${sidecarProgressPercent ?? 8}%` }}
-                />
+            <div style={{ marginTop: 10, display: 'grid', gap: 8 }}>
+              <div style={{ height: 6, background: 'var(--n-100)', borderRadius: 3, overflow: 'hidden' }} aria-hidden="true">
+                <span style={{ display: 'block', height: '100%', width: `${sidecarProgressPercent ?? 8}%`, background: 'var(--teal)', borderRadius: 3, transition: 'width 500ms ease' }} />
               </div>
-              <div className="quick-progress-counters">
+              <div style={{ display: 'flex', flexWrap: 'wrap', gap: '10px 16px', color: 'var(--muted)', fontSize: '0.78rem' }}>
                 <span>Total: <strong>{formatCompactCount(sidecarArtifact?.totalCourses ?? sidecarSelectedCourseCount)}</strong></span>
                 <span>Descargados: <strong>{formatCompactCount(sidecarArtifact?.completedCourses ?? 0)}</strong></span>
                 <span>Fallidos: <strong>{formatCompactCount(sidecarArtifact?.failedCourses ?? 0)}</strong></span>
@@ -2830,26 +2880,26 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
             </div>
           )}
 
-          <div className="panel-row">
+          <div style={{ display: 'flex', flexWrap: 'wrap', gap: 10, alignItems: 'center', marginBottom: 12 }}>
             {teacherAccessReport && (
               <>
-                <span className="panel-meta">
+                <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
                   {teacherAccessReport.summary.courseCount} NRCs analizados
                   {teacherAccessReport.summary.complianceRate != null && (
                     <> &middot; Cumplimiento promedio: <strong>{teacherAccessReport.summary.complianceRate.toFixed(1)}%</strong></>
                   )}
                 </span>
-                <button
-                  type="button"
-                  className="primary"
+                <Button
+                  variant="primary"
+                  size="sm"
                   onClick={() => void applyTeacherAccessToChecklists()}
                   disabled={applyTeacherAccessLoading}
                   title="Escribe el puntaje de ingresos en el checklist de ejecucion de cada NRC"
                 >
                   {applyTeacherAccessLoading ? 'Aplicando al checklist...' : 'Aplicar ingresos al checklist de ejecucion'}
-                </button>
+                </Button>
                 {applyTeacherAccessResult && (
-                  <span className="panel-meta">
+                  <span style={{ fontSize: '0.82rem', color: 'var(--muted)' }}>
                     Actualizados: <strong>{applyTeacherAccessResult.updated}</strong>
                     {applyTeacherAccessResult.skipped > 0 && <> &middot; Sin NRC en BD: <strong>{applyTeacherAccessResult.skipped}</strong></>}
                   </span>
@@ -2860,33 +2910,33 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
 
           {teacherAccessReport && (
             <>
-              <div className="kpi-row">
-                <div className="kpi-card kpi-ok">
-                  <span className="kpi-value">{teacherAccessReport.summary.compliantCourses}</span>
-                  <span className="kpi-label">Cumplen</span>
+              <div style={{ display: 'flex', gap: 8, flexWrap: 'wrap', marginBottom: 16 }}>
+                <div style={{ padding: '12px 16px', borderRadius: 8, background: 'var(--teal)', color: '#fff', textAlign: 'center', minWidth: 80 }}>
+                  <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, lineHeight: 1 }}>{teacherAccessReport.summary.compliantCourses}</span>
+                  <span style={{ display: 'block', fontSize: '0.72rem', marginTop: 4, opacity: 0.85 }}>Cumplen</span>
                 </div>
-                <div className="kpi-card kpi-warn">
-                  <span className="kpi-value">{teacherAccessReport.summary.partialCourses}</span>
-                  <span className="kpi-label">Parcial</span>
+                <div style={{ padding: '12px 16px', borderRadius: 8, background: 'var(--amber)', color: '#fff', textAlign: 'center', minWidth: 80 }}>
+                  <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, lineHeight: 1 }}>{teacherAccessReport.summary.partialCourses}</span>
+                  <span style={{ display: 'block', fontSize: '0.72rem', marginTop: 4, opacity: 0.85 }}>Parcial</span>
                 </div>
-                <div className="kpi-card kpi-bad">
-                  <span className="kpi-value">{teacherAccessReport.summary.nonCompliantCourses}</span>
-                  <span className="kpi-label">Incumplen</span>
+                <div style={{ padding: '12px 16px', borderRadius: 8, background: 'var(--red)', color: '#fff', textAlign: 'center', minWidth: 80 }}>
+                  <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, lineHeight: 1 }}>{teacherAccessReport.summary.nonCompliantCourses}</span>
+                  <span style={{ display: 'block', fontSize: '0.72rem', marginTop: 4, opacity: 0.85 }}>Incumplen</span>
                 </div>
-                <div className="kpi-card">
-                  <span className="kpi-value">{teacherAccessReport.summary.noDataCourses}</span>
-                  <span className="kpi-label">Sin ingresos</span>
+                <div style={{ padding: '12px 16px', borderRadius: 8, background: 'var(--n-100)', color: 'var(--slate-700)', textAlign: 'center', minWidth: 80 }}>
+                  <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, lineHeight: 1 }}>{teacherAccessReport.summary.noDataCourses}</span>
+                  <span style={{ display: 'block', fontSize: '0.72rem', marginTop: 4, opacity: 0.85 }}>Sin ingresos</span>
                 </div>
                 {teacherAccessReport.summary.noDatesCourses > 0 && (
-                  <div className="kpi-card">
-                    <span className="kpi-value">{teacherAccessReport.summary.noDatesCourses}</span>
-                    <span className="kpi-label">Sin fechas Banner</span>
+                  <div style={{ padding: '12px 16px', borderRadius: 8, background: 'var(--n-100)', color: 'var(--slate-700)', textAlign: 'center', minWidth: 80 }}>
+                    <span style={{ display: 'block', fontSize: '1.5rem', fontWeight: 700, lineHeight: 1 }}>{teacherAccessReport.summary.noDatesCourses}</span>
+                    <span style={{ display: 'block', fontSize: '0.72rem', marginTop: 4, opacity: 0.85 }}>Sin fechas Banner</span>
                   </div>
                 )}
               </div>
 
-              <div className="table-wrap">
-                <table className="data-table">
+              <div style={{ overflowX: 'auto' }}>
+                <table className="fast-table">
                   <thead>
                     <tr>
                       <th>NRC</th>
@@ -2909,12 +2959,19 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                         SIN_INGRESOS: 'Sin ingresos',
                         SIN_FECHAS: 'Sin fechas',
                       };
-                      const statusClass: Record<string, string> = {
-                        CUMPLE: 'badge-ok',
-                        PARCIAL: 'badge-warn',
-                        INCUMPLE: 'badge-bad',
-                        SIN_INGRESOS: 'badge-bad',
-                        SIN_FECHAS: 'badge-neutral',
+                      const statusBg: Record<string, string> = {
+                        CUMPLE: 'var(--teal)',
+                        PARCIAL: 'var(--amber)',
+                        INCUMPLE: 'var(--red)',
+                        SIN_INGRESOS: 'var(--red)',
+                        SIN_FECHAS: 'var(--n-200)',
+                      };
+                      const statusColor: Record<string, string> = {
+                        CUMPLE: '#fff',
+                        PARCIAL: '#fff',
+                        INCUMPLE: '#fff',
+                        SIN_INGRESOS: '#fff',
+                        SIN_FECHAS: 'var(--slate-700)',
                       };
                       const weeksSummary = course.compliantWeeks != null && course.totalCourseWeeks != null
                         ? `${course.compliantWeeks}/${course.totalCourseWeeks}`
@@ -2928,11 +2985,11 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
                           <td>{course.subjectName ?? '-'}</td>
                           <td>{course.campusCode ?? '-'}</td>
                           <td>
-                            <span className={`badge ${statusClass[course.status] ?? 'badge-neutral'}`}>
+                            <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 700, background: statusBg[course.status] ?? 'var(--n-200)', color: statusColor[course.status] ?? 'var(--slate-700)' }}>
                               {statusLabel[course.status] ?? course.status}
                             </span>
                             {course.isShortCourse && (
-                              <span className="badge badge-info" style={{ marginLeft: 4 }}>Corto</span>
+                              <span style={{ padding: '2px 8px', borderRadius: 4, fontSize: '0.72rem', fontWeight: 700, background: '#e0f2fe', color: '#0369a1', marginLeft: 4 }}>Corto</span>
                             )}
                           </td>
                           <td>{weeksSummary}</td>
@@ -2954,1161 +3011,6 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
         </div>
       </details>
 
-      <style jsx>{`
-        .moodle-analytics-root {
-          display: grid;
-          gap: 16px;
-          color: var(--ink);
-        }
-
-        .analytics-hero,
-        .analytics-panel,
-        .analytics-card {
-          border: 1px solid var(--line);
-          background: var(--surface);
-          box-shadow: var(--shadow);
-        }
-
-        .analytics-hero {
-          display: grid;
-          grid-template-columns: minmax(0, 1.2fr) auto;
-          gap: 16px;
-          padding: 20px;
-          align-items: start;
-          border-radius: var(--radius-lg);
-        }
-
-        .analytics-hero h2 {
-          margin: 0;
-          font-family: var(--font-display);
-          font-size: 1.05rem;
-          font-weight: 700;
-          letter-spacing: -0.02em;
-        }
-
-        .analytics-hero p {
-          margin: 6px 0 0;
-          max-width: 72ch;
-          color: var(--muted);
-          line-height: 1.45;
-        }
-
-        .analytics-actions {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          align-items: center;
-        }
-
-        .analytics-hero .analytics-actions {
-          justify-content: flex-end;
-        }
-
-        .analytics-actions-spaced {
-          margin-top: 16px;
-        }
-
-        .analytics-actions button,
-        .chip-button {
-          border: 1px solid var(--line);
-          background: var(--surface);
-          color: var(--slate-700);
-          border-radius: 6px;
-          padding: 7px 12px;
-          font-size: 0.82rem;
-          font-weight: 500;
-          cursor: pointer;
-          transition: border-color 120ms ease, background 120ms ease, color 120ms ease;
-        }
-
-        .analytics-actions button:hover,
-        .chip-button:hover {
-          border-color: var(--slate-300);
-          background: var(--slate-50);
-        }
-
-        .analytics-actions .primary {
-          background: var(--teal);
-          border-color: var(--teal);
-          color: #fff;
-          font-weight: 600;
-        }
-
-        .analytics-actions .primary:hover {
-          background: var(--teal-dark);
-          border-color: var(--teal-dark);
-        }
-
-        .analytics-actions .ghost {
-          background: transparent;
-          color: var(--muted);
-        }
-
-        .message-strip {
-          padding: 10px 14px;
-          border-radius: 6px;
-          border-left: 3px solid var(--teal);
-          background: var(--teal-light);
-          color: var(--teal-dark);
-        }
-
-        .analytics-panel {
-          padding: 20px;
-          border-radius: var(--radius-lg);
-        }
-
-        .analytics-disclosure {
-          padding: 0;
-          overflow: hidden;
-        }
-
-        .analytics-disclosure > summary {
-          list-style: none;
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          align-items: flex-start;
-          cursor: pointer;
-          padding: 18px 20px;
-        }
-
-        .analytics-disclosure > summary::-webkit-details-marker {
-          display: none;
-        }
-
-        .analytics-disclosure > summary strong {
-          display: block;
-          font-size: 0.92rem;
-          color: var(--slate-800);
-        }
-
-        .analytics-disclosure > summary small {
-          display: block;
-          margin-top: 4px;
-          max-width: 62ch;
-          color: var(--muted);
-          line-height: 1.45;
-        }
-
-        .analytics-disclosure > summary span {
-          font-size: 0.75rem;
-          color: var(--muted);
-          white-space: nowrap;
-        }
-
-        .analytics-disclosure[open] > summary {
-          border-bottom: 1px solid var(--line);
-          background: var(--slate-50);
-        }
-
-        .analytics-disclosure > :not(summary) {
-          padding: 18px 20px 20px;
-        }
-
-        .analytics-panel-subtle {
-          background: var(--slate-50);
-          border-color: var(--line);
-          box-shadow: none;
-        }
-
-        .analytics-panel-head {
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          align-items: flex-start;
-          margin-bottom: 14px;
-        }
-
-        .analytics-panel-head h3 {
-          margin: 0;
-          font-family: var(--font-display);
-          font-size: 0.98rem;
-          font-weight: 700;
-          letter-spacing: -0.02em;
-        }
-
-        .analytics-panel-head small {
-          max-width: 62ch;
-          color: var(--muted);
-          line-height: 1.45;
-        }
-
-        .banner-source-panel {
-          display: grid;
-          gap: 18px;
-        }
-
-        .advanced-tools-stack {
-          display: grid;
-          gap: 18px;
-        }
-
-        .advanced-actions {
-          margin-bottom: -2px;
-        }
-
-        .banner-source-block + .banner-source-block {
-          border-top: 1px solid var(--line);
-          padding-top: 18px;
-        }
-
-        .quick-sync-panel,
-        .quick-progress-panel {
-          display: grid;
-          gap: 14px;
-        }
-
-        .quick-progress-grid {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 10px;
-        }
-
-        .quick-progress-card {
-          border: 1px solid var(--line);
-          background: var(--slate-50);
-          border-radius: 8px;
-          padding: 12px;
-          display: grid;
-          gap: 4px;
-        }
-
-        .quick-progress-card span {
-          font-size: 0.72rem;
-          color: var(--muted);
-        }
-
-        .quick-progress-card strong {
-          font-size: 0.9rem;
-          color: var(--slate-800);
-        }
-
-        .quick-progress-card small {
-          color: var(--muted);
-          font-size: 0.76rem;
-          line-height: 1.4;
-        }
-
-        .quick-progress-track {
-          margin: 2px 0 4px;
-        }
-
-        .quick-progress-counters {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px 16px;
-          color: var(--muted);
-          font-size: 0.78rem;
-        }
-
-        .quick-progress-counters strong {
-          color: var(--slate-800);
-        }
-
-        .section-lead {
-          margin-bottom: 12px;
-        }
-
-        .section-lead h4 {
-          margin: 0;
-          font-size: 0.88rem;
-          font-weight: 600;
-          color: var(--slate-800);
-        }
-
-        .section-lead p {
-          margin: 4px 0 0;
-          font-size: 0.8rem;
-          line-height: 1.4;
-          color: var(--muted);
-        }
-
-        .banner-run-panel {
-          margin-top: 16px;
-          border: 1px solid var(--line);
-          border-radius: 8px;
-          background: var(--slate-50);
-          padding: 16px;
-          display: grid;
-          gap: 14px;
-        }
-
-        .banner-period-selector {
-          margin-top: 14px;
-          border: 1px solid var(--line);
-          border-radius: 8px;
-          background: var(--slate-50);
-          padding: 14px;
-          display: grid;
-          gap: 12px;
-        }
-
-        .banner-period-selector-head {
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          align-items: flex-start;
-        }
-
-        .banner-period-selector-head h5 {
-          margin: 0;
-          font-size: 0.82rem;
-          font-weight: 600;
-          color: var(--slate-800);
-        }
-
-        .banner-period-selector-head p {
-          margin: 4px 0 0;
-          font-size: 0.76rem;
-          line-height: 1.4;
-          color: var(--muted);
-        }
-
-        .banner-period-summary {
-          font-size: 0.77rem;
-          color: var(--muted);
-        }
-
-        .banner-period-summary strong {
-          color: var(--slate-800);
-        }
-
-        .inline-note {
-          font-size: 0.77rem;
-          color: var(--muted);
-        }
-
-        .banner-run-head {
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          align-items: flex-start;
-        }
-
-        .banner-run-head h4 {
-          margin: 0;
-          font-size: 0.88rem;
-          font-weight: 600;
-          color: var(--slate-800);
-        }
-
-        .banner-run-head p {
-          margin: 4px 0 0;
-          font-size: 0.79rem;
-          line-height: 1.4;
-          color: var(--muted);
-        }
-
-        .banner-run-actions {
-          display: flex;
-          align-items: center;
-          gap: 8px;
-          flex-wrap: wrap;
-        }
-
-        .banner-run-actions button {
-          border: 1px solid var(--line);
-          background: transparent;
-          color: var(--muted);
-          border-radius: 6px;
-          padding: 7px 10px;
-          font-size: 0.78rem;
-          cursor: pointer;
-        }
-
-        .banner-run-actions button:hover {
-          background: var(--surface);
-          border-color: var(--slate-300);
-          color: var(--slate-700);
-        }
-
-        .banner-run-badge {
-          display: inline-flex;
-          align-items: center;
-          border-radius: 999px;
-          padding: 4px 10px;
-          font-size: 0.74rem;
-          font-weight: 600;
-          border: 1px solid var(--line);
-          background: var(--surface);
-          color: var(--slate-700);
-        }
-
-        .banner-run-badge.is-running {
-          border-color: rgba(13, 148, 136, 0.2);
-          background: var(--teal-light);
-          color: var(--teal-dark);
-        }
-
-        .banner-run-badge.is-completed {
-          border-color: rgba(22, 163, 74, 0.18);
-          background: rgba(22, 163, 74, 0.08);
-          color: var(--green);
-        }
-
-        .banner-run-badge.is-failed,
-        .banner-run-badge.is-cancelled {
-          border-color: rgba(220, 38, 38, 0.18);
-          background: rgba(220, 38, 38, 0.08);
-          color: var(--red);
-        }
-
-        .banner-run-stats {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 10px;
-        }
-
-        .banner-run-stat {
-          border: 1px solid var(--line);
-          background: var(--surface);
-          border-radius: 8px;
-          padding: 10px 12px;
-          display: grid;
-          gap: 4px;
-        }
-
-        .banner-run-stat span {
-          font-size: 0.72rem;
-          color: var(--muted);
-        }
-
-        .banner-run-stat strong {
-          font-size: 0.84rem;
-          color: var(--slate-800);
-        }
-
-        .banner-live-board {
-          display: grid;
-          gap: 12px;
-        }
-
-        .banner-live-strip {
-          display: grid;
-          grid-template-columns: minmax(0, 1.3fr) minmax(220px, 0.7fr);
-          gap: 12px;
-        }
-
-        .banner-live-state,
-        .banner-live-current,
-        .banner-live-stat {
-          border: 1px solid var(--line);
-          background: var(--surface);
-          border-radius: 8px;
-        }
-
-        .banner-live-state {
-          display: flex;
-          gap: 12px;
-          align-items: flex-start;
-          padding: 12px;
-        }
-
-        .banner-live-dot {
-          width: 10px;
-          height: 10px;
-          border-radius: 999px;
-          background: var(--slate-300);
-          margin-top: 5px;
-          flex: 0 0 auto;
-        }
-
-        .banner-live-dot.is-running {
-          background: var(--teal);
-          box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.14);
-          animation: bannerPulse 1.4s ease-in-out infinite;
-        }
-
-        .banner-live-copy {
-          display: grid;
-          gap: 4px;
-        }
-
-        .banner-live-copy strong {
-          font-size: 0.9rem;
-          color: var(--slate-800);
-        }
-
-        .banner-live-copy span {
-          font-size: 0.79rem;
-          line-height: 1.45;
-          color: var(--muted);
-        }
-
-        .banner-live-current {
-          display: grid;
-          gap: 4px;
-          padding: 12px;
-          align-content: start;
-        }
-
-        .banner-live-current span,
-        .banner-live-current small {
-          color: var(--muted);
-          font-size: 0.74rem;
-        }
-
-        .banner-live-current strong {
-          font-size: 0.92rem;
-          color: var(--slate-800);
-        }
-
-        .banner-progress-copy {
-          display: flex;
-          justify-content: space-between;
-          gap: 12px;
-          align-items: center;
-          flex-wrap: wrap;
-          font-size: 0.8rem;
-        }
-
-        .banner-progress-copy strong {
-          color: var(--slate-800);
-        }
-
-        .banner-progress-copy span {
-          color: var(--muted);
-        }
-
-        .banner-progress-track {
-          height: 10px;
-          border-radius: 999px;
-          background: var(--slate-100);
-          overflow: hidden;
-        }
-
-        .banner-progress-fill {
-          display: block;
-          height: 100%;
-          border-radius: inherit;
-          background: var(--teal);
-          transition: width 180ms ease;
-        }
-
-        .banner-progress-fill.is-running {
-          background: linear-gradient(90deg, var(--teal), #2baea1);
-        }
-
-        .banner-progress-labels {
-          display: flex;
-          justify-content: space-between;
-          gap: 10px;
-          flex-wrap: wrap;
-          font-size: 0.74rem;
-          color: var(--muted);
-        }
-
-        .banner-live-stats {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 10px;
-        }
-
-        .banner-live-stat {
-          padding: 10px 12px;
-          display: grid;
-          gap: 4px;
-        }
-
-        .banner-live-stat span {
-          color: var(--muted);
-          font-size: 0.72rem;
-        }
-
-        .banner-live-stat strong {
-          font-size: 1rem;
-          color: var(--slate-800);
-        }
-
-        .banner-phase-strip {
-          display: grid;
-          grid-template-columns: repeat(4, minmax(0, 1fr));
-          gap: 8px;
-        }
-
-        .banner-phase-step {
-          border: 1px solid var(--line);
-          background: var(--surface);
-          border-radius: 8px;
-          padding: 9px 10px;
-          font-size: 0.75rem;
-          text-align: center;
-          color: var(--muted);
-        }
-
-        .banner-phase-step.is-complete {
-          border-color: rgba(13, 148, 136, 0.2);
-          color: var(--teal-dark);
-        }
-
-        .banner-phase-step.is-current {
-          background: var(--teal-light);
-          font-weight: 600;
-        }
-
-        .banner-phase-step.is-danger {
-          border-color: rgba(220, 38, 38, 0.18);
-          color: var(--red);
-        }
-
-        .banner-event-list {
-          display: grid;
-          gap: 8px;
-        }
-
-        .banner-event-row {
-          display: grid;
-          grid-template-columns: 108px minmax(0, 1fr);
-          gap: 12px;
-          align-items: flex-start;
-          border: 1px solid var(--line);
-          background: var(--surface);
-          border-radius: 8px;
-          padding: 10px 12px;
-        }
-
-        .banner-event-stage {
-          display: inline-flex;
-          justify-content: center;
-          align-items: center;
-          min-height: 30px;
-          border-radius: 6px;
-          border: 1px solid var(--line);
-          background: var(--slate-50);
-          font-size: 0.72rem;
-          font-weight: 600;
-          color: var(--slate-700);
-        }
-
-        .banner-event-stage.stage-lookup {
-          color: var(--teal-dark);
-          border-color: rgba(13, 148, 136, 0.18);
-          background: var(--teal-light);
-        }
-
-        .banner-event-stage.stage-done {
-          color: var(--green);
-          border-color: rgba(22, 163, 74, 0.18);
-          background: rgba(22, 163, 74, 0.08);
-        }
-
-        .banner-event-stage.stage-warn {
-          color: var(--red);
-          border-color: rgba(220, 38, 38, 0.18);
-          background: rgba(220, 38, 38, 0.08);
-        }
-
-        .banner-event-body {
-          display: grid;
-          gap: 4px;
-        }
-
-        .banner-event-body strong {
-          color: var(--slate-800);
-          font-size: 0.82rem;
-          line-height: 1.35;
-        }
-
-        .banner-event-body small {
-          color: var(--muted);
-          font-size: 0.74rem;
-        }
-
-        @keyframes bannerPulse {
-          0%,
-          100% {
-            box-shadow: 0 0 0 4px rgba(13, 148, 136, 0.14);
-          }
-          50% {
-            box-shadow: 0 0 0 7px rgba(13, 148, 136, 0.06);
-          }
-        }
-
-        .banner-log-detail {
-          border-top: 1px solid var(--line);
-          padding-top: 12px;
-        }
-
-        .banner-log-detail summary {
-          cursor: pointer;
-          color: var(--slate-700);
-          font-size: 0.8rem;
-          font-weight: 600;
-        }
-
-        .banner-log-detail pre {
-          margin: 10px 0 0;
-          max-height: 240px;
-          overflow: auto;
-          border-radius: 8px;
-          border: 1px solid var(--line);
-          background: #101828;
-          color: #d0d7e2;
-          padding: 12px;
-          font-size: 0.72rem;
-          line-height: 1.45;
-          white-space: pre-wrap;
-          word-break: break-word;
-        }
-
-        .filter-grid {
-          display: grid;
-          grid-template-columns: repeat(3, minmax(0, 1fr));
-          gap: 12px;
-        }
-
-        .banner-import-grid {
-          display: grid;
-          grid-template-columns: minmax(0, 1.4fr) repeat(2, minmax(180px, 0.7fr)) auto;
-          gap: 12px;
-          align-items: end;
-        }
-
-        .filter-block {
-          display: grid;
-          gap: 6px;
-        }
-
-        .filter-block-wide {
-          grid-column: span 2;
-        }
-
-        .filter-block span {
-          font-size: 0.75rem;
-          font-weight: 600;
-          color: var(--slate-600);
-        }
-
-        .chip-grid {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 6px;
-        }
-
-        .chip-grid-tall {
-          max-height: 180px;
-          overflow: auto;
-          padding-right: 6px;
-        }
-
-        .chip-button.active {
-          background: var(--teal-light);
-          border-color: rgba(13, 148, 136, 0.28);
-          color: var(--teal-dark);
-          font-weight: 600;
-        }
-
-        .filter-block input,
-        .filter-block textarea,
-        .filter-block select {
-          width: 100%;
-          border-radius: 6px;
-          border: 1px solid var(--line);
-          background: var(--surface);
-          color: var(--ink);
-          padding: 8px 10px;
-        }
-
-        .filter-block select[multiple] {
-          min-height: 132px;
-        }
-
-        .filter-block small {
-          font-size: 0.72rem;
-          line-height: 1.35;
-          color: var(--muted);
-        }
-
-        .analytics-stats-grid {
-          margin-bottom: 0;
-        }
-
-        .analytics-stats-grid .stat-card {
-          min-height: 104px;
-        }
-
-        .analytics-stats-grid-compact {
-          margin-bottom: 14px;
-        }
-
-        .analytics-grid {
-          display: grid;
-          grid-template-columns: repeat(2, minmax(0, 1fr));
-          gap: 16px;
-        }
-
-        .day-bars {
-          min-height: 220px;
-          display: grid;
-          grid-template-columns: repeat(auto-fit, minmax(18px, 1fr));
-          gap: 8px;
-          align-items: end;
-        }
-
-        .day-bar {
-          display: grid;
-          gap: 6px;
-          align-items: end;
-          justify-items: center;
-        }
-
-        .day-bar-fill {
-          width: 100%;
-          border-radius: 6px 6px 2px 2px;
-          background: var(--amber);
-          min-height: 14px;
-        }
-
-        .day-bar-fill.cool {
-          background: var(--teal);
-        }
-
-        .day-bar span {
-          font-size: 0.7rem;
-          color: var(--muted);
-          writing-mode: vertical-rl;
-          text-orientation: mixed;
-        }
-
-        .bar-list {
-          display: grid;
-          gap: 12px;
-        }
-
-        .bar-row {
-          display: grid;
-          grid-template-columns: minmax(0, 1.2fr) minmax(0, 1.1fr) auto;
-          gap: 12px;
-          align-items: center;
-        }
-
-        .bar-row strong {
-          display: block;
-        }
-
-        .bar-row small {
-          color: var(--muted);
-        }
-
-        .bar-track {
-          height: 8px;
-          border-radius: 999px;
-          background: var(--slate-100);
-          overflow: hidden;
-        }
-
-        .bar-fill {
-          display: block;
-          height: 100%;
-          border-radius: inherit;
-          background: var(--accent);
-        }
-
-        .bar-value {
-          font-variant-numeric: tabular-nums;
-          color: var(--slate-700);
-        }
-
-        .stacked-lists {
-          display: grid;
-          gap: 16px;
-        }
-
-        .analytics-table {
-          width: 100%;
-          border-collapse: collapse;
-        }
-
-        .analytics-table th,
-        .analytics-table td {
-          padding: 9px 8px;
-          border-bottom: 1px solid var(--slate-100);
-          text-align: left;
-          vertical-align: top;
-        }
-
-        .analytics-table th {
-          color: var(--muted);
-          font-size: 0.7rem;
-          text-transform: uppercase;
-          letter-spacing: 0.04em;
-          border-bottom-color: var(--line);
-        }
-
-        .analytics-table tbody tr:hover {
-          background: var(--slate-50);
-        }
-
-        .table-support {
-          margin-top: 4px;
-          color: var(--muted);
-          font-size: 0.75rem;
-        }
-
-        .empty-table-cell {
-          color: var(--muted);
-          padding: 18px 8px;
-        }
-
-        .risk-text {
-          font-weight: 700;
-          letter-spacing: 0.03em;
-        }
-
-        .risk-alto {
-          color: var(--red);
-        }
-
-        .risk-medio {
-          color: var(--amber);
-        }
-
-        .risk-bajo {
-          color: var(--green);
-        }
-
-        .risk-sin_alertas {
-          color: var(--muted);
-        }
-
-        .course-report-list {
-          display: grid;
-          gap: 10px;
-        }
-
-        .course-report-item {
-          border-radius: 8px;
-          border: 1px solid var(--line);
-          background: var(--surface);
-          overflow: hidden;
-        }
-
-        .course-report-item summary {
-          list-style: none;
-          display: grid;
-          grid-template-columns: minmax(0, 1fr) auto;
-          gap: 14px;
-          padding: 12px 14px;
-          cursor: pointer;
-        }
-
-        .course-report-item summary::-webkit-details-marker {
-          display: none;
-        }
-
-        .course-report-item summary small {
-          display: block;
-          margin-top: 4px;
-          color: var(--muted);
-        }
-
-        .summary-metrics {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          align-items: center;
-          justify-content: flex-end;
-          color: var(--slate-700);
-          font-size: 0.78rem;
-        }
-
-        .report-card-body {
-          padding: 0 14px 14px;
-          border-top: 1px solid var(--slate-100);
-        }
-
-        .badge-strip {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 8px;
-          margin: 12px 0;
-        }
-
-        .mini-badge {
-          border-radius: 4px;
-          padding: 3px 8px;
-          background: var(--slate-100);
-          color: var(--slate-700);
-          font-size: 0.72rem;
-        }
-
-        .empty-state {
-          padding: 14px 0;
-          color: var(--muted);
-        }
-
-        .teacher-sync-bar {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 12px;
-          align-items: center;
-          padding: 12px 0;
-          border-bottom: 1px solid var(--line);
-          margin-bottom: 12px;
-        }
-
-        .teacher-sync-moments {
-          display: flex;
-          align-items: center;
-          gap: 6px;
-          flex-wrap: wrap;
-        }
-
-        .teacher-sync-moments span {
-          font-size: 0.8rem;
-          color: var(--muted);
-          font-weight: 500;
-        }
-
-        .teacher-sync-progress {
-          margin: 0 0 12px;
-        }
-
-        .panel-row {
-          display: flex;
-          align-items: center;
-          gap: 12px;
-          flex-wrap: wrap;
-          margin-bottom: 12px;
-        }
-
-        .panel-meta {
-          font-size: 0.82rem;
-          color: var(--muted);
-        }
-
-        .kpi-row {
-          display: flex;
-          flex-wrap: wrap;
-          gap: 10px;
-          margin-bottom: 16px;
-        }
-
-        .kpi-card {
-          flex: 1 1 90px;
-          min-width: 90px;
-          border: 1px solid var(--line);
-          border-radius: 6px;
-          padding: 10px 14px;
-          text-align: center;
-          background: var(--surface);
-        }
-
-        .kpi-card.kpi-ok { border-color: #22c55e; background: #f0fdf4; }
-        .kpi-card.kpi-warn { border-color: #f59e0b; background: #fffbeb; }
-        .kpi-card.kpi-bad { border-color: #ef4444; background: #fef2f2; }
-
-        .kpi-value {
-          display: block;
-          font-size: 1.5rem;
-          font-weight: 700;
-          line-height: 1.1;
-        }
-
-        .kpi-label {
-          display: block;
-          font-size: 0.75rem;
-          color: var(--muted);
-          margin-top: 2px;
-        }
-
-        .badge {
-          display: inline-block;
-          font-size: 0.72rem;
-          padding: 2px 7px;
-          border-radius: 4px;
-          font-weight: 600;
-          white-space: nowrap;
-        }
-
-        .badge-ok { background: #dcfce7; color: #16a34a; }
-        .badge-warn { background: #fef9c3; color: #92400e; }
-        .badge-bad { background: #fee2e2; color: #b91c1c; }
-        .badge-info { background: #dbeafe; color: #1d4ed8; }
-        .badge-neutral { background: var(--slate-100, #f1f5f9); color: var(--slate-600, #475569); }
-
-        .table-wrap {
-          overflow-x: auto;
-          overflow-y: auto;
-          max-height: 340px;
-        }
-
-        .data-table {
-          width: 100%;
-          border-collapse: collapse;
-          font-size: 0.82rem;
-        }
-
-        .data-table th,
-        .data-table td {
-          padding: 7px 10px;
-          border-bottom: 1px solid var(--line);
-          text-align: left;
-          white-space: nowrap;
-        }
-
-        .data-table th {
-          font-weight: 600;
-          color: var(--muted);
-          background: var(--surface-alt, #f8fafc);
-        }
-
-        .data-table tbody tr:hover {
-          background: var(--surface-alt, #f8fafc);
-        }
-
-        @media (max-width: 1200px) {
-          .filter-grid,
-          .analytics-grid,
-          .analytics-hero,
-          .quick-progress-grid,
-          .banner-import-grid,
-          .banner-run-stats,
-          .banner-live-strip,
-          .banner-live-stats,
-          .banner-phase-strip {
-            grid-template-columns: 1fr;
-          }
-
-          .analytics-hero .analytics-actions {
-            justify-content: flex-start;
-          }
-
-          .filter-block-wide {
-            grid-column: span 1;
-          }
-        }
-
-        @media (max-width: 780px) {
-          .bar-row,
-          .course-report-item summary,
-          .banner-event-row {
-            grid-template-columns: 1fr;
-          }
-
-          .analytics-disclosure > summary {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-
-          .summary-metrics,
-          .analytics-actions {
-            justify-content: flex-start;
-          }
-
-          .analytics-panel-head {
-            flex-direction: column;
-          }
-
-          .banner-run-head,
-          .banner-progress-copy,
-          .banner-period-selector-head,
-          .banner-progress-labels {
-            flex-direction: column;
-            align-items: flex-start;
-          }
-        }
-      `}</style>
     </div>
   );
 }

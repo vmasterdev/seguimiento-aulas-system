@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { buildCourseScheduleInfo } from '@seguimiento/shared';
+import { Button, AlertBox } from '../../_components/ui';
 
 type CalendarFilter = 'ALL' | 'ACTIVE' | 'SHORT' | 'URGENTE';
 
@@ -241,29 +242,12 @@ export function NrcPrioridadPanel({ apiBase }: { apiBase: string }) {
             <option value="EJECUCION">Ejecucion</option>
           </select>
         </div>
-        <button
-          type="button"
-          onClick={loadQueue}
-          disabled={loading}
-          style={{
-            fontSize: 13,
-            padding: '5px 14px',
-            borderRadius: 4,
-            border: '1px solid #1f5f99',
-            background: '#1f5f99',
-            color: '#fff',
-            cursor: loading ? 'wait' : 'pointer',
-          }}
-        >
+        <Button variant="primary" size="sm" loading={loading} onClick={() => void loadQueue()}>
           {loading ? 'Cargando...' : 'Cargar cola'}
-        </button>
+        </Button>
       </div>
 
-      {error && (
-        <div style={{ padding: '8px 12px', background: '#fdecea', color: '#c0392b', borderRadius: 4, fontSize: 13 }}>
-          Error: {error}
-        </div>
-      )}
+      {error && <AlertBox tone="error">Error: {error}</AlertBox>}
 
       {queue && (
         <>

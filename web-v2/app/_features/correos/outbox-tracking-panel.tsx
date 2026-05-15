@@ -2,6 +2,7 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox, Modal, useConfirm } from '../../_components/ui';
 
 type OutboxTrackingPanelProps = {
   apiBase: string;
@@ -85,6 +86,7 @@ function formatAttemptResult(value: TrackingItem['lastAttemptResult']): string {
 }
 
 export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
+  const confirm = useConfirm();
   const [periodCode, setPeriodCode] = useState('');
   const [phase, setPhase] = useState<'ALL' | 'ALISTAMIENTO' | 'EJECUCION'>('ALL');
   const [moment, setMoment] = useState<'ALL' | 'MD1' | 'MD2' | '1' | 'INTER' | 'RM1' | 'RM2'>('ALL');
@@ -158,9 +160,12 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
   }
 
   async function resendUpdated(item: TrackingItem) {
-    const confirmed = window.confirm(
-      `Se regenerara y reenviara el correo de ${item.recipientName ?? 'docente'} (${item.periodCode} ${item.moment}). Continuar?`,
-    );
+    const confirmed = await confirm({
+      title: 'Regenerar y reenviar correo',
+      message: `Se regenerará y reenviará el correo de ${item.recipientName ?? 'docente'} (${item.periodCode} ${item.moment}).`,
+      confirmLabel: 'Reenviar',
+      tone: 'primary',
+    });
     if (!confirmed) return;
 
     try {
@@ -192,9 +197,12 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
   }
 
   async function sendExistingMessage(item: TrackingItem) {
-    const confirmed = window.confirm(
-      `Se enviara o reenviara el correo actual de ${item.recipientName ?? 'destinatario'} (${item.periodCode} ${item.moment}). Continuar?`,
-    );
+    const confirmed = await confirm({
+      title: 'Enviar correo existente',
+      message: `Se enviará o reenviará el correo actual de ${item.recipientName ?? 'destinatario'} (${item.periodCode} ${item.moment}).`,
+      confirmLabel: 'Enviar',
+      tone: 'primary',
+    });
     if (!confirmed) return;
 
     try {
@@ -248,16 +256,28 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
   const total = data?.total ?? 0;
 
   return (
-    <article className="panel">
-      <h2>Trazabilidad de correos enviados</h2>
-      <div className="actions">
-        Vista de envio por destinatario: borradores, enviados y ultimo resultado por intento.
-      </div>
-      <div className="actions" style={{ marginTop: 6 }}>
-        Cada tarjeta tiene <strong>Ver preview del correo</strong> y, para docentes, <strong>Actualizar y reenviar</strong>.
-      </div>
+    <article className="premium-card">
+      <PageHero
+        title="Trazabilidad de correos enviados"
+        description="Vista de envío por destinatario: borradores, enviados y último resultado por intento."
+      >
+        <StatusPill tone={loading ? 'warn' : (data?.summary.pending ?? 0) > 0 ? 'warn' : 'ok'} dot={loading}>
+          {loading ? 'Cargando' : `${data?.summary.pending ?? 0} pendientes`}
+        </StatusPill>
+        <Button variant="ghost" size="sm" onClick={applySearch} loading={loading}>
+          ↻ Actualizar
+        </Button>
+      </PageHero>
 
-      <div className="controls" style={{ marginTop: 10 }}>
+      <StatsGrid items={[
+        { label: 'Total correos', value: total, tone: 'default' },
+        { label: 'Enviados', value: sent, tone: 'ok' },
+        { label: 'Pendientes', value: pending, tone: pending > 0 ? 'warn' : 'ok' },
+      ]} />
+
+      <div className="panel-body">
+
+      <div className="controls" style={{ marginTop: 0 }}>
         <label>
           Periodo
           <input value={periodCode} onChange={(event) => { setPeriodCode(event.target.value); setPage(1); }} />
@@ -317,13 +337,13 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
         </label>
       </div>
 
-      <div className="controls" style={{ marginTop: 10 }}>
-        <button type="button" className="primary" onClick={applySearch} disabled={loading}>
-          {loading ? 'Consultando...' : 'Actualizar'}
-        </button>
-        <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={clearFilters} disabled={loading}>
+      <div className="controls" style={{ marginTop: 8 }}>
+        <Button variant="primary" size="sm" onClick={applySearch} disabled={loading} loading={loading}>
+          Actualizar
+        </Button>
+        <Button variant="ghost" size="sm" onClick={clearFilters} disabled={loading}>
           Limpiar filtros
-        </button>
+        </Button>
         <label style={{ minWidth: 280 }}>
           Correo alterno (opcional)
           <input
@@ -334,24 +354,9 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
         </label>
       </div>
 
-      <div className="outbox-summary-grid" style={{ marginTop: 12 }}>
-        <div className="card outbox-summary-card">
-          <div className="kpi-label">Total correos</div>
-          <div className="kpi-value">{total}</div>
-        </div>
-        <div className="card outbox-summary-card">
-          <div className="kpi-label">Enviados</div>
-          <div className="kpi-value">{sent}</div>
-        </div>
-        <div className="card outbox-summary-card">
-          <div className="kpi-label">Pendientes</div>
-          <div className="kpi-value">{pending}</div>
-        </div>
-      </div>
-
       {data?.note ? <div className="actions" style={{ marginTop: 8 }}>{data.note}</div> : null}
-      {error ? <div className="message">No fue posible cargar trazabilidad: {error}</div> : null}
-      {actionMessage ? <div className="message">{actionMessage}</div> : null}
+      {error ? <AlertBox tone="error">No fue posible cargar trazabilidad: {error}</AlertBox> : null}
+      {actionMessage ? <AlertBox tone="info">{actionMessage}</AlertBox> : null}
 
       <div className="outbox-mail-list" style={{ marginTop: 12 }}>
         {(data?.items ?? []).map((item) => (
@@ -362,13 +367,21 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
                 <div className="outbox-mail-email">{item.recipientEmail ?? 'sin-correo@invalid.local'}</div>
               </div>
               <div className="outbox-badges">
-                <span className={`badge status-chip status-${item.status.toLowerCase()}`}>{item.status}</span>
+                <StatusPill tone={
+                  item.status === 'SENT_AUTO' || item.status === 'SENT_MANUAL' ? 'ok'
+                  : item.status === 'EXPORTED' ? 'neutral'
+                  : 'warn'
+                }>{item.status}</StatusPill>
                 {item.lastAttemptResult ? (
-                  <span className={`badge attempt-chip attempt-${item.lastAttemptResult.toLowerCase()}`}>
-                    Ultimo intento: {formatAttemptResult(item.lastAttemptResult)}
-                  </span>
+                  <StatusPill tone={
+                    item.lastAttemptResult === 'SENT' ? 'ok'
+                    : item.lastAttemptResult === 'FAILED' ? 'danger'
+                    : 'neutral'
+                  }>
+                    Último intento: {formatAttemptResult(item.lastAttemptResult)}
+                  </StatusPill>
                 ) : (
-                  <span className="badge attempt-chip">Sin intentos</span>
+                  <StatusPill tone="neutral">Sin intentos</StatusPill>
                 )}
               </div>
             </div>
@@ -391,119 +404,93 @@ export function OutboxTrackingPanel({ apiBase }: OutboxTrackingPanelProps) {
             ) : null}
 
             <div className="controls" style={{ marginTop: 8 }}>
-              <button
-                type="button"
-                className="btn-next-action"
+              <Button
+                variant="secondary"
+                size="sm"
                 onClick={() => void openPreview(item)}
                 disabled={rowBusyId === item.id}
+                loading={rowBusyId === item.id}
               >
                 Ver preview del correo
-              </button>
+              </Button>
               {item.audience === 'DOCENTE' ? (
-                <button
-                  type="button"
-                  className="btn-next-action"
+                <Button
+                  variant="primary"
+                  size="sm"
                   onClick={() => void resendUpdated(item)}
                   disabled={rowBusyId === item.id}
+                  loading={rowBusyId === item.id}
                 >
-                  {rowBusyId === item.id ? 'Reenviando...' : 'Actualizar y reenviar'}
-                </button>
+                  Actualizar y reenviar
+                </Button>
               ) : (
-                <button
-                  type="button"
-                  className="btn-next-action"
+                <Button
+                  variant="primary"
+                  size="sm"
                   onClick={() => void sendExistingMessage(item)}
                   disabled={rowBusyId === item.id}
+                  loading={rowBusyId === item.id}
                 >
-                  {rowBusyId === item.id ? 'Enviando...' : 'Enviar o reenviar'}
-                </button>
+                  Enviar o reenviar
+                </Button>
               )}
             </div>
           </article>
         ))}
       </div>
 
-      {data && data.items.length === 0 ? <div className="muted">Sin resultados para los filtros seleccionados.</div> : null}
+      {data && data.items.length === 0 ? <p style={{ color: 'var(--muted)', fontSize: 'var(--fs-sm)', padding: '8px 0' }}>Sin resultados para los filtros seleccionados.</p> : null}
 
       {data ? (
         <div className="controls" style={{ marginTop: 10 }}>
-          <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setPage((prev) => Math.max(1, prev - 1))} disabled={loading || data.page <= 1}>
-            Pagina anterior
-          </button>
-          <div className="muted" style={{ alignSelf: 'center' }}>
-            Pagina {data.page} de {data.pageCount}
-          </div>
-          <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setPage((prev) => Math.min(data.pageCount, prev + 1))} disabled={loading || data.page >= data.pageCount}>
-            Pagina siguiente
-          </button>
+          <Button variant="ghost" size="sm" onClick={() => setPage((prev) => Math.max(1, prev - 1))} disabled={loading || data.page <= 1}>
+            ← Anterior
+          </Button>
+          <span style={{ alignSelf: 'center', fontSize: 'var(--fs-sm)', color: 'var(--muted)', fontWeight: 600 }}>
+            Página {data.page} de {data.pageCount}
+          </span>
+          <Button variant="ghost" size="sm" onClick={() => setPage((prev) => Math.min(data.pageCount, prev + 1))} disabled={loading || data.page >= data.pageCount}>
+            Siguiente →
+          </Button>
         </div>
       ) : null}
 
-      {previewOpen ? (
-        <div
-          style={{
-            position: 'fixed',
-            inset: 0,
-            background: 'rgba(15, 23, 42, 0.55)',
-            display: 'flex',
-            alignItems: 'center',
-            justifyContent: 'center',
-            padding: 16,
-            zIndex: 1000,
-          }}
-        >
-          <div
-            className="panel"
-            style={{
-              width: 'min(1180px, 96vw)',
-              maxHeight: '92vh',
-              overflow: 'hidden',
-              display: 'flex',
-              flexDirection: 'column',
-              margin: 0,
-              background: '#fff',
-            }}
-          >
-            <div className="controls" style={{ justifyContent: 'space-between', marginBottom: 8 }}>
-              <div>
-                <strong>Preview correo</strong>
-                {previewData ? ` | ${previewData.subject}` : ''}
-              </div>
-              <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => setPreviewOpen(false)}>
-                Cerrar
-              </button>
+      </div>{/* /panel-body */}
+
+      <Modal
+        open={previewOpen}
+        onClose={() => setPreviewOpen(false)}
+        size="xl"
+        title={`Preview correo${previewData ? ` | ${previewData.subject}` : ''}`}
+      >
+        {previewLoading && <AlertBox tone="info">Cargando preview...</AlertBox>}
+        {previewError && <AlertBox tone="error">No fue posible cargar el preview: {previewError}</AlertBox>}
+
+        {previewData ? (
+          <>
+            <div className="outbox-mail-kv-grid" style={{ marginBottom: 10 }}>
+              <div><strong>Destinatario:</strong> {previewData.recipientName ?? 'Sin nombre'}</div>
+              <div><strong>Correo:</strong> {previewData.recipientEmail ?? 'sin-correo@invalid.local'}</div>
+              <div><strong>Periodo:</strong> {previewData.periodCode}</div>
+              <div><strong>Fase:</strong> {previewData.phase}</div>
+              <div><strong>Momento:</strong> {formatMomentLabel(previewData.moment)} ({previewData.moment})</div>
+              <div><strong>Estado:</strong> {previewData.status}</div>
             </div>
-
-            {previewLoading ? <div className="message">Cargando preview...</div> : null}
-            {previewError ? <div className="message">No fue posible cargar el preview: {previewError}</div> : null}
-
-            {previewData ? (
-              <>
-                <div className="outbox-mail-kv-grid" style={{ marginBottom: 10 }}>
-                  <div><strong>Destinatario:</strong> {previewData.recipientName ?? 'Sin nombre'}</div>
-                  <div><strong>Correo:</strong> {previewData.recipientEmail ?? 'sin-correo@invalid.local'}</div>
-                  <div><strong>Periodo:</strong> {previewData.periodCode}</div>
-                  <div><strong>Fase:</strong> {previewData.phase}</div>
-                  <div><strong>Momento:</strong> {formatMomentLabel(previewData.moment)} ({previewData.moment})</div>
-                  <div><strong>Estado:</strong> {previewData.status}</div>
-                </div>
-                <iframe
-                  title={`preview-${previewData.id}`}
-                  srcDoc={previewData.htmlBody}
-                  style={{
-                    width: '100%',
-                    minHeight: '72vh',
-                    border: '1px solid #d4d7dd',
-                    borderRadius: 12,
-                    background: '#fff',
-                  }}
-                  sandbox="allow-popups allow-same-origin"
-                />
-              </>
-            ) : null}
-          </div>
-        </div>
-      ) : null}
+            <iframe
+              title={`preview-${previewData.id}`}
+              srcDoc={previewData.htmlBody}
+              style={{
+                width: '100%',
+                minHeight: '72vh',
+                border: '1px solid #d4d7dd',
+                borderRadius: 12,
+                background: '#fff',
+              }}
+              sandbox="allow-popups allow-same-origin"
+            />
+          </>
+        ) : null}
+      </Modal>
     </article>
   );
 }

@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { Button, StatusPill, PageHero, AlertBox, useConfirm } from '../../_components/ui';
 
 type OutboxEmailPanelProps = {
   apiBase: string;
@@ -127,6 +128,7 @@ function collectGeneratedIds(result: OperationResponse | null): string[] {
 }
 
 export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
+  const confirm = useConfirm();
   const [options, setOptions] = useState<OptionsResponse | null>(null);
   const [optionsError, setOptionsError] = useState('');
 
@@ -360,9 +362,12 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       }
 
       if (!dryRun) {
-        const confirmed = window.confirm(
-          `Se enviaran correos de ${audience} con periodos ${effectivePeriodCodes.join(', ')} y momentos ${effectiveMoments.join(', ')}. Continuar?`,
-        );
+        const confirmed = await confirm({
+          title: 'Confirmar envío masivo',
+          message: `Se enviarán correos de ${audience} con periodos ${effectivePeriodCodes.join(', ')} y momentos ${effectiveMoments.join(', ')}.`,
+          confirmLabel: 'Enviar',
+          tone: 'primary',
+        });
         if (!confirmed) return;
       }
 
@@ -394,9 +399,12 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       return;
     }
 
-    const confirmed = window.confirm(
-      `Se enviara el borrador seleccionado${selectedCoordinator ? ` a ${selectedCoordinator.fullName}` : ''}. Continuar?`,
-    );
+    const confirmed = await confirm({
+      title: 'Enviar borrador',
+      message: `Se enviará el borrador seleccionado${selectedCoordinator ? ` a ${selectedCoordinator.fullName}` : ''}.`,
+      confirmLabel: 'Enviar',
+      tone: 'primary',
+    });
     if (!confirmed) return;
 
     try {
@@ -412,19 +420,19 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
   }
 
   return (
-    <article className="panel">
-      <h2>Campanas de correo</h2>
-      <div className="actions">
-        Desde aqui puedes generar y enviar coordinadores por lote o construir el reporte global en un solo correo.
-      </div>
-      <div className="actions" style={{ marginTop: 6 }}>
-        Coordinadores y reporte global permiten seleccionar varios periodos del ano base y varios momentos al mismo tiempo.
-      </div>
-      <div className="actions" style={{ marginTop: 6 }}>
-        Seleccion predeterminada consolidada: <span className="code">MD1 + 1</span> y todos los periodos del ano cargado, excepto sufijos <span className="code">80</span> y <span className="code">85</span>.
-      </div>
+    <article className="premium-card">
+      <PageHero
+        title="Campañas de correo"
+        description="Genera y envía correos a coordinadores por lote o construye el reporte global. Selección predeterminada: MD1 + 1, todos los periodos del año cargado excepto sufijos 80 y 85."
+      >
+        <StatusPill tone={busy ? 'warn' : 'neutral'} dot={busy}>
+          {busy ? 'Procesando' : 'Listo'}
+        </StatusPill>
+      </PageHero>
 
-      {optionsError ? <div className="message">No fue posible cargar opciones de periodos: {optionsError}</div> : null}
+      <div className="panel-body">
+
+      {optionsError ? <AlertBox tone="error">No fue posible cargar opciones de periodos: {optionsError}</AlertBox> : null}
 
       <div className="controls" style={{ marginTop: 10 }}>
         <label>
@@ -596,9 +604,9 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       {audience === 'GLOBAL' ? (
         <>
           <div className="controls" style={{ marginTop: 10 }}>
-            <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={applyAnnualPreset} disabled={busy}>
+            <Button variant="secondary" size="sm" onClick={applyAnnualPreset} disabled={busy}>
               Usar preset anual {yearPrefix || DEFAULT_YEAR_PREFIX}
-            </button>
+            </Button>
           </div>
           <div className="actions" style={{ marginTop: 8 }}>
             El preset anual selecciona todos los periodos del ano cargado excepto <span className="code">80</span> y <span className="code">85</span>, y deja los momentos <span className="code">MD1 + 1</span> para construir un solo correo final del ano.
@@ -629,15 +637,15 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
       ) : null}
 
       <div className="controls" style={{ marginTop: 10 }}>
-        <button type="button" className="primary" onClick={() => void onlyGenerate()} disabled={busy}>
-          {busy ? 'Procesando...' : 'Generar borradores'}
-        </button>
-        <button type="button" className="primary" onClick={() => void runCampaign(true)} disabled={busy}>
-          {busy ? 'Procesando...' : 'Generar + previsualizar envio'}
-        </button>
-        <button type="button" className="btn-next-action" onClick={() => void runCampaign(false)} disabled={busy}>
-          {busy ? 'Enviando...' : 'Generar + enviar ahora'}
-        </button>
+        <Button variant="secondary" size="sm" onClick={() => void onlyGenerate()} disabled={busy} loading={busy}>
+          Generar borradores
+        </Button>
+        <Button variant="primary" size="sm" onClick={() => void runCampaign(true)} disabled={busy} loading={busy}>
+          Generar + previsualizar envío
+        </Button>
+        <Button variant="primary" size="sm" onClick={() => void runCampaign(false)} disabled={busy} loading={busy}>
+          Generar + enviar ahora
+        </Button>
       </div>
 
       <div className="actions" style={{ marginTop: 8 }}>
@@ -646,7 +654,7 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
           : 'El reporte global quedara en un solo correo consolidado. Luego puedes abrir su preview en /correos filtrando por audiencia GLOBAL.'}
       </div>
 
-      {message ? <div className="message">{message}</div> : null}
+      {message ? <AlertBox tone="info">{message}</AlertBox> : null}
 
       {audience === 'COORDINADOR' && generatedPreviewItems.length ? (
         <div style={{ marginTop: 20, borderTop: '1px solid #e5e7eb', paddingTop: 16 }}>
@@ -681,20 +689,20 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
             })}
           </div>
 
-          {previewLoading ? <div className="message" style={{ marginTop: 12 }}>Cargando preview...</div> : null}
-          {previewError ? <div className="message" style={{ marginTop: 12 }}>No fue posible cargar el preview: {previewError}</div> : null}
+          {previewLoading ? <AlertBox tone="info" style={{ marginTop: 12 }}>Cargando preview...</AlertBox> : null}
+          {previewError ? <AlertBox tone="error" style={{ marginTop: 12 }}>No fue posible cargar el preview: {previewError}</AlertBox> : null}
 
           {previewData ? (
-            <div className="panel" style={{ marginTop: 12 }}>
-              <div className="panel-heading">
-                <h2>Preview del correo seleccionado</h2>
-                <div className="button-row" style={{ marginTop: 0 }}>
-                  <button type="button" style={{ background: '#f3f4f6', color: '#111827' }} onClick={() => void loadPreview(previewData.id)} disabled={busy}>
+            <div className="premium-card" style={{ marginTop: 12 }}>
+              <div className="controls" style={{ justifyContent: 'space-between', padding: '12px 16px', borderBottom: '1px solid var(--line)' }}>
+                <strong style={{ fontSize: 'var(--fs-base)' }}>Preview del correo seleccionado</strong>
+                <div style={{ display: 'flex', gap: 8 }}>
+                  <Button variant="ghost" size="sm" onClick={() => void loadPreview(previewData.id)} disabled={busy}>
                     Refrescar preview
-                  </button>
-                  <button type="button" className="btn-next-action" onClick={() => void sendSelectedDraft()} disabled={busy}>
-                    {busy ? 'Enviando...' : 'Enviar borrador seleccionado'}
-                  </button>
+                  </Button>
+                  <Button variant="primary" size="sm" onClick={() => void sendSelectedDraft()} disabled={busy} loading={busy}>
+                    Enviar borrador seleccionado
+                  </Button>
                 </div>
               </div>
               <div className="outbox-mail-kv-grid" style={{ marginBottom: 10 }}>
@@ -721,6 +729,8 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
           ) : null}
         </div>
       ) : null}
+
+      </div>{/* /panel-body */}
     </article>
   );
 }
