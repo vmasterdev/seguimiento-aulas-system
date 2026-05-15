@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
-import { useConfirm, AlertBox, Button } from '../../_components/ui';
+import { useConfirm, AlertBox, Button, PaginationControls, PAGE_SIZE_OPTIONS } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 
 type SidecarRunCommand = 'classify' | 'revalidate' | 'backup' | 'attendance' | 'activity' | 'participants' | 'gui';
 type RevalidateMode = 'sin_matricula' | 'aulas_vacias' | 'ambos';
@@ -397,6 +398,15 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
     'NRC desactivado luego de no encontrarse en Moodle ni en Banner.',
   );
 
+  const [followupPage, setFollowupPage] = useState(1);
+  const [followupPageSize, setFollowupPageSize] = useState<PageSizeOption>(100);
+  const [artifactFilesPage, setArtifactFilesPage] = useState(1);
+  const [artifactFilesPageSize, setArtifactFilesPageSize] = useState<PageSizeOption>(100);
+  const [artifactItemsPage, setArtifactItemsPage] = useState(1);
+  const [artifactItemsPageSize, setArtifactItemsPageSize] = useState<PageSizeOption>(100);
+  const [changesPage, setChangesPage] = useState(1);
+  const [changesPageSize, setChangesPageSize] = useState<PageSizeOption>(100);
+
   const canStart = useMemo(() => !status?.running && !actionLoading, [status?.running, actionLoading]);
   const hasBatchSelection = selectedPeriodCodes.length > 0;
   const currentCommandLabel = COMMAND_LABELS[command];
@@ -431,6 +441,33 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
   );
   const lastRun = status?.lastRun ?? null;
   const manualExtractNrcList = useMemo(() => parseManualNrcList(manualExtractNrcs), [manualExtractNrcs]);
+
+  const followupTotalPages = Math.max(1, Math.ceil(followupItems.length / followupPageSize));
+  const pagedFollowupItems = useMemo(
+    () => followupItems.slice((followupPage - 1) * followupPageSize, followupPage * followupPageSize),
+    [followupItems, followupPage, followupPageSize],
+  );
+
+  const artifactFiles = status?.artifactSummary?.files ?? [];
+  const artifactFilesTotalPages = Math.max(1, Math.ceil(artifactFiles.length / artifactFilesPageSize));
+  const pagedArtifactFiles = useMemo(
+    () => artifactFiles.slice((artifactFilesPage - 1) * artifactFilesPageSize, artifactFilesPage * artifactFilesPageSize),
+    [artifactFiles, artifactFilesPage, artifactFilesPageSize],
+  );
+
+  const artifactItems = status?.artifactSummary?.items ?? [];
+  const artifactItemsTotalPages = Math.max(1, Math.ceil(artifactItems.length / artifactItemsPageSize));
+  const pagedArtifactItems = useMemo(
+    () => artifactItems.slice((artifactItemsPage - 1) * artifactItemsPageSize, artifactItemsPage * artifactItemsPageSize),
+    [artifactItems, artifactItemsPage, artifactItemsPageSize],
+  );
+
+  const importChanges = importResult?.changes ?? [];
+  const changesTotalPages = Math.max(1, Math.ceil(importChanges.length / changesPageSize));
+  const pagedChanges = useMemo(
+    () => importChanges.slice((changesPage - 1) * changesPageSize, changesPage * changesPageSize),
+    [importChanges, changesPage, changesPageSize],
+  );
 
   async function loadAll() {
     try {
@@ -478,6 +515,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
   useEffect(() => {
     setFollowupData(null);
     setSelectedFollowupIds([]);
+    setFollowupPage(1);
   }, [followupKind, selectedPeriodCodes, selectedMoments]);
 
   useEffect(() => {
@@ -2228,6 +2266,15 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               No hay NRC sin matricula visibles para llenar el formato oficial.
             </div>
           )}
+          <PaginationControls
+            currentPage={followupPage}
+            totalPages={followupTotalPages}
+            totalItems={followupItems.length}
+            pageSize={followupPageSize}
+            onPageChange={setFollowupPage}
+            onPageSizeChange={(size) => { setFollowupPageSize(size); setFollowupPage(1); }}
+            label="NRC"
+          />
           <table style={{ marginTop: 8 }}>
             <thead>
               <tr>
@@ -2245,7 +2292,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               </tr>
             </thead>
             <tbody>
-              {followupItems.map((item) => (
+              {pagedFollowupItems.map((item) => (
                 <tr key={item.id}>
                   <td>
                     <input
@@ -2271,6 +2318,15 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               ))}
             </tbody>
           </table>
+          <PaginationControls
+            currentPage={followupPage}
+            totalPages={followupTotalPages}
+            totalItems={followupItems.length}
+            pageSize={followupPageSize}
+            onPageChange={setFollowupPage}
+            onPageSizeChange={(size) => { setFollowupPageSize(size); setFollowupPage(1); }}
+            label="NRC"
+          />
         </>
       ) : null}
         </>
@@ -2291,69 +2347,91 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
             <span className="badge">Fallidos: {status.artifactSummary.failedCourses}</span>
             <span className="badge">Sin archivo: {status.artifactSummary.skippedCourses}</span>
           </div>
-          {status.artifactSummary.files.length ? (
-            <table style={{ marginTop: 8 }}>
-              <thead>
-                <tr>
-                  <th>NRC</th>
-                  <th>Periodo</th>
-                  <th>Curso</th>
-                  <th>Archivo</th>
-                  <th>Descarga</th>
-                </tr>
-              </thead>
-              <tbody>
-                {status.artifactSummary.files.slice(0, 200).map((file) => (
-                  <tr key={`${file.relativePath}-${file.fileName}`}>
-                    <td>{file.nrc}</td>
-                    <td>{file.periodCode}</td>
-                    <td>{file.title}</td>
-                    <td>{file.fileName}</td>
-                    <td>
-                      <a href={buildArtifactDownloadHref(apiBase, file.relativePath)} target="_blank" rel="noreferrer">
-                        Principal
-                      </a>
-                      {file.csvRelativePath ? (
-                        <>
-                          {' | '}
-                          <a href={buildArtifactDownloadHref(apiBase, file.csvRelativePath)} target="_blank" rel="noreferrer">
-                            CSV
-                          </a>
-                        </>
-                      ) : null}
-                    </td>
+          {artifactFiles.length ? (
+            <>
+              <PaginationControls
+                currentPage={artifactFilesPage}
+                totalPages={artifactFilesTotalPages}
+                totalItems={artifactFiles.length}
+                pageSize={artifactFilesPageSize}
+                onPageChange={setArtifactFilesPage}
+                onPageSizeChange={(size) => { setArtifactFilesPageSize(size); setArtifactFilesPage(1); }}
+                label="archivos"
+              />
+              <table style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th>NRC</th>
+                    <th>Periodo</th>
+                    <th>Curso</th>
+                    <th>Archivo</th>
+                    <th>Descarga</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {pagedArtifactFiles.map((file) => (
+                    <tr key={`${file.relativePath}-${file.fileName}`}>
+                      <td>{file.nrc}</td>
+                      <td>{file.periodCode}</td>
+                      <td>{file.title}</td>
+                      <td>{file.fileName}</td>
+                      <td>
+                        <a href={buildArtifactDownloadHref(apiBase, file.relativePath)} target="_blank" rel="noreferrer">
+                          Principal
+                        </a>
+                        {file.csvRelativePath ? (
+                          <>
+                            {' | '}
+                            <a href={buildArtifactDownloadHref(apiBase, file.csvRelativePath)} target="_blank" rel="noreferrer">
+                              CSV
+                            </a>
+                          </>
+                        ) : null}
+                      </td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           ) : (
             <div className="actions" style={{ marginTop: 8 }}>
               La corrida termino, pero no dejo archivos descargables en el resumen.
             </div>
           )}
-          {status.artifactSummary.items.length ? (
-            <table style={{ marginTop: 8 }}>
-              <thead>
-                <tr>
-                  <th>NRC</th>
-                  <th>Periodo</th>
-                  <th>Curso</th>
-                  <th>Estado</th>
-                  <th>Detalle</th>
-                </tr>
-              </thead>
-              <tbody>
-                {status.artifactSummary.items.slice(0, 200).map((item) => (
-                  <tr key={`artifact-item-${item.nrc}-${item.periodCode}-${item.title}`}>
-                    <td>{item.nrc}</td>
-                    <td>{item.periodCode}</td>
-                    <td>{item.title}</td>
-                    <td>{item.status}</td>
-                    <td>{item.message ?? item.downloads?.map((download) => download.fileName).join(', ') ?? '-'}</td>
+          {artifactItems.length ? (
+            <>
+              <PaginationControls
+                currentPage={artifactItemsPage}
+                totalPages={artifactItemsTotalPages}
+                totalItems={artifactItems.length}
+                pageSize={artifactItemsPageSize}
+                onPageChange={setArtifactItemsPage}
+                onPageSizeChange={(size) => { setArtifactItemsPageSize(size); setArtifactItemsPage(1); }}
+                label="cursos"
+              />
+              <table style={{ marginTop: 8 }}>
+                <thead>
+                  <tr>
+                    <th>NRC</th>
+                    <th>Periodo</th>
+                    <th>Curso</th>
+                    <th>Estado</th>
+                    <th>Detalle</th>
                   </tr>
-                ))}
-              </tbody>
-            </table>
+                </thead>
+                <tbody>
+                  {pagedArtifactItems.map((item) => (
+                    <tr key={`artifact-item-${item.nrc}-${item.periodCode}-${item.title}`}>
+                      <td>{item.nrc}</td>
+                      <td>{item.periodCode}</td>
+                      <td>{item.title}</td>
+                      <td>{item.status}</td>
+                      <td>{item.message ?? item.downloads?.map((download) => download.fileName).join(', ') ?? '-'}</td>
+                    </tr>
+                  ))}
+                </tbody>
+              </table>
+            </>
           ) : null}
         </>
       ) : null}
@@ -2385,9 +2463,18 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
               {importResult.notes.join(' ')}
             </div>
           ) : null}
-          {importResult.changes?.length ? (
+          {importChanges.length ? (
             <>
               <div className="subtitle" style={{ marginTop: 10 }}>Cursos con cambios de tipo o estado</div>
+              <PaginationControls
+                currentPage={changesPage}
+                totalPages={changesTotalPages}
+                totalItems={importChanges.length}
+                pageSize={changesPageSize}
+                onPageChange={setChangesPage}
+                onPageSizeChange={(size) => { setChangesPageSize(size); setChangesPage(1); }}
+                label="cursos"
+              />
               <table style={{ marginTop: 8 }}>
                 <thead>
                   <tr>
@@ -2402,7 +2489,7 @@ export default function SidecarIntegrationPanel({ apiBase }: SidecarIntegrationP
                   </tr>
                 </thead>
                 <tbody>
-                  {importResult.changes.map((item) => (
+                  {pagedChanges.map((item) => (
                     <tr key={`${item.courseId}-${item.nrc}`}>
                       <td>{item.nrc}</td>
                       <td>{item.periodCode}</td>

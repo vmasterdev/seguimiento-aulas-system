@@ -2,7 +2,8 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
-import { Button, Field, StatusPill, AlertBox, PageHero, StatsGrid } from '../../_components/ui';
+import { Button, Field, StatusPill, AlertBox, PageHero, StatsGrid, PaginationControls, PAGE_SIZE_OPTIONS } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 import type { PillTone } from '../../_components/ui/status-pill';
 import type { AlertTone } from '../../_components/ui/alert-box';
 
@@ -257,8 +258,8 @@ export default function BannerIntegrationPanel() {
   const [projectRootInput, setProjectRootInput] = useState('');
 
   // Pagination state for results table
-  const [resultsPage, setResultsPage] = useState(0);
-  const RESULTS_PAGE_SIZE = 10;
+  const [resultsPage, setResultsPage] = useState(1);
+  const [resultsPageSize, setResultsPageSize] = useState<PageSizeOption>(PAGE_SIZE_OPTIONS[1]);
 
   const canStart = useMemo(() => !status?.runner.running && !actionLoading, [status?.runner.running, actionLoading]);
   const latestPreviewQueryId = status?.exportSummary.preview[0]?.queryId ?? '';
@@ -302,7 +303,7 @@ export default function BannerIntegrationPanel() {
         '/api/banner/export/results',
       );
       setFullResults(data.records ?? []);
-      setResultsPage(0);
+      setResultsPage(1);
     } catch (error) {
       setMessage(`No fue posible cargar los resultados completos: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -608,8 +609,8 @@ export default function BannerIntegrationPanel() {
 
   // Paged results
   const activeResults = fullResults ?? status?.exportSummary.preview ?? [];
-  const totalResultPages = Math.ceil(activeResults.length / RESULTS_PAGE_SIZE);
-  const pagedResults = activeResults.slice(resultsPage * RESULTS_PAGE_SIZE, (resultsPage + 1) * RESULTS_PAGE_SIZE);
+  const totalResultPages = Math.max(1, Math.ceil(activeResults.length / resultsPageSize));
+  const pagedResults = activeResults.slice((resultsPage - 1) * resultsPageSize, resultsPage * resultsPageSize);
 
   // Tab definitions
   const TABS: Array<{ id: BannerMode; label: string; desc: string }> = [
@@ -1046,7 +1047,7 @@ export default function BannerIntegrationPanel() {
               {fullResultsLoading ? 'Cargando…' : 'Cargar todos'}
             </Button>
             {fullResults !== null ? (
-              <Button variant="ghost" size="sm" onClick={() => { setFullResults(null); setResultsPage(0); }}>
+              <Button variant="ghost" size="sm" onClick={() => { setFullResults(null); setResultsPage(1); }}>
                 Mostrar preview
               </Button>
             ) : null}
@@ -1090,19 +1091,17 @@ export default function BannerIntegrationPanel() {
           </table>
         </div>
 
-        {totalResultPages > 1 ? (
-          <div style={{ padding: '12px 20px', display: 'flex', gap: '10px', alignItems: 'center', justifyContent: 'center', background: 'var(--n-50)', borderTop: '1px solid var(--line)' }}>
-            <Button size="sm" onClick={() => setResultsPage((p) => Math.max(0, p - 1))} disabled={resultsPage === 0}>
-              ← Anterior
-            </Button>
-            <span style={{ fontSize: '0.82rem', color: 'var(--muted)', fontWeight: 600 }}>
-              Página {resultsPage + 1} de {totalResultPages}
-            </span>
-            <Button size="sm" onClick={() => setResultsPage((p) => Math.min(totalResultPages - 1, p + 1))} disabled={resultsPage >= totalResultPages - 1}>
-              Siguiente →
-            </Button>
-          </div>
-        ) : null}
+        <div style={{ padding: '0 20px 12px' }}>
+          <PaginationControls
+            currentPage={resultsPage}
+            totalPages={totalResultPages}
+            totalItems={activeResults.length}
+            pageSize={resultsPageSize}
+            onPageChange={setResultsPage}
+            onPageSizeChange={(size) => { setResultsPageSize(size); setResultsPage(1); }}
+            label="filas"
+          />
+        </div>
       </section>
 
       {/* SECCIÓN DE IMPORTACIÓN MANUAL */}

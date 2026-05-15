@@ -8,7 +8,8 @@ import {
   scoreAlistamiento,
   scoreEjecucion,
 } from '@seguimiento/shared';
-import { useConfirm, AlertBox, Button, StatusPill } from '../../_components/ui';
+import { useConfirm, AlertBox, Button, StatusPill, PaginationControls, PAGE_SIZE_OPTIONS } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 
 type ChecklistState = Record<string, boolean | number>;
 
@@ -424,6 +425,8 @@ export function ReviewPanel({
   const [calendarFilter, setCalendarFilter] = useState<CalendarFilter>('ALL');
   const [sortByPriority, setSortByPriority] = useState(false);
   const [nrcTableOpen, setNrcTableOpen] = useState(true);
+  const [savedNrcPage, setSavedNrcPage] = useState(1);
+  const [savedNrcPageSize, setSavedNrcPageSize] = useState<PageSizeOption>(PAGE_SIZE_OPTIONS[1]);
 
   useLayoutEffect(() => {
     if (compact) {
@@ -493,6 +496,9 @@ export function ReviewPanel({
     if (!query) return savedNrcItems;
     return savedNrcItems.filter((item) => item.selectedCourse.nrc.toLowerCase().includes(query));
   }, [nrcSearch, savedNrcItems]);
+
+  const savedNrcTotalPages = Math.max(1, Math.ceil(filteredSavedNrcItems.length / savedNrcPageSize));
+  const pagedSavedNrcItems = filteredSavedNrcItems.slice((savedNrcPage - 1) * savedNrcPageSize, savedNrcPage * savedNrcPageSize);
 
   const normalizedChecklist = useMemo(
     () => normalizeChecklistAliases(checklist, effectiveTemplate),
@@ -1277,7 +1283,7 @@ export function ReviewPanel({
                   Buscar NRC
                   <input
                     value={nrcSearch}
-                    onChange={(event) => setNrcSearch(event.target.value)}
+                    onChange={(event) => { setNrcSearch(event.target.value); setSavedNrcPage(1); }}
                     placeholder="Ej: 15234"
                   />
                 </label>
@@ -1292,8 +1298,8 @@ export function ReviewPanel({
                   </tr>
                 </thead>
                 <tbody>
-                  {filteredSavedNrcItems.length ? (
-                    filteredSavedNrcItems.map((item) => (
+                  {pagedSavedNrcItems.length ? (
+                    pagedSavedNrcItems.map((item) => (
                       <tr key={item.sampleGroupId}>
                         <td>{item.selectedCourse.nrc}</td>
                         <td>{item.evaluation?.score ?? 0}/50</td>
@@ -1314,6 +1320,15 @@ export function ReviewPanel({
                   )}
                 </tbody>
               </table>
+              <PaginationControls
+                currentPage={savedNrcPage}
+                totalPages={savedNrcTotalPages}
+                totalItems={filteredSavedNrcItems.length}
+                pageSize={savedNrcPageSize}
+                onPageChange={setSavedNrcPage}
+                onPageSizeChange={(size) => { setSavedNrcPageSize(size); setSavedNrcPage(1); }}
+                label="NRC guardados"
+              />
             </div>
           </details>
         </div>
