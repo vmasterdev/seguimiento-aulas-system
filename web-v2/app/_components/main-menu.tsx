@@ -50,6 +50,59 @@ const ICON_USERS = (
   </svg>
 );
 
+const ICON_BUILDING = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="3" width="18" height="18" rx="2" />
+    <path d="M9 3v18M15 3v18M3 9h18M3 15h18" />
+  </svg>
+);
+
+const ICON_MOON = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M21 12.79A9 9 0 1111.21 3 7 7 0 0021 12.79z" />
+  </svg>
+);
+
+const ICON_BAR_CHART = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <rect x="3" y="12" width="4" height="9" />
+    <rect x="10" y="7" width="4" height="14" />
+    <rect x="17" y="3" width="4" height="18" />
+  </svg>
+);
+
+const ICON_CHECK_SQUARE = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <polyline points="9 11 12 14 22 4" />
+    <path d="M21 12v7a2 2 0 01-2 2H5a2 2 0 01-2-2V5a2 2 0 012-2h11" />
+  </svg>
+);
+
+const ICON_LIST = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <line x1="8" y1="6" x2="21" y2="6" />
+    <line x1="8" y1="12" x2="21" y2="12" />
+    <line x1="8" y1="18" x2="21" y2="18" />
+    <line x1="3" y1="6" x2="3.01" y2="6" />
+    <line x1="3" y1="12" x2="3.01" y2="12" />
+    <line x1="3" y1="18" x2="3.01" y2="18" />
+  </svg>
+);
+
+const ICON_ALERT = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M10.29 3.86L1.82 18a2 2 0 001.71 3h16.94a2 2 0 001.71-3L13.71 3.86a2 2 0 00-3.42 0z" />
+    <line x1="12" y1="9" x2="12" y2="13" />
+    <line x1="12" y1="17" x2="12.01" y2="17" />
+  </svg>
+);
+
+const ICON_HEART = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M20.84 4.61a5.5 5.5 0 00-7.78 0L12 5.67l-1.06-1.06a5.5 5.5 0 00-7.78 7.78l1.06 1.06L12 21.23l7.78-7.78 1.06-1.06a5.5 5.5 0 000-7.78z" />
+  </svg>
+);
+
 const ICON_USER_SEARCH = (
   <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
     <circle cx="9" cy="7" r="4" />
@@ -145,42 +198,85 @@ const ICON_PALETTE = (
   </svg>
 );
 
+const IS_DEV = process.env.NODE_ENV === 'development';
+
 type NavItem = {
   href: string;
   label: string;
   section: MainMenuSection;
   icon: React.ReactNode;
-  group: 'main' | 'data' | 'automation' | 'system';
+  group: 'main' | 'cursos' | 'docentes' | 'operaciones' | 'reportes' | 'system';
 };
 
 const NAV_ITEMS: NavItem[] = [
   { href: '/', label: 'Dashboard', section: 'inicio', icon: ICON_HOME, group: 'main' },
-  { href: '/rpaca', label: 'Carga RPACA', section: 'rpaca', icon: ICON_UPLOAD, group: 'data' },
-  { href: '/docentes', label: 'Docentes', section: 'docentes', icon: ICON_USERS, group: 'data' },
-  { href: '/banner-docentes', label: 'Docentes Banner', section: 'banner-docentes', icon: ICON_USER_SEARCH, group: 'data' },
-  { href: '/centros-universitarios', label: 'Centros Universitarios', section: 'centros-universitarios', icon: ICON_USERS, group: 'data' },
-  { href: '/horarios', label: 'Horarios', section: 'horarios', icon: ICON_CALENDAR, group: 'data' },
-  { href: '/aulas-estandar', label: 'Aulas estandar', section: 'aulas-estandar', icon: ICON_CLIPBOARD, group: 'data' },
-  { href: '/recargos-nocturnos', label: 'Recargos nocturnos', section: 'recargos-nocturnos', icon: ICON_REPORT, group: 'data' },
-  { href: '/metricas-uso', label: 'Metricas de uso', section: 'metricas-uso', icon: ICON_REPORT, group: 'data' },
-  { href: '/review', label: 'Revision NRC', section: 'review', icon: ICON_CLIPBOARD, group: 'data' },
-  { href: '/nrc-prioridad', label: 'Prioridad NRC', section: 'nrc-prioridad', icon: ICON_CALENDAR, group: 'data' },
-  { href: '/nrc-globales', label: 'NRC Globales', section: 'nrc-globales', icon: ICON_GLOBE, group: 'data' },
-  { href: '/nrc-trazabilidad', label: 'Trazabilidad', section: 'nrc-trazabilidad', icon: ICON_BRANCH, group: 'data' },
-  { href: '/correos', label: 'Correos', section: 'correos', icon: ICON_MAIL, group: 'data' },
-  { href: '/bienestar', label: 'Bienestar', section: 'bienestar', icon: ICON_USERS, group: 'data' },
-  { href: '/reportes', label: 'Reportes Cierre', section: 'reportes', icon: ICON_REPORT, group: 'data' },
-  { href: '/eventos-significativos', label: 'Eventos Significativos', section: 'eventos-significativos', icon: ICON_REPORT, group: 'data' },
-  { href: '/analitica-moodle', label: 'Analitica Moodle', section: 'analitica-moodle', icon: ICON_CHART, group: 'data' },
-  { href: '/automatizacion-banner', label: 'Banner', section: 'automatizacion-banner', icon: ICON_ZAP, group: 'automation' },
-  { href: '/automatizacion-moodle', label: 'Moodle Sidecar', section: 'automatizacion-moodle', icon: ICON_SETTINGS, group: 'automation' },
-  { href: '/design-system', label: 'Design System', section: 'design-system', icon: ICON_PALETTE, group: 'system' },
+
+  // Cursos
+  { href: '/nrc-globales', label: 'NRC Globales', section: 'nrc-globales', icon: ICON_GLOBE, group: 'cursos' },
+  { href: '/nrc-prioridad', label: 'Prioridad NRC', section: 'nrc-prioridad', icon: ICON_ALERT, group: 'cursos' },
+  { href: '/nrc-trazabilidad', label: 'Trazabilidad', section: 'nrc-trazabilidad', icon: ICON_BRANCH, group: 'cursos' },
+  { href: '/review', label: 'Revisión NRC', section: 'review', icon: ICON_CHECK_SQUARE, group: 'cursos' },
+  { href: '/aulas-estandar', label: 'Aulas Estándar', section: 'aulas-estandar', icon: ICON_BUILDING, group: 'cursos' },
+  { href: '/horarios', label: 'Horarios', section: 'horarios', icon: ICON_CALENDAR, group: 'cursos' },
+  { href: '/metricas-uso', label: 'Métricas de Uso', section: 'metricas-uso', icon: ICON_BAR_CHART, group: 'cursos' },
+
+  // Docentes
+  { href: '/docentes', label: 'Docentes', section: 'docentes', icon: ICON_USERS, group: 'docentes' },
+  { href: '/banner-docentes', label: 'Docentes Banner', section: 'banner-docentes', icon: ICON_USER_SEARCH, group: 'docentes' },
+  { href: '/centros-universitarios', label: 'Centros Universitarios', section: 'centros-universitarios', icon: ICON_BUILDING, group: 'docentes' },
+  { href: '/recargos-nocturnos', label: 'Recargos Nocturnos', section: 'recargos-nocturnos', icon: ICON_MOON, group: 'docentes' },
+
+  // Operaciones
+  { href: '/rpaca', label: 'Carga RPACA', section: 'rpaca', icon: ICON_UPLOAD, group: 'operaciones' },
+  { href: '/automatizacion-banner', label: 'Automatización Banner', section: 'automatizacion-banner', icon: ICON_ZAP, group: 'operaciones' },
+  { href: '/automatizacion-moodle', label: 'Moodle Sidecar', section: 'automatizacion-moodle', icon: ICON_SETTINGS, group: 'operaciones' },
+  { href: '/analitica-moodle', label: 'Analítica Moodle', section: 'analitica-moodle', icon: ICON_CHART, group: 'operaciones' },
+  { href: '/bienestar', label: 'Bienestar', section: 'bienestar', icon: ICON_HEART, group: 'operaciones' },
+
+  // Reportes
+  { href: '/correos', label: 'Correos', section: 'correos', icon: ICON_MAIL, group: 'reportes' },
+  { href: '/reportes', label: 'Reportes Cierre', section: 'reportes', icon: ICON_REPORT, group: 'reportes' },
+  { href: '/eventos-significativos', label: 'Eventos Significativos', section: 'eventos-significativos', icon: ICON_LIST, group: 'reportes' },
+
+  // Sistema (solo en desarrollo)
+  ...(IS_DEV ? [{ href: '/design-system', label: 'Design System', section: 'design-system' as MainMenuSection, icon: ICON_PALETTE, group: 'system' as const }] : []),
 ];
 
 function getActiveSection(pathname: string): MainMenuSection {
   if (pathname === '/') return 'inicio';
   const match = NAV_ITEMS.find((item) => item.href !== '/' && pathname.startsWith(item.href));
   return match?.section ?? 'inicio';
+}
+
+function NavGroup({
+  label,
+  items,
+  active,
+  onNavigate,
+}: {
+  label: string;
+  items: NavItem[];
+  active: MainMenuSection;
+  onNavigate?: () => void;
+}) {
+  if (items.length === 0) return null;
+  return (
+    <>
+      <div className="sidebar-section-label">{label}</div>
+      {items.map((item) => (
+        <a
+          key={item.href}
+          href={item.href}
+          className={`sidebar-link${active === item.section ? ' active' : ''}`}
+          onClick={onNavigate}
+          tabIndex={0}
+        >
+          {item.icon}
+          <span>{item.label}</span>
+        </a>
+      ))}
+    </>
+  );
 }
 
 function SidebarContent({
@@ -191,8 +287,10 @@ function SidebarContent({
   onNavigate?: () => void;
 }) {
   const mainItems = NAV_ITEMS.filter((i) => i.group === 'main');
-  const dataItems = NAV_ITEMS.filter((i) => i.group === 'data');
-  const autoItems = NAV_ITEMS.filter((i) => i.group === 'automation');
+  const cursosItems = NAV_ITEMS.filter((i) => i.group === 'cursos');
+  const docentesItems = NAV_ITEMS.filter((i) => i.group === 'docentes');
+  const operacionesItems = NAV_ITEMS.filter((i) => i.group === 'operaciones');
+  const reportesItems = NAV_ITEMS.filter((i) => i.group === 'reportes');
   const sysItems = NAV_ITEMS.filter((i) => i.group === 'system');
 
   return (
@@ -209,54 +307,22 @@ function SidebarContent({
             href={item.href}
             className={`sidebar-link${active === item.section ? ' active' : ''}`}
             onClick={onNavigate}
+            tabIndex={0}
           >
             {item.icon}
             <span>{item.label}</span>
           </a>
         ))}
 
-        <div className="sidebar-section-label">Datos</div>
-        {dataItems.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className={`sidebar-link${active === item.section ? ' active' : ''}`}
-            onClick={onNavigate}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </a>
-        ))}
-
-        <div className="sidebar-section-label">Automatizacion</div>
-        {autoItems.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className={`sidebar-link${active === item.section ? ' active' : ''}`}
-            onClick={onNavigate}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </a>
-        ))}
-
-        <div className="sidebar-section-label">Sistema</div>
-        {sysItems.map((item) => (
-          <a
-            key={item.href}
-            href={item.href}
-            className={`sidebar-link${active === item.section ? ' active' : ''}`}
-            onClick={onNavigate}
-          >
-            {item.icon}
-            <span>{item.label}</span>
-          </a>
-        ))}
+        <NavGroup label="Cursos" items={cursosItems} active={active} onNavigate={onNavigate} />
+        <NavGroup label="Docentes" items={docentesItems} active={active} onNavigate={onNavigate} />
+        <NavGroup label="Operaciones" items={operacionesItems} active={active} onNavigate={onNavigate} />
+        <NavGroup label="Reportes" items={reportesItems} active={active} onNavigate={onNavigate} />
+        <NavGroup label="Sistema" items={sysItems} active={active} onNavigate={onNavigate} />
       </nav>
 
       <div className="sidebar-footer">
-        Seguimiento Aulas &middot; v4
+        Seguimiento Aulas &middot; v5
       </div>
     </>
   );

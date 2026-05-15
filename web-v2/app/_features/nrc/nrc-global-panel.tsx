@@ -247,6 +247,8 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
   const [previewError, setPreviewError] = useState('');
   const [previewData, setPreviewData] = useState<OutboxPreviewResponse | null>(null);
   const [pendingPreviewSend, setPendingPreviewSend] = useState<PendingPreviewSend | null>(null);
+  const [currentPage, setCurrentPage] = useState(1);
+  const PAGE_SIZE = 100;
 
   useEffect(() => {
     async function load() {
@@ -390,6 +392,12 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
       })
       .map(({ item }) => item);
   }, [bannerFilter, campusFilter, enrolledFilter, modalityFilter, items, momentFilter, participantsFilter, periodFilter, programFilter, query, reviewableFilter, semesterFilter, teacherFilter, teacherIdQuery, teacherNameQuery, templateFilter]);
+
+  // Reset page when filters change
+  useEffect(() => { setCurrentPage(1); }, [filteredItems]);
+
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
+  const displayItems = filteredItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
 
   const totalWithTeacher = useMemo(() => items.filter((item) => item.teacherId).length, [items]);
   const totalWithoutTeacher = useMemo(() => items.filter((item) => !item.teacherId).length, [items]);
@@ -1343,7 +1351,7 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
               </tr>
             </thead>
             <tbody>
-              {filteredItems.map((item) => {
+              {displayItems.map((item) => {
                 const isExpanded = expandedIds.has(item.id);
                 const detail = detailById[item.id];
                 const override = overrideById[item.id];
@@ -1655,6 +1663,19 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
             </tbody>
           </table>
         </div>
+        {totalPages > 1 && (
+          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0 4px', gap: 8 }}>
+            <span style={{ color: 'var(--muted)', fontSize: 13 }}>
+              Página {currentPage} de {totalPages} · {filteredItems.length} NRC
+            </span>
+            <div style={{ display: 'flex', gap: 6 }}>
+              <Button variant="ghost" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>«</Button>
+              <Button variant="ghost" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>‹ Anterior</Button>
+              <Button variant="ghost" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Siguiente ›</Button>
+              <Button variant="ghost" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>»</Button>
+            </div>
+          </div>
+        )}
       </section>
 
 
