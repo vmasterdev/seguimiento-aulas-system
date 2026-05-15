@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
-import { Button } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
+import { Button, PaginationControls, PAGE_SIZE_OPTIONS } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 
 type RpacaManagementPanelProps = {
   apiBase: string;
@@ -169,9 +171,10 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
   const [recentPeriodsTouched, setRecentPeriodsTouched] = useState<string[]>([]);
 
   const [selectedPeriodCodes, setSelectedPeriodCodes] = useState<string[]>([]);
-  const [periodOptions, setPeriodOptions] = useState<BannerBatchOptions['periods']>([]);
   const [momentFilter, setMomentFilter] = useState('');
   const [search, setSearch] = useState('');
+  const [missingPage, setMissingPage] = useState(1);
+  const [missingPageSize, setMissingPageSize] = useState<PageSizeOption>(PAGE_SIZE_OPTIONS[1]);
   const [missingLimit, setMissingLimit] = useState('150');
   const [missingLoading, setMissingLoading] = useState(false);
   const [missingMessage, setMissingMessage] = useState('');
@@ -179,10 +182,16 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
   const [teacherDrafts, setTeacherDrafts] = useState<Record<string, string>>({});
   const [savingMap, setSavingMap] = useState<Record<string, boolean>>({});
 
+  const { data: periodOptionsData } = useFetch<BannerBatchOptions>('/api/banner/batch/options');
+  const periodOptions = periodOptionsData?.periods ?? [];
+
+  const missingItems = missingResult?.items ?? [];
+  const missingTotalPages = Math.max(1, Math.ceil(missingItems.length / missingPageSize));
+  const displayMissing = missingItems.slice((missingPage - 1) * missingPageSize, missingPage * missingPageSize);
+
   const rowsWithDraft = useMemo(() => {
-    const result = missingResult?.items ?? [];
-    return result.filter((row) => (teacherDrafts[row.id] ?? '').trim().length > 0).length;
-  }, [missingResult?.items, teacherDrafts]);
+    return missingItems.filter((row) => (teacherDrafts[row.id] ?? '').trim().length > 0).length;
+  }, [missingItems, teacherDrafts]);
 
   useEffect(() => {
     void loadMissingTeacher();
@@ -190,21 +199,8 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
 
-  useEffect(() => {
-    void loadPeriodOptions();
-  }, []);
-
   function toggleSelection(current: string[], value: string) {
     return current.includes(value) ? current.filter((item) => item !== value) : [...current, value];
-  }
-
-  async function loadPeriodOptions() {
-    try {
-      const data = await fetchJson<BannerBatchOptions>('/api/banner/batch/options');
-      setPeriodOptions(data.periods ?? []);
-    } catch {
-      setPeriodOptions([]);
-    }
   }
 
   async function waitForBannerRun(runId: string) {
@@ -397,6 +393,7 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
         `${apiBase}/courses/missing-teacher/list?${params.toString()}`,
       );
       setMissingResult(data);
+      setMissingPage(1);
       setTeacherDrafts((prev) => {
         const next = { ...prev };
         for (const item of data.items) {
@@ -777,7 +774,8 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
 
         {/* Tabla */}
         {missingResult ? (
-          <div className="table-wrap" style={{ overflowX: 'auto', maxHeight: 440, overflowY: 'auto', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8 }}>
+          <>
+          <div className="table-wrap" style={{ overflowX: 'auto', border: '1px solid var(--border, #e5e7eb)', borderRadius: 8 }}>
             <table className="fast-table" style={{ width: '100%', borderCollapse: 'collapse', fontSize: '0.8125rem' }}>
               <thead style={{ position: 'sticky', top: 0, background: 'var(--surface-subtle, #f9fafb)', zIndex: 1 }}>
                 <tr>
@@ -791,7 +789,7 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
                 </tr>
               </thead>
               <tbody>
-                {missingResult.items.map((item, idx) => (
+                {displayMissing.map((item, idx) => (
                   <tr
                     key={item.id}
                     style={{ background: idx % 2 === 0 ? 'transparent' : 'var(--surface-subtle, #f9fafb)' }}
@@ -832,7 +830,7 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
                     </td>
                   </tr>
                 ))}
-                {!missingResult.items.length ? (
+                {!missingItems.length ? (
                   <tr>
                     <td colSpan={7} style={{ padding: '20px 10px', textAlign: 'center', color: 'var(--text-muted, #6b7280)' }}>
                       No hay NRC con faltantes para ese filtro.
@@ -842,6 +840,16 @@ export function RpacaManagementPanel({ apiBase }: RpacaManagementPanelProps) {
               </tbody>
             </table>
           </div>
+          <PaginationControls
+            currentPage={missingPage}
+            totalPages={missingTotalPages}
+            totalItems={missingItems.length}
+            pageSize={missingPageSize}
+            onPageChange={setMissingPage}
+            onPageSizeChange={(s) => { setMissingPageSize(s); setMissingPage(1); }}
+            label="NRC faltantes"
+          />
+          </>
         ) : null}
       </section>
 

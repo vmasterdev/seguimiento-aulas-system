@@ -2,7 +2,8 @@
 
 import { useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
-import { Button, PageHero, StatsGrid, AlertBox } from '../../_components/ui';
+import { Button, PageHero, StatsGrid, AlertBox, PaginationControls, PAGE_SIZE_OPTIONS } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 
 type BienestarAttendancePanelProps = {
   apiBase: string;
@@ -168,6 +169,8 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
   const [report, setReport] = useState<AttendanceStudentReportResponse | null>(null);
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
+  const [resultPage, setResultPage] = useState(1);
+  const [resultPageSize, setResultPageSize] = useState<PageSizeOption>(PAGE_SIZE_OPTIONS[0]);
 
   const parsed = useMemo(() => parseRequestText(requestText, year), [requestText, year]);
   const dates = useMemo(() => unique(parsed.items.map((item) => item.sessionDay)), [parsed.items]);
@@ -209,6 +212,7 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
         `${apiBase}/integrations/moodle-analytics/attendance/student-report?${params.toString()}`,
       );
       setReport(result);
+      setResultPage(1);
       setMessage(`Reporte listo: ${result.summary.rowCount} registros encontrados en asistencia Moodle.`);
     } catch (error) {
       setMessage(`No se pudo generar el reporte: ${error instanceof Error ? error.message : String(error)}`);
@@ -306,6 +310,8 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
 
   const hasPresentRows = enrichedRows.some((row) => row.statusCode === 'A');
   const isError = message.startsWith('No se pudo');
+  const resultTotalPages = Math.max(1, Math.ceil(enrichedRows.length / resultPageSize));
+  const displayRows = enrichedRows.slice((resultPage - 1) * resultPageSize, resultPage * resultPageSize);
 
   return (
     <div className="premium-card">
@@ -420,7 +426,7 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
                 </tr>
               </thead>
               <tbody>
-                {enrichedRows.slice(0, 100).map((row, index) => (
+                {displayRows.map((row, index) => (
                   <tr key={`bienestar-row-${row.sessionDay}-${row.nrc}-${row.studentName}-${index}`}>
                     <td>
                       <div style={{ fontWeight: 500 }}>{row.activity}</div>
@@ -451,11 +457,15 @@ export default function BienestarAttendancePanel({ apiBase }: BienestarAttendanc
               </tbody>
             </table>
           </div>
-          {enrichedRows.length > 100 && (
-            <p style={{ textAlign: 'center', color: '#6b7280', fontSize: '0.9rem', marginTop: '0.75rem' }}>
-              Mostrando los primeros 100 de {enrichedRows.length}. Usa los botones de descarga para el listado completo.
-            </p>
-          )}
+          <PaginationControls
+            currentPage={resultPage}
+            totalPages={resultTotalPages}
+            totalItems={enrichedRows.length}
+            pageSize={resultPageSize}
+            onPageChange={setResultPage}
+            onPageSizeChange={(s) => { setResultPageSize(s); setResultPage(1); }}
+            label="registros"
+          />
 
           {missingItems.length > 0 && (
             <div style={{ marginTop: '1.5rem' }}>
