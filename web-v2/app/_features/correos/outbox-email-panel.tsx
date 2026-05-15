@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
+import { useFetch } from '../../_lib/use-fetch';
 import { Button, StatusPill, PageHero, AlertBox, useConfirm } from '../../_components/ui';
 
 type OutboxEmailPanelProps = {
@@ -129,8 +130,6 @@ function collectGeneratedIds(result: OperationResponse | null): string[] {
 
 export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
   const confirm = useConfirm();
-  const [options, setOptions] = useState<OptionsResponse | null>(null);
-  const [optionsError, setOptionsError] = useState('');
 
   const [audience, setAudience] = useState<Audience>('GLOBAL');
   const [phase, setPhase] = useState<Phase>('ALISTAMIENTO');
@@ -160,34 +159,15 @@ export function OutboxEmailPanel({ apiBase }: OutboxEmailPanelProps) {
   const [previewError, setPreviewError] = useState('');
   const [previewData, setPreviewData] = useState<PreviewResponse | null>(null);
 
-  useEffect(() => {
-    let active = true;
-    async function loadOptions() {
-      try {
-        const normalizedYearPrefix = yearPrefix.trim() || DEFAULT_YEAR_PREFIX;
-        const response = await fetchJson<OptionsResponse>(
-          `${apiBase}/outbox/options?yearPrefix=${encodeURIComponent(normalizedYearPrefix)}`,
-        );
-        if (!active) return;
-        setOptions(response);
-        const defaultPeriods = defaultGlobalPeriodCodes(response.periods, normalizedYearPrefix);
-        setSelectedPeriodCodes(defaultPeriods.length ? defaultPeriods : response.periods.map((item) => item.code));
-        setSinglePeriodCode(defaultPeriods[0] || defaultSinglePeriodCode(response.periods, normalizedYearPrefix));
-        setSelectedCoordinatorId((current) =>
-          current === 'ALL' || response.coordinators.some((item) => item.id === current) ? current : 'ALL',
-        );
-      } catch (error) {
-        if (!active) return;
-        setOptionsError(error instanceof Error ? error.message : String(error));
-      }
-    }
-    void loadOptions();
-    return () => {
-      active = false;
-    };
-  }, [apiBase, yearPrefix]);
+  const normalizedYearPrefix = yearPrefix.trim() || DEFAULT_YEAR_PREFIX;
+  const optionsUrl = `${apiBase}/outbox/options?yearPrefix=${encodeURIComponent(normalizedYearPrefix)}`;
+  const { data: options, error: optionsError } = useFetch<OptionsResponse>(optionsUrl);
 
-  const periodOptions = options?.periods?.length ? options.periods : FALLBACK_PERIODS;
+  const periodOptions = useMemo(() => {
+    if (options?.periods?.length) return options.periods;
+    return FALLBACK_PERIODS;
+  }, [options]);
+
   const coordinatorOptions = options?.coordinators ?? [];
   const momentOptions = options?.supportedMoments ?? FALLBACK_MOMENTS;
   const multiMomentMode = audience === 'COORDINADOR' || audience === 'GLOBAL';

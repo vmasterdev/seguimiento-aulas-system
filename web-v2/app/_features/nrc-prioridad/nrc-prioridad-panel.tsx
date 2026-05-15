@@ -2,7 +2,9 @@
 
 import { useEffect, useMemo, useState } from 'react';
 import { buildCourseScheduleInfo } from '@seguimiento/shared';
-import { Button, AlertBox } from '../../_components/ui';
+import { Button, AlertBox, PaginationControls } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
 
 type CalendarFilter = 'ALL' | 'ACTIVE' | 'SHORT' | 'URGENTE';
 
@@ -169,25 +171,20 @@ export function NrcPrioridadPanel({ apiBase }: { apiBase: string }) {
   const [periodCode, setPeriodCode] = useState('202615');
   const [moment, setMoment] = useState('MD1');
   const [phase, setPhase] = useState<'ALISTAMIENTO' | 'EJECUCION'>('EJECUCION');
-  const [queue, setQueue] = useState<ReviewQueueResponse | null>(null);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
+  const [fetchUrl, setFetchUrl] = useState<string | null>(null);
   const [filter, setFilter] = useState<CalendarFilter>('ALL');
   const [sortPriority, setSortPriority] = useState(true);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(100);
 
-  async function loadQueue() {
-    setLoading(true);
-    setError(null);
-    try {
-      const url = `${apiBase}/review/queue?periodCode=${encodeURIComponent(periodCode)}&moment=${encodeURIComponent(moment)}&phase=${phase}&category=MUESTREO`;
-      const res = await fetch(url);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const data: ReviewQueueResponse = await res.json();
-      setQueue(data);
-    } catch (e: unknown) {
-      setError(e instanceof Error ? e.message : String(e));
-    } finally {
-      setLoading(false);
+  const { data: queue, error, loading, refresh } = useFetch<ReviewQueueResponse>(fetchUrl);
+
+  function loadQueue() {
+    const url = `${apiBase}/review/queue?periodCode=${encodeURIComponent(periodCode)}&moment=${encodeURIComponent(moment)}&phase=${phase}&category=MUESTREO`;
+    if (url === fetchUrl) {
+      void refresh();
+    } else {
+      setFetchUrl(url);
     }
   }
 
@@ -198,6 +195,11 @@ export function NrcPrioridadPanel({ apiBase }: { apiBase: string }) {
 
   const stats = useMemo(() => getCalendarStats(queue?.items ?? []), [queue]);
   const items = useMemo(() => applyFilterSort(queue?.items ?? [], filter, sortPriority), [queue, filter, sortPriority]);
+
+  useEffect(() => { setPage(1); }, [items]);
+
+  const totalPages = Math.max(1, Math.ceil(items.length / pageSize));
+  const displayItems = items.slice((page - 1) * pageSize, page * pageSize);
 
   const FILTER_CONFIG: { value: CalendarFilter; label: string; count: number; color: string }[] = [
     { value: 'ALL', label: 'Todos', count: queue?.items.length ?? 0, color: '#1f5f99' },
@@ -313,8 +315,9 @@ export function NrcPrioridadPanel({ apiBase }: { apiBase: string }) {
 
           {/* Lista de NRC */}
           <div style={{ display: 'flex', flexDirection: 'column', gap: 6 }}>
-            {items.map((item, idx) => {
+            {displayItems.map((item, idx) => {
               const course = item.selectedCourse;
+              const globalIdx = (page - 1) * pageSize + idx;
               return (
                 <div
                   key={course.id}
@@ -329,7 +332,7 @@ export function NrcPrioridadPanel({ apiBase }: { apiBase: string }) {
                     opacity: item.done ? 0.7 : 1,
                   }}
                 >
-                  <span style={{ fontSize: 12, color: '#aaa', minWidth: 24, textAlign: 'right' }}>{idx + 1}</span>
+                  <span style={{ fontSize: 12, color: '#aaa', minWidth: 24, textAlign: 'right' }}>{globalIdx + 1}</span>
                   <div style={{ flex: 1, minWidth: 0 }}>
                     <div style={{ display: 'flex', alignItems: 'center', gap: 8, flexWrap: 'wrap' }}>
                       <span style={{ fontSize: 13, fontWeight: 600, fontFamily: 'monospace' }}>{course.nrc}</span>
@@ -365,6 +368,15 @@ export function NrcPrioridadPanel({ apiBase }: { apiBase: string }) {
               </div>
             )}
           </div>
+          <PaginationControls
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={items.length}
+            pageSize={pageSize}
+            onPageChange={setPage}
+            onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+            label="NRC"
+          />
         </>
       )}
     </div>

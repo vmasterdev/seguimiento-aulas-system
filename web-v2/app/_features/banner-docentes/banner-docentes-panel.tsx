@@ -1,8 +1,10 @@
 'use client';
 
-import { useEffect, useState } from 'react';
+import { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
-import { Button, StatusPill, PageHero, StatsGrid, AlertBox } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox, PaginationControls } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 
 type BannerDocentesPanelProps = {
   apiBase: string;
@@ -39,38 +41,39 @@ type BannerTeachersResult = {
 type AddResult = { ok: boolean; id?: string; message?: string };
 
 export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
-  const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [result, setResult] = useState<BannerTeachersResult | null>(null);
   const [onlyUnresolved, setOnlyUnresolved] = useState(false);
   const [limit, setLimit] = useState('500');
   const [adding, setAdding] = useState<Set<string>>(new Set());
   const [addResults, setAddResults] = useState<Record<string, AddResult>>({});
 
-  useEffect(() => {
-    void load();
-    // eslint-disable-next-line react-hooks/exhaustive-deps
-  }, []);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(100);
 
-  async function load() {
-    try {
-      setLoading(true);
-      setMessage('');
-      const params = new URLSearchParams();
-      if (onlyUnresolved) params.set('onlyUnresolved', 'true');
-      if (limit.trim()) params.set('limit', limit.trim());
-      const data = await fetchJson<BannerTeachersResult>(
-        `${apiBase}/courses/banner-teachers/list?${params.toString()}`,
-      );
-      setResult(data);
-    } catch (error) {
-      setMessage(
-        `Error al cargar datos: ${error instanceof Error ? error.message : String(error)}`,
-      );
-    } finally {
-      setLoading(false);
-    }
-  }
+  const params = new URLSearchParams();
+  if (onlyUnresolved) params.set('onlyUnresolved', 'true');
+  if (limit.trim()) params.set('limit', limit.trim());
+  const url = `${apiBase}/courses/banner-teachers/list?${params.toString()}`;
+
+  const { data, error: fetchError, loading, refresh } = useFetch<BannerTeachersResult>(url);
+
+  const [localItems, setLocalItems] = useState<BannerTeacherItem[]>([]);
+  useEffect(() => {
+    if (data?.items) setLocalItems(data.items);
+  }, [data]);
+
+  const stats = data?.stats;
+  const visibleItems = onlyUnresolved ? localItems.filter((i) => !i.bannerResolved) : localItems;
+
+  const totalPages = Math.max(1, Math.ceil(visibleItems.length / pageSize));
+  const displayItems = useMemo(() => {
+    const start = (page - 1) * pageSize;
+    return visibleItems.slice(start, start + pageSize);
+  }, [visibleItems, page, pageSize]);
+
+  useEffect(() => {
+    setPage(1);
+  }, [onlyUnresolved, limit, pageSize]);
 
   async function addToDb(item: BannerTeacherItem) {
     if (!item.bannerTeacherId || !item.bannerTeacherName) {
@@ -95,15 +98,11 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
         body: JSON.stringify({ teacherId: item.bannerTeacherId }),
       });
       setAddResults((prev) => ({ ...prev, [key]: { ok: true } }));
-      setResult((prev) => {
-        if (!prev) return prev;
-        return {
-          ...prev,
-          items: prev.items.map((i) =>
-            i.id === key ? { ...i, bannerResolved: true, currentTeacherId: item.bannerTeacherId, currentTeacherName: item.bannerTeacherName } : i,
-          ),
-        };
-      });
+      setLocalItems((prev) =>
+        prev.map((i) =>
+          i.id === key ? { ...i, bannerResolved: true, currentTeacherId: item.bannerTeacherId, currentTeacherName: item.bannerTeacherName } : i,
+        ),
+      );
     } catch (error) {
       setAddResults((prev) => ({
         ...prev,
@@ -119,8 +118,8 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
   }
 
   async function addAllUnresolved() {
-    if (!result) return;
-    const unresolved = result.items.filter((i) => !i.bannerResolved && i.bannerTeacherId && i.bannerTeacherName);
+    if (!data) return;
+    const unresolved = localItems.filter((i) => !i.bannerResolved && i.bannerTeacherId && i.bannerTeacherName);
     if (unresolved.length === 0) {
       setMessage('No hay docentes sin vincular para agregar.');
       return;
@@ -143,15 +142,11 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
           body: JSON.stringify({ teacherId: item.bannerTeacherId }),
         });
         setAddResults((prev) => ({ ...prev, [key]: { ok: true } }));
-        setResult((prev) => {
-          if (!prev) return prev;
-          return {
-            ...prev,
-            items: prev.items.map((i) =>
-              i.id === key ? { ...i, bannerResolved: true, currentTeacherId: item.bannerTeacherId, currentTeacherName: item.bannerTeacherName } : i,
-            ),
-          };
-        });
+        setLocalItems((prev) =>
+          prev.map((i) =>
+            i.id === key ? { ...i, bannerResolved: true, currentTeacherId: item.bannerTeacherId, currentTeacherName: item.bannerTeacherName } : i,
+          ),
+        );
         ok++;
       } catch (error) {
         setAddResults((prev) => ({
@@ -170,10 +165,6 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
     setMessage(`Listo: ${ok} vinculados, ${failed} con error.`);
   }
 
-  const stats = result?.stats;
-  const items = result?.items ?? [];
-  const visibleItems = onlyUnresolved ? items.filter((i) => !i.bannerResolved) : items;
-
   return (
     <article className="premium-card">
       <PageHero
@@ -183,7 +174,7 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
         <StatusPill tone={loading ? 'warn' : (stats?.unresolved ?? 0) > 0 ? 'warn' : 'ok'} dot={loading}>
           {loading ? 'Cargando' : stats ? `${stats.unresolved} sin vincular` : '—'}
         </StatusPill>
-        <Button variant="ghost" size="sm" onClick={() => { void load(); }} loading={loading}>
+        <Button variant="ghost" size="sm" onClick={() => { void refresh(); }} loading={loading}>
           ↻ Actualizar
         </Button>
       </PageHero>
@@ -230,16 +221,16 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
           )}
         </div>
 
-        {message && <AlertBox tone="info">{message}</AlertBox>}
+        {(message || fetchError) && <AlertBox tone={fetchError ? 'error' : 'info'}>{fetchError ?? message}</AlertBox>}
 
-        {loading && !result && (
+        {loading && !data && (
           <p style={{ color: 'var(--muted)', fontSize: 'var(--fs-sm)', padding: '8px 0' }}>Cargando...</p>
         )}
 
-        {result && (
+        {data && (
           <div style={{ overflowX: 'auto', marginTop: 8 }}>
             <p style={{ fontSize: 'var(--fs-micro)', color: 'var(--muted)', marginBottom: 6 }}>
-              Mostrando {visibleItems.length} de {result.total} NRCs
+              Mostrando {displayItems.length} de {visibleItems.length} NRCs
             </p>
             <table className="fast-table" style={{ width: '100%' }}>
               <thead>
@@ -255,7 +246,7 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
                 </tr>
               </thead>
               <tbody>
-                {visibleItems.map((item) => {
+                {displayItems.map((item) => {
                   const addResult = addResults[item.id];
                   const isAdding = adding.has(item.id);
                   const teacherChanged =
@@ -314,7 +305,7 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
                     </tr>
                   );
                 })}
-                {visibleItems.length === 0 && (
+                {displayItems.length === 0 && (
                   <tr>
                     <td colSpan={8} style={{ textAlign: 'center', color: 'var(--muted)', padding: '1.5rem' }}>
                       No hay registros con los filtros actuales.
@@ -323,10 +314,18 @@ export function BannerDocentesPanel({ apiBase }: BannerDocentesPanelProps) {
                 )}
               </tbody>
             </table>
+            <PaginationControls
+              currentPage={page}
+              totalPages={totalPages}
+              totalItems={visibleItems.length}
+              pageSize={pageSize}
+              onPageChange={setPage}
+              onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+              label="docentes"
+            />
           </div>
         )}
       </div>
     </article>
   );
 }
-

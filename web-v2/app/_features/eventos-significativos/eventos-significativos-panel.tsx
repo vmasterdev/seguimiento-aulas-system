@@ -1,7 +1,9 @@
 'use client';
 
 import { useCallback, useEffect, useMemo, useState } from 'react';
-import { Button, StatusPill, PageHero, StatsGrid, AlertBox } from '../../_components/ui';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox, PaginationControls } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
 
 type EventItem = {
   id: string;
@@ -46,44 +48,31 @@ function formatDate(value: string | null | undefined): string {
 }
 
 export function EventosSignificativosPanel({ apiBase }: Props) {
-  const [items, setItems] = useState<EventItem[]>([]);
-  const [loading, setLoading] = useState(false);
-  const [error, setError] = useState<string | null>(null);
   const [filterPeriod, setFilterPeriod] = useState('');
   const [filterMoment, setFilterMoment] = useState('');
   const [filterPhase, setFilterPhase] = useState('');
   const [filterStatus, setFilterStatus] = useState<'all' | 'pending' | 'complete'>('all');
   const [hideResolved, setHideResolved] = useState(true);
   const [search, setSearch] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(100);
 
-  const load = useCallback(async () => {
-    setLoading(true);
-    setError(null);
-    try {
-      const params = new URLSearchParams();
-      if (filterPeriod) params.set('periodCode', filterPeriod);
-      if (filterMoment) params.set('moment', filterMoment);
-      if (filterPhase) params.set('phase', filterPhase);
-      if (search.trim()) params.set('search', search.trim());
-
-      const res = await fetch(`${apiBase}/outbox/significant-events?${params.toString()}`);
-      if (!res.ok) throw new Error(`HTTP ${res.status}`);
-      const json = (await res.json()) as { items: EventItem[] };
-      setItems(json.items ?? []);
-    } catch (err) {
-      setError(err instanceof Error ? err.message : String(err));
-    } finally {
-      setLoading(false);
-    }
+  const fetchUrl = useMemo(() => {
+    const params = new URLSearchParams();
+    if (filterPeriod) params.set('periodCode', filterPeriod);
+    if (filterMoment) params.set('moment', filterMoment);
+    if (filterPhase) params.set('phase', filterPhase);
+    if (search.trim()) params.set('search', search.trim());
+    return `${apiBase}/outbox/significant-events?${params.toString()}`;
   }, [apiBase, filterPeriod, filterMoment, filterPhase, search]);
 
-  useEffect(() => {
-    void load();
-    const interval = setInterval(() => {
-      void load();
-    }, 15000);
-    return () => clearInterval(interval);
-  }, [load]);
+  const { data, error, loading, refresh } = useFetch<{ items: EventItem[] }>(fetchUrl, {
+    refreshInterval: 15000,
+  });
+
+  const items = data?.items ?? [];
+
+  const load = useCallback(() => { void refresh(); }, [refresh]);
 
   const filtered = useMemo(() => {
     let base = items;
@@ -94,6 +83,11 @@ export function EventosSignificativosPanel({ apiBase }: Props) {
     }
     return base.filter((it) => it.signed && it.delivered && it.archived);
   }, [items, filterStatus, hideResolved]);
+
+  useEffect(() => { setPage(1); }, [filtered]);
+
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const displayItems = filtered.slice((page - 1) * pageSize, page * pageSize);
 
   const counts = useMemo(() => {
     const total = items.length;
@@ -297,7 +291,7 @@ export function EventosSignificativosPanel({ apiBase }: Props) {
                 </td>
               </tr>
             )}
-            {filtered.map((it, idx) => {
+            {displayItems.map((it, idx) => {
               const bg = it.resolved ? '#ecfccb' : (idx % 2 === 0 ? '#ffffff' : '#f9fafb');
               const newBadge = it.isNewTeacher ? (
                 <span style={{ display: 'inline-block', padding: '1px 6px', background: '#fee2e2', color: '#991b1b', borderRadius: 4, fontSize: 10, fontWeight: 700, marginLeft: 6 }}>NUEVO</span>
@@ -370,6 +364,16 @@ export function EventosSignificativosPanel({ apiBase }: Props) {
           </tbody>
         </table>
       </div>
+
+      <PaginationControls
+        currentPage={page}
+        totalPages={totalPages}
+        totalItems={filtered.length}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={(size) => { setPageSize(size); setPage(1); }}
+        label="eventos"
+      />
 
       <AlertBox tone="info" style={{ marginTop: 8 }}>
         <strong>Notas:</strong> Los eventos se generan automáticamente al producir reportes de cierre por momento. Marca "Firmado" cuando el docente firme el acta, "Entregado" cuando se entregue el documento, y "Cargado" cuando esté disponible en la carpeta de la Subdirección de Docencia. Los docentes nuevos (menos de 90 días) NO requieren evento significativo según política institucional.
