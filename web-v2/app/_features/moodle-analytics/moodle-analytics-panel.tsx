@@ -3,6 +3,7 @@
 import React, { useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
 import { AlertBox, Button } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
 
 type AnalyticsOptionsResponse = {
   ok: boolean;
@@ -756,14 +757,18 @@ function DayBars({
 }
 
 export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelProps) {
-  const [options, setOptions] = useState<AnalyticsOptionsResponse | null>(null);
+  const [analyticsQueryParams, setAnalyticsQueryParams] = useState<string>('');
+  const { data: options, loading, refresh: refreshOptions } = useFetch<AnalyticsOptionsResponse>(
+    `${apiBase}/integrations/moodle-analytics/options?${analyticsQueryParams}`,
+  );
+  const { data: overview, refresh: refreshOverview } = useFetch<AnalyticsOverviewResponse>(
+    `${apiBase}/integrations/moodle-analytics/overview?${analyticsQueryParams}`,
+  );
   const [bannerBatchOptions, setBannerBatchOptions] = useState<BannerBatchOptionsResponse | null>(null);
   const [sidecarBatchOptions, setSidecarBatchOptions] = useState<SidecarBatchOptionsResponse | null>(null);
-  const [overview, setOverview] = useState<AnalyticsOverviewResponse | null>(null);
   const [dateReport, setDateReport] = useState<AttendanceDateReportResponse | null>(null);
   const [studentReport, setStudentReport] = useState<AttendanceStudentReportResponse | null>(null);
   const [message, setMessage] = useState('');
-  const [loading, setLoading] = useState(false);
   const [dateLoading, setDateLoading] = useState(false);
   const [studentReportLoading, setStudentReportLoading] = useState(false);
   const [importingKind, setImportingKind] = useState<'attendance' | 'activity' | 'participants' | 'banner-enrollment' | null>(null);
@@ -806,32 +811,31 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
 
   const nrcCount = useMemo(() => parseNrcList(filters.nrcsText).length, [filters.nrcsText]);
 
-  async function loadOptionsAndOverview(nextFilters: FilterState) {
-    try {
-      setLoading(true);
-      setMessage('');
-      const params = buildQuery(nextFilters);
-      const [nextOptions, nextOverview] = await Promise.all([
-        fetchJson<AnalyticsOptionsResponse>(`${apiBase}/integrations/moodle-analytics/options?${params.toString()}`),
-        fetchJson<AnalyticsOverviewResponse>(`${apiBase}/integrations/moodle-analytics/overview?${params.toString()}`),
-      ]);
-      setOptions(nextOptions);
-      setOverview(nextOverview);
-      setDateReport(null);
-      setStudentReport(null);
-      if (nextFilters.sessionDay && !nextOptions.sessionDays.includes(nextFilters.sessionDay)) {
-        setFilters((current) => ({ ...current, sessionDay: '' }));
-      }
-      if (nextFilters.sessionDays.some((day) => !nextOptions.sessionDays.includes(day))) {
-        setFilters((current) => ({
-          ...current,
-          sessionDays: current.sessionDays.filter((day) => nextOptions.sessionDays.includes(day)),
-        }));
-      }
-    } catch (error) {
-      setMessage(`No se pudo cargar la analitica: ${error instanceof Error ? error.message : String(error)}`);
-    } finally {
-      setLoading(false);
+  useEffect(() => {
+    if (!options) return;
+    setDateReport(null);
+    setStudentReport(null);
+    if (filters.sessionDay && !options.sessionDays.includes(filters.sessionDay)) {
+      setFilters((current) => ({ ...current, sessionDay: '' }));
+    }
+    if (filters.sessionDays.some((day) => !options.sessionDays.includes(day))) {
+      setFilters((current) => ({
+        ...current,
+        sessionDays: current.sessionDays.filter((day) => options.sessionDays.includes(day)),
+      }));
+    }
+    // eslint-disable-next-line react-hooks/exhaustive-deps
+  }, [options]);
+
+  function loadOptionsAndOverview(nextFilters: FilterState) {
+    setMessage('');
+    const params = buildQuery(nextFilters);
+    const nextQueryParams = params.toString();
+    if (nextQueryParams === analyticsQueryParams) {
+      void refreshOptions();
+      void refreshOverview();
+    } else {
+      setAnalyticsQueryParams(nextQueryParams);
     }
   }
 
@@ -897,7 +901,6 @@ export default function MoodleAnalyticsPanel({ apiBase }: MoodlAnalyticsPanelPro
   }
 
   useEffect(() => {
-    void loadOptionsAndOverview(filters);
     void loadBannerStatus({ silent: true });
     void loadBannerBatchOptions();
     void loadSidecarStatus({ silent: true });

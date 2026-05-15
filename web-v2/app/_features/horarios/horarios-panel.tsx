@@ -1,7 +1,9 @@
 'use client';
 
 import { useEffect, useMemo, useState } from 'react';
-import { Button, PageHero, AlertBox, useConfirm } from '../../_components/ui';
+import { Button, PageHero, AlertBox, useConfirm, PaginationControls } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
 
 type Item = {
   id: string;
@@ -59,8 +61,6 @@ function classroomStatus(item: Item, nowHHMM: string): 'PROXIMO' | 'EN_CURSO' | 
 export function HorariosPanel({ apiBase }: { apiBase: string }) {
   const confirm = useConfirm();
   const [tab, setTab] = useState<Tab>('docente');
-  const [items, setItems] = useState<Item[]>([]);
-  const [loading, setLoading] = useState(false);
   const [filters, setFilters] = useState({
     periodCode: '202615',
     moment: '',
@@ -70,6 +70,13 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
     campus: '',
     nrc: '',
   });
+  const [scheduleUrl, setScheduleUrl] = useState<string>(() => {
+    const params = new URLSearchParams();
+    params.set('periodCode', '202615');
+    return `${apiBase}/schedule?${params}`;
+  });
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(100);
   const [salonFilters, setSalonFilters] = useState({
     template: 'D4',
     dayIndex: getCurrentDayIndex(),
@@ -77,6 +84,9 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
     hideVirtual: false,
   });
   const [nowHHMM, setNowHHMM] = useState<string>(currentHHMM());
+
+  const { data: scheduleData, loading, refresh: refreshSchedule } = useFetch<{ items: Item[] }>(scheduleUrl);
+  const items = scheduleData?.items ?? [];
 
   useEffect(() => {
     if (tab !== 'salones') return;
@@ -87,18 +97,17 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
   const [emailMessage, setEmailMessage] = useState('');
   const [sending, setSending] = useState(false);
 
-  async function load() {
-    setLoading(true);
+  function load() {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([k, v]) => v && params.set(k, v));
-    try {
-      const r = await fetch(`${apiBase}/schedule?${params}`);
-      const j = await r.json();
-      setItems(j.items ?? []);
-    } finally { setLoading(false); }
+    const url = `${apiBase}/schedule?${params}`;
+    setPage(1);
+    if (url === scheduleUrl) {
+      void refreshSchedule();
+    } else {
+      setScheduleUrl(url);
+    }
   }
-
-  useEffect(() => { void load(); }, []);
 
   // Auto-filtrar por tab
   const filtered = useMemo(() => {
@@ -114,36 +123,42 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
     return items;
   }, [items, tab, filters]);
 
+  const totalPages = Math.max(1, Math.ceil(filtered.length / pageSize));
+  const displayItems = useMemo(
+    () => filtered.slice((page - 1) * pageSize, page * pageSize),
+    [filtered, page, pageSize],
+  );
+
   // Agrupaciones por tab
   const byTeacher = useMemo(() => {
     const map = new Map<string, Item[]>();
-    for (const i of filtered) {
+    for (const i of displayItems) {
       const key = i.teacherId ?? '—';
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(i);
     }
     return map;
-  }, [filtered]);
+  }, [displayItems]);
 
   const byProgram = useMemo(() => {
     const map = new Map<string, Item[]>();
-    for (const i of filtered) {
+    for (const i of displayItems) {
       const key = i.programCode ?? '—';
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(i);
     }
     return map;
-  }, [filtered]);
+  }, [displayItems]);
 
   const byCenter = useMemo(() => {
     const map = new Map<string, Item[]>();
-    for (const i of filtered) {
+    for (const i of displayItems) {
       const key = i.campus ?? '—';
       if (!map.has(key)) map.set(key, []);
       map.get(key)!.push(i);
     }
     return map;
-  }, [filtered]);
+  }, [displayItems]);
 
   const salonItems = useMemo(() => {
     if (tab !== 'salones') return [] as Item[];
@@ -363,47 +378,97 @@ export function HorariosPanel({ apiBase }: { apiBase: string }) {
       </div>
 
       {emailMessage && <AlertBox tone="info" style={{ marginBottom: 8 }}>{emailMessage}</AlertBox>}
-      <div className="muted" style={{ fontSize: 12, marginBottom: 8 }}>Mostrando {filtered.length} NRC.</div>
+      <div className="muted" style={{ fontSize: 12, marginBottom: 8 }}>Mostrando {displayItems.length} de {filtered.length} NRC.</div>
 
-      {tab === 'docente' && [...byTeacher.entries()].map(([tid, list]) => {
-        const t = list[0];
-        return (
-          <div key={tid} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 10, marginBottom: 12 }}>
-            <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
-              <div>
-                <strong>{t.teacherName ?? 'Sin docente'}</strong>{' '}
-                <span className="muted" style={{ fontSize: 11 }}>{t.teacherEmail ?? ''}{t.teacherEmail2 ? ` · ${t.teacherEmail2}` : ''}</span>
-                <span className="muted" style={{ fontSize: 11, marginLeft: 8 }}>centro={t.campus ?? '—'}</span>
+      {tab === 'docente' && (
+        <>
+          {[...byTeacher.entries()].map(([tid, list]) => {
+            const t = list[0];
+            return (
+              <div key={tid} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 10, marginBottom: 12 }}>
+                <div style={{ display: 'flex', justifyContent: 'space-between', alignItems: 'center', marginBottom: 6 }}>
+                  <div>
+                    <strong>{t.teacherName ?? 'Sin docente'}</strong>{' '}
+                    <span className="muted" style={{ fontSize: 11 }}>{t.teacherEmail ?? ''}{t.teacherEmail2 ? ` · ${t.teacherEmail2}` : ''}</span>
+                    <span className="muted" style={{ fontSize: 11, marginLeft: 8 }}>centro={t.campus ?? '—'}</span>
+                  </div>
+                  <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
+                    <Button variant="ghost" size="sm" onClick={() => void previewTeacher(tid)}>Preview email</Button>
+                    <Button variant="secondary" size="sm" onClick={() => void sendEmailToTeacher(tid, 'SEMESTRE')} disabled={sending} loading={sending}>Enviar semestre</Button>
+                    <Button variant="secondary" size="sm" onClick={() => void sendEmailToTeacher(tid, 'PRE_MOMENTO')} disabled={sending} loading={sending}>Enviar pre-momento</Button>
+                  </div>
+                </div>
+                <ScheduleTable items={list} />
               </div>
-              <div style={{ display: 'flex', gap: 4, flexWrap: 'wrap' }}>
-                <Button variant="ghost" size="sm" onClick={() => void previewTeacher(tid)}>Preview email</Button>
-                <Button variant="secondary" size="sm" onClick={() => void sendEmailToTeacher(tid, 'SEMESTRE')} disabled={sending} loading={sending}>Enviar semestre</Button>
-                <Button variant="secondary" size="sm" onClick={() => void sendEmailToTeacher(tid, 'PRE_MOMENTO')} disabled={sending} loading={sending}>Enviar pre-momento</Button>
-              </div>
+            );
+          })}
+          <PaginationControls
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={filtered.length}
+            pageSize={pageSize}
+            onPageChange={(p) => setPage(p)}
+            onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+            label="NRC"
+          />
+        </>
+      )}
+
+      {tab === 'coordinacion' && (
+        <>
+          {[...byProgram.entries()].map(([prog, list]) => (
+            <div key={prog} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 10, marginBottom: 12 }}>
+              <strong>Programa {prog}</strong> <span className="muted" style={{ fontSize: 11 }}>({list.length} NRC, {new Set(list.map((i) => i.teacherId)).size} docentes)</span>
+              <ScheduleTable items={list} showTeacher />
             </div>
-            <ScheduleTable items={list} />
-          </div>
-        );
-      })}
+          ))}
+          <PaginationControls
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={filtered.length}
+            pageSize={pageSize}
+            onPageChange={(p) => setPage(p)}
+            onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+            label="NRC"
+          />
+        </>
+      )}
 
-      {tab === 'coordinacion' && [...byProgram.entries()].map(([prog, list]) => (
-        <div key={prog} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 10, marginBottom: 12 }}>
-          <strong>Programa {prog}</strong> <span className="muted" style={{ fontSize: 11 }}>({list.length} NRC, {new Set(list.map((i) => i.teacherId)).size} docentes)</span>
-          <ScheduleTable items={list} showTeacher />
-        </div>
-      ))}
-
-      {tab === 'academica' && [...byCenter.entries()].map(([centro, list]) => (
-        <div key={centro} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 10, marginBottom: 12 }}>
-          <strong>Centro {centro}</strong> <span className="muted" style={{ fontSize: 11 }}>({list.length} NRC, {new Set(list.map((i) => i.teacherId)).size} docentes)</span>
-          <ScheduleTable items={list} showTeacher />
-        </div>
-      ))}
+      {tab === 'academica' && (
+        <>
+          {[...byCenter.entries()].map(([centro, list]) => (
+            <div key={centro} style={{ border: '1px solid #e5e7eb', borderRadius: 6, padding: 10, marginBottom: 12 }}>
+              <strong>Centro {centro}</strong> <span className="muted" style={{ fontSize: 11 }}>({list.length} NRC, {new Set(list.map((i) => i.teacherId)).size} docentes)</span>
+              <ScheduleTable items={list} showTeacher />
+            </div>
+          ))}
+          <PaginationControls
+            currentPage={page}
+            totalPages={totalPages}
+            totalItems={filtered.length}
+            pageSize={pageSize}
+            onPageChange={(p) => setPage(p)}
+            onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+            label="NRC"
+          />
+        </>
+      )}
 
       {tab === 'estudiante' && (
         filtered.length === 0
           ? <p className="muted">Ingresa NRC o programa para buscar.</p>
-          : <ScheduleTable items={filtered} showTeacher />
+          : <>
+              <ScheduleTable items={displayItems} showTeacher />
+              <PaginationControls
+                currentPage={page}
+                totalPages={totalPages}
+                totalItems={filtered.length}
+                pageSize={pageSize}
+                onPageChange={(p) => setPage(p)}
+                onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+                label="NRC"
+              />
+            </>
       )}
 
       {tab === 'salones' && (

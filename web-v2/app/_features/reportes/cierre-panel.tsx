@@ -2,7 +2,9 @@
 
 import { useState, useMemo, useEffect } from 'react';
 import { fetchJson } from '../../_lib/http';
-import { Button, StatusPill, PageHero, StatsGrid, AlertBox, Modal, useConfirm } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox, Modal, useConfirm, PaginationControls } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 
 // Festivos Colombia 2026-2027 (formato YYYY-MM-DD)
 const CO_HOLIDAYS = new Set([
@@ -940,10 +942,16 @@ function findCoordinator(coord: string, cs: Coordinator[]): Coordinator | undefi
 
 export function CierrePanel({ apiBase }: CierrePanelProps) {
   const confirm = useConfirm();
+  const [coursesEnabled, setCoursesEnabled] = useState(false);
+  const { data: coursesData, error: coursesError, loading: coursesLoading, refresh: refreshCourses } = useFetch<{ items: CourseItem[] }>(
+    coursesEnabled ? `${apiBase}/courses?limit=5000` : null,
+  );
+  const courses: CourseItem[] = coursesData?.items ?? [];
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
-  const [courses, setCourses] = useState<CourseItem[]>([]);
   const [coordinators, setCoordinators] = useState<Coordinator[]>([]);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(100);
   const [centerDirectors, setCenterDirectors] = useState<CenterDirector[]>([]);
   const [sendingCenterId, setSendingCenterId] = useState<string | null>(null);
   const [period, setPeriod] = useState('');
@@ -994,6 +1002,21 @@ export function CierrePanel({ apiBase }: CierrePanelProps) {
   const [outboxPeriodCode, setOutboxPeriodCode] = useState('');
   // Periodo a mostrar en reportes: usa outbox o filtro; nunca vacío si hay datos
   const displayPeriod = outboxPeriodCode.trim() || period.trim();
+
+  useEffect(() => {
+    if (!coursesData) return;
+    const items = coursesData.items ?? [];
+    if (items.length) {
+      const codes = [...new Set(items.map(c => c.period?.code).filter(Boolean))] as string[];
+      const latest = codes.sort().at(-1);
+      if (latest) setOutboxPeriodCode(latest);
+    }
+    setMessage(`${items.length} NRC cargados correctamente.`);
+  }, [coursesData]);
+
+  useEffect(() => {
+    if (coursesError) setMessage(`Error al cargar datos: ${coursesError}`);
+  }, [coursesError]);
 
   // Persistir destinatarios extra de directivos en localStorage
   useEffect(() => {
@@ -1364,22 +1387,17 @@ export function CierrePanel({ apiBase }: CierrePanelProps) {
     try {
       setLoading(true);
       setMessage('');
-      const [data, coordData, dirData] = await Promise.all([
-        fetchJson<{ items: CourseItem[] }>(`${apiBase}/courses?limit=5000`),
+      if (!coursesEnabled) {
+        setCoursesEnabled(true);
+      } else {
+        void refreshCourses();
+      }
+      const [coordData, dirData] = await Promise.all([
         fetchJson<{ items: Coordinator[] }>(`${apiBase}/coordinators?limit=500`).catch(() => ({ items: [] as Coordinator[] })),
         fetchJson<{ items: CenterDirector[] }>(`${apiBase}/center-directors?limit=500`).catch(() => ({ items: [] as CenterDirector[] })),
       ]);
-      const items = data.items ?? [];
-      setCourses(items);
       setCoordinators(coordData.items ?? []);
       setCenterDirectors(dirData.items ?? []);
-      // Auto-detectar el periodo más reciente para el registro de correos
-      if (items.length) {
-        const codes = [...new Set(items.map(c => c.period?.code).filter(Boolean))] as string[];
-        const latest = codes.sort().at(-1);
-        if (latest) setOutboxPeriodCode(latest);
-      }
-      setMessage(`${items.length} NRC cargados correctamente.`);
     } catch (error) {
       setMessage(`Error al cargar datos: ${error instanceof Error ? error.message : String(error)}`);
     } finally {
@@ -1552,10 +1570,10 @@ ${BASE_CSS}
         title="Reportes de Cierre"
         description="Genera reportes profesionales de cierre de momento con el 100% de la puntuación. Disponibles para docentes, coordinaciones y directivos."
       >
-        <StatusPill tone={loading ? 'warn' : entries.length > 0 ? 'ok' : 'neutral'} dot={loading}>
-          {loading ? 'Cargando' : entries.length > 0 ? `${entries.length} docentes` : 'Sin datos'}
+        <StatusPill tone={loading || coursesLoading ? 'warn' : entries.length > 0 ? 'ok' : 'neutral'} dot={loading || coursesLoading}>
+          {loading || coursesLoading ? 'Cargando' : entries.length > 0 ? `${entries.length} docentes` : 'Sin datos'}
         </StatusPill>
-        <Button variant="primary" size="sm" onClick={() => void loadData()} disabled={loading} loading={loading}>
+        <Button variant="primary" size="sm" onClick={() => void loadData()} disabled={loading || coursesLoading} loading={loading || coursesLoading}>
           Cargar datos
         </Button>
       </PageHero>
@@ -1672,7 +1690,7 @@ ${BASE_CSS}
                 </tr>
               </thead>
               <tbody>
-                {entries.sort((a, b) => (b.totalScore ?? -1) - (a.totalScore ?? -1)).map(entry => {
+                {entries.sort((a, b) => (b.totalScore ?? -1) - (a.totalScore ?? -1)).slice((page - 1) * pageSize, page * pageSize).map(entry => {
                   const b = entry.totalScore !== null ? getBand(entry.totalScore) : null;
                   return (
                     <tr key={entry.teacherId}>
@@ -1743,6 +1761,15 @@ ${BASE_CSS}
                 })}
               </tbody>
             </table>
+            <PaginationControls
+              currentPage={page}
+              totalPages={Math.max(1, Math.ceil(entries.length / pageSize))}
+              totalItems={entries.length}
+              pageSize={pageSize}
+              onPageChange={(p) => setPage(p)}
+              onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+              label="reportes"
+            />
           </div>
 
           {/* REPORTE COORDINACIONES */}
