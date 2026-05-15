@@ -26,3 +26,5 @@ export type { ToastTone, ToastOptions } from './toast';
 export { ConfirmProvider, useConfirm } from './confirm';
 export type { ConfirmOptions } from './confirm';
 export { AppProviders } from './app-providers';
+export { PaginationControls, PAGE_SIZE_OPTIONS } from './page-controls';
+export type { PageSizeOption } from './page-controls';

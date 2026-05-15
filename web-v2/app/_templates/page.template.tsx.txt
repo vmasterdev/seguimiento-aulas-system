@@ -5,7 +5,7 @@ export const dynamic = 'force-dynamic';
  * Renombrar: NombrePage, NombrePanel, sección en active y MainMenuSection
  */
 
-import { NombrePanel } from '../../_features/<nombre>/<nombre>-panel';
+// import { NombrePanel } from '../../_features/MODULO/MODULO-panel'; // descomentar al copiar
 import { SinglePanelPageShell } from '../../_components/page-shell';
 import { CLIENT_API_BASE } from '../../_lib/api';
 

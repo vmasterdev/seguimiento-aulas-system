@@ -2,7 +2,9 @@
 
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
-import { Button, Field, StatusPill, AlertBox, PageHero, StatsGrid, FilterBar, Modal, useConfirm } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
+import { Button, Field, StatusPill, AlertBox, PageHero, StatsGrid, FilterBar, Modal, useConfirm, PaginationControls, PAGE_SIZE_OPTIONS } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 
 type EvaluationSummary = {
   alistamientoScore: number | null;
@@ -248,24 +250,23 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
   const [previewData, setPreviewData] = useState<OutboxPreviewResponse | null>(null);
   const [pendingPreviewSend, setPendingPreviewSend] = useState<PendingPreviewSend | null>(null);
   const [currentPage, setCurrentPage] = useState(1);
-  const PAGE_SIZE = 100;
+  const [pageSize, setPageSize] = useState<PageSizeOption>(100);
+
+  const { data: coursesData, error: fetchError, loading: fetchLoading } = useFetch<CoursesListResponse>(
+    `${apiBase}/courses?limit=5000`,
+  );
 
   useEffect(() => {
-    async function load() {
-      try {
-        setLoading(true);
-        setMessage('');
-        const data = await fetchJson<CoursesListResponse>(`${apiBase}/courses?limit=5000`);
-        setItems(data.items ?? []);
-      } catch (error) {
-        setMessage(`No fue posible cargar NRC globales: ${error instanceof Error ? error.message : String(error)}`);
-      } finally {
-        setLoading(false);
-      }
-    }
+    if (coursesData) setItems(coursesData.items ?? []);
+  }, [coursesData]);
 
-    void load();
-  }, [apiBase]);
+  useEffect(() => {
+    if (fetchError) setMessage(`No fue posible cargar NRC globales: ${fetchError}`);
+  }, [fetchError]);
+
+  useEffect(() => {
+    setLoading(fetchLoading);
+  }, [fetchLoading]);
 
   const periods = useMemo(
     () => ['TODOS', ...Array.from(new Set(items.map((item) => item.period.code))).sort((a, b) => a.localeCompare(b, 'es'))],
@@ -393,11 +394,11 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
       .map(({ item }) => item);
   }, [bannerFilter, campusFilter, enrolledFilter, modalityFilter, items, momentFilter, participantsFilter, periodFilter, programFilter, query, reviewableFilter, semesterFilter, teacherFilter, teacherIdQuery, teacherNameQuery, templateFilter]);
 
-  // Reset page when filters change
-  useEffect(() => { setCurrentPage(1); }, [filteredItems]);
+  // Reset page when filters or page size change
+  useEffect(() => { setCurrentPage(1); }, [filteredItems, pageSize]);
 
-  const totalPages = Math.max(1, Math.ceil(filteredItems.length / PAGE_SIZE));
-  const displayItems = filteredItems.slice((currentPage - 1) * PAGE_SIZE, currentPage * PAGE_SIZE);
+  const totalPages = Math.max(1, Math.ceil(filteredItems.length / pageSize));
+  const displayItems = filteredItems.slice((currentPage - 1) * pageSize, currentPage * pageSize);
 
   const totalWithTeacher = useMemo(() => items.filter((item) => item.teacherId).length, [items]);
   const totalWithoutTeacher = useMemo(() => items.filter((item) => !item.teacherId).length, [items]);
@@ -1663,19 +1664,15 @@ export function NrcGlobalPanel({ apiBase }: NrcGlobalPanelProps) {
             </tbody>
           </table>
         </div>
-        {totalPages > 1 && (
-          <div style={{ display: 'flex', alignItems: 'center', justifyContent: 'space-between', padding: '12px 0 4px', gap: 8 }}>
-            <span style={{ color: 'var(--muted)', fontSize: 13 }}>
-              Página {currentPage} de {totalPages} · {filteredItems.length} NRC
-            </span>
-            <div style={{ display: 'flex', gap: 6 }}>
-              <Button variant="ghost" size="sm" onClick={() => setCurrentPage(1)} disabled={currentPage === 1}>«</Button>
-              <Button variant="ghost" size="sm" onClick={() => setCurrentPage((p) => Math.max(1, p - 1))} disabled={currentPage === 1}>‹ Anterior</Button>
-              <Button variant="ghost" size="sm" onClick={() => setCurrentPage((p) => Math.min(totalPages, p + 1))} disabled={currentPage === totalPages}>Siguiente ›</Button>
-              <Button variant="ghost" size="sm" onClick={() => setCurrentPage(totalPages)} disabled={currentPage === totalPages}>»</Button>
-            </div>
-          </div>
-        )}
+        <PaginationControls
+          currentPage={currentPage}
+          totalPages={totalPages}
+          totalItems={filteredItems.length}
+          pageSize={pageSize}
+          onPageChange={setCurrentPage}
+          onPageSizeChange={setPageSize}
+          label="NRC"
+        />
       </section>
 
 

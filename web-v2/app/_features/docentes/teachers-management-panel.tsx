@@ -2,7 +2,9 @@
 
 import { Fragment, useEffect, useMemo, useState } from 'react';
 import { fetchJson } from '../../_lib/http';
-import { Button, StatusPill, PageHero, StatsGrid, AlertBox, Modal, useConfirm } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
+import { Button, StatusPill, PageHero, StatsGrid, AlertBox, Modal, useConfirm, PaginationControls } from '../../_components/ui';
+import type { PageSizeOption } from '../../_components/ui';
 
 type TeacherStatus = 'NUEVO' | 'ANTIGUO' | 'SIN_CONTRATO';
 
@@ -321,6 +323,8 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
   const [loading, setLoading] = useState(false);
   const [message, setMessage] = useState('');
   const [result, setResult] = useState<TeachersListResult | null>(null);
+  const [teacherPage, setTeacherPage] = useState(1);
+  const [teacherPageSize, setTeacherPageSize] = useState<PageSizeOption>(100);
 
   const [filterCoords, setFilterCoords] = useState<string[]>([]);
   const [filterCampus, setFilterCampus] = useState<string[]>([]);
@@ -373,8 +377,20 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
 
   const [deletingAll, setDeletingAll] = useState(false);
 
+  const { data: initialTeachers, loading: initialLoading } = useFetch<TeachersListResult>(
+    `${apiBase}/teachers?limit=500`,
+  );
+
   useEffect(() => {
-    void loadTeachers();
+    if (initialTeachers && !result) setResult(initialTeachers);
+  }, [initialTeachers, result]);
+
+  useEffect(() => {
+    if (initialLoading) setLoading(true);
+    else if (!result) setLoading(false);
+  }, [initialLoading, result]);
+
+  useEffect(() => {
     void loadCoordinators();
     // eslint-disable-next-line react-hooks/exhaustive-deps
   }, []);
@@ -848,6 +864,31 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
   const sinContrato = result?.items.filter((i) => !i.tipoContrato).length ?? 0;
   const sinCorreo = result?.items.filter((i) => !i.email).length ?? 0;
 
+  const filteredTeachers = useMemo(() => {
+    if (!result?.items) return [];
+    return result.items.filter((item) => {
+      if (filterCoords.length && !filterCoords.includes(item.coordination ?? '')) return false;
+      if (filterCampus.length && !filterCampus.includes(item.campus ?? '')) return false;
+      if (filterEscalafon.length && !filterEscalafon.includes(item.escalafon ?? '')) return false;
+      if (filterDedicacion.length && !filterDedicacion.includes(item.dedicacion ?? '')) return false;
+      if (filterStatus.length) {
+        const status = classifyTeacher(item.fechaInicio, item.previousEmployment);
+        if (!filterStatus.includes(status)) return false;
+      }
+      if (filterMissing.length) {
+        const hasAllMissing = filterMissing.every((field) => {
+          const val = (item as unknown as Record<string, unknown>)[field];
+          return !val || String(val).trim() === '';
+        });
+        if (!hasAllMissing) return false;
+      }
+      return true;
+    });
+  }, [result, filterCoords, filterCampus, filterEscalafon, filterDedicacion, filterStatus, filterMissing]);
+
+  const teacherTotalPages = Math.max(1, Math.ceil(filteredTeachers.length / teacherPageSize));
+  const displayTeachers = filteredTeachers.slice((teacherPage - 1) * teacherPageSize, teacherPage * teacherPageSize);
+
   return (
     <article className="premium-card">
       <PageHero
@@ -1136,25 +1177,7 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                 </tr>
               </thead>
               <tbody>
-                {result.items
-                  .filter((item) => {
-                    if (filterCoords.length && !filterCoords.includes(item.coordination ?? '')) return false;
-                    if (filterCampus.length && !filterCampus.includes(item.campus ?? '')) return false;
-                    if (filterEscalafon.length && !filterEscalafon.includes(item.escalafon ?? '')) return false;
-                    if (filterDedicacion.length && !filterDedicacion.includes(item.dedicacion ?? '')) return false;
-                    if (filterStatus.length) {
-                      const status = classifyTeacher(item.fechaInicio, item.previousEmployment);
-                      if (!filterStatus.includes(status)) return false;
-                    }
-                    if (filterMissing.length) {
-                      const hasAllMissing = filterMissing.every((field) => {
-                        const val = (item as unknown as Record<string, unknown>)[field];
-                        return !val || String(val).trim() === '';
-                      });
-                      if (!hasAllMissing) return false;
-                    }
-                    return true;
-                  })
+                {displayTeachers
                   .map((item) => {
                   const missCell = (val: string | null | undefined): React.CSSProperties =>
                     !val || String(val).trim() === '' ? { background: '#fef2f2', color: '#991b1b', fontStyle: 'italic' } : {};
@@ -1313,6 +1336,15 @@ export function TeachersManagementPanel({ apiBase }: TeachersManagementPanelProp
                 ) : null}
               </tbody>
             </table>
+            <PaginationControls
+              currentPage={teacherPage}
+              totalPages={teacherTotalPages}
+              totalItems={filteredTeachers.length}
+              pageSize={teacherPageSize}
+              onPageChange={(p) => { setTeacherPage(p); }}
+              onPageSizeChange={(s) => { setTeacherPageSize(s); setTeacherPage(1); }}
+              label="docentes"
+            />
           </div>
         </>
       ) : null}
