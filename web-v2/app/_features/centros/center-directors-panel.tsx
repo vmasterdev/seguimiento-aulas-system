@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Button, PageHero, AlertBox, useConfirm } from '../../_components/ui';
+import { useState } from 'react';
+import { Button, PageHero, AlertBox, useConfirm, PaginationControls } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
+import type { PageSizeOption } from '../../_components/ui';
 
 type Director = {
   id: string;
@@ -31,29 +33,19 @@ const EMPTY_FORM = {
 
 export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
   const confirm = useConfirm();
-  const [data, setData] = useState<ListResult | null>(null);
-  const [loading, setLoading] = useState(false);
   const [form, setForm] = useState(EMPTY_FORM);
   const [message, setMessage] = useState('');
   const [saving, setSaving] = useState(false);
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(50);
 
-  async function load() {
-    setLoading(true);
+  const { data, loading, error, refresh } = useFetch<ListResult>(`${apiBase}/center-directors`);
+
+  function load() {
     setMessage('');
-    try {
-      const r = await fetch(`${apiBase}/center-directors`);
-      const j = (await r.json()) as ListResult;
-      setData(j);
-    } catch (e) {
-      setMessage(`Error cargando: ${(e as Error).message}`);
-    } finally {
-      setLoading(false);
-    }
+    setPage(1);
+    void refresh();
   }
-
-  useEffect(() => {
-    void load();
-  }, []);
 
   function onCampusCodeChange(code: string) {
     const upper = code.toUpperCase();
@@ -88,7 +80,7 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
       }
       setMessage('✓ Director guardado.');
       setForm(EMPTY_FORM);
-      await load();
+      void refresh();
     } catch (e) {
       setMessage(`Error: ${(e as Error).message}`);
     } finally {
@@ -117,7 +109,7 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
         return;
       }
       setMessage('Director eliminado.');
-      await load();
+      void refresh();
     } catch (e) {
       setMessage(`Error: ${(e as Error).message}`);
     }
@@ -127,6 +119,7 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
   const items = data?.items ?? [];
   const assignedCodes = new Set(items.map((i) => i.campusCode));
   const pending = known.filter((c) => !assignedCodes.has(c.campusCode));
+  const pagedItems = items.slice((page - 1) * pageSize, page * pageSize);
 
   return (
     <article className="premium-card">
@@ -136,7 +129,7 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
       />
 
       <div className="panel-body">
-      {message && <AlertBox tone="info">{message}</AlertBox>}
+      {(message || error) && <AlertBox tone="info">{message || error}</AlertBox>}
 
       <form onSubmit={save} className="form-grid" style={{ marginBottom: 16 }}>
         <label>
@@ -215,7 +208,7 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
       )}
 
       <div style={{ display: 'flex', gap: 8, alignItems: 'center', marginBottom: 8 }}>
-        <Button variant="ghost" size="sm" onClick={() => void load()} disabled={loading} loading={loading}>
+        <Button variant="ghost" size="sm" onClick={() => load()} disabled={loading} loading={loading}>
           ↻ Recargar
         </Button>
         <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--muted)' }}>{items.length} director(es) registrados</span>
@@ -233,7 +226,7 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
           </tr>
         </thead>
         <tbody>
-          {items.map((d) => (
+          {pagedItems.map((d) => (
             <tr key={d.id}>
               <td><strong>{d.campusCode}</strong></td>
               <td>{d.campusName ?? '—'}</td>
@@ -251,6 +244,15 @@ export function CenterDirectorsPanel({ apiBase }: { apiBase: string }) {
           )}
         </tbody>
       </table>
+      <PaginationControls
+        currentPage={page}
+        totalPages={Math.max(1, Math.ceil(items.length / pageSize))}
+        totalItems={items.length}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+        label="directores"
+      />
       </div>{/* /panel-body */}
     </article>
   );

@@ -1,7 +1,8 @@
 'use client';
 
-import { useEffect, useMemo, useState } from 'react';
+import { useMemo, useState } from 'react';
 import { Button, PageHero, StatsGrid } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
 
 type Center = { campus: string; nrcCount: number; salonesCount: number; teachersCount: number; horasSemana: number; modalityBreakdown: Record<string, number> };
 type Salon = { campus: string; edificio: string; salon: string; nrcCount: number; teachersCount: number; subjectsCount: number; horasSemana: number; ocupacionPct: number };
@@ -20,21 +21,20 @@ const HOURS = Array.from({ length: 24 }, (_, i) => i);
 
 export function MetricsPanel({ apiBase }: { apiBase: string }) {
   const [filters, setFilters] = useState({ periodCode: '202615', moment: '', campus: '' });
-  const [data, setData] = useState<Result | null>(null);
-  const [loading, setLoading] = useState(false);
+  const [activeUrl, setActiveUrl] = useState<string | null>(null);
 
-  async function load() {
-    setLoading(true);
+  const { data, loading, refresh } = useFetch<Result>(activeUrl);
+
+  function load() {
     const params = new URLSearchParams();
     Object.entries(filters).forEach(([k, v]) => v && params.set(k, v));
-    try {
-      const r = await fetch(`${apiBase}/metrics/usage?${params}`);
-      const j = await r.json();
-      setData(j);
-    } finally { setLoading(false); }
+    const next = `${apiBase}/metrics/usage?${params}`;
+    if (next === activeUrl) {
+      void refresh();
+    } else {
+      setActiveUrl(next);
+    }
   }
-
-  useEffect(() => { void load(); }, []);
 
   const maxHeatmapMins = useMemo(() => {
     if (!data) return 0;

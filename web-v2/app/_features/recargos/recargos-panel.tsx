@@ -2,6 +2,7 @@
 
 import { useEffect, useState } from 'react';
 import { Button, StatusPill, PageHero, StatsGrid, AlertBox } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
 
 type Row = {
   docente: string;
@@ -47,34 +48,36 @@ type Result = {
 };
 
 export function RecargosPanel({ apiBase }: { apiBase: string }) {
-  const [filters, setFilters] = useState({
-    dateFrom: '',
-    dateTo: '',
-    teacherId: '',
-    programCode: '',
-    campus: '',
-    recargoStart: '21:00',
-    recargoEnd: '06:00',
+  const [filters, setFilters] = useState(() => {
+    const now = new Date();
+    const first = new Date(now.getFullYear(), now.getMonth(), 1);
+    const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
+    const fmt = (d: Date) => d.toISOString().slice(0, 10);
+    return {
+      dateFrom: fmt(first),
+      dateTo: fmt(last),
+      teacherId: '',
+      programCode: '',
+      campus: '',
+      recargoStart: '21:00',
+      recargoEnd: '06:00',
+    };
   });
   const [result, setResult] = useState<Result | null>(null);
   const [loading, setLoading] = useState(false);
   const [showAll, setShowAll] = useState(false);
 
+  const { data: settings } = useFetch<{ recargoStart?: string; recargoEnd?: string }>(`${apiBase}/system-settings`);
+
   useEffect(() => {
-    void (async () => {
-      try {
-        const r = await fetch(`${apiBase}/system-settings`);
-        const j = await r.json();
-        setFilters((p) => ({ ...p, recargoStart: j.recargoStart ?? '21:00', recargoEnd: j.recargoEnd ?? '06:00' }));
-      } catch { /* ignore */ }
-    })();
-    // Default rango: mes actual
-    const now = new Date();
-    const first = new Date(now.getFullYear(), now.getMonth(), 1);
-    const last = new Date(now.getFullYear(), now.getMonth() + 1, 0);
-    const fmt = (d: Date) => d.toISOString().slice(0, 10);
-    setFilters((p) => ({ ...p, dateFrom: fmt(first), dateTo: fmt(last) }));
-  }, []);
+    if (settings) {
+      setFilters((p) => ({
+        ...p,
+        recargoStart: settings.recargoStart ?? p.recargoStart,
+        recargoEnd: settings.recargoEnd ?? p.recargoEnd,
+      }));
+    }
+  }, [settings]);
 
   async function compute() {
     if (!filters.dateFrom || !filters.dateTo) return;

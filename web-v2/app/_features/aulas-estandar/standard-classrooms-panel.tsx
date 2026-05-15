@@ -1,7 +1,9 @@
 'use client';
 
-import { useEffect, useState } from 'react';
-import { Button, PageHero, AlertBox, useConfirm } from '../../_components/ui';
+import { useState, useMemo } from 'react';
+import { Button, PageHero, AlertBox, useConfirm, PaginationControls } from '../../_components/ui';
+import { useFetch } from '../../_lib/use-fetch';
+import type { PageSizeOption } from '../../_components/ui';
 
 type Item = {
   id: string;
@@ -17,28 +19,29 @@ const EMPTY = { id: '', template: 'D4', subjectName: '', alphanumericCode: '', b
 
 export function StandardClassroomsPanel({ apiBase }: { apiBase: string }) {
   const confirm = useConfirm();
-  const [items, setItems] = useState<Item[]>([]);
   const [filter, setFilter] = useState({ template: '', q: '' });
+  const [activeFilter, setActiveFilter] = useState({ template: '', q: '' });
   const [form, setForm] = useState(EMPTY);
-  const [loading, setLoading] = useState(false);
   const [saving, setSaving] = useState(false);
   const [message, setMessage] = useState('');
+  const [page, setPage] = useState(1);
+  const [pageSize, setPageSize] = useState<PageSizeOption>(50);
 
-  async function load() {
-    setLoading(true);
+  const url = useMemo(() => {
     const params = new URLSearchParams();
-    if (filter.template) params.set('template', filter.template);
-    if (filter.q) params.set('q', filter.q);
-    try {
-      const r = await fetch(`${apiBase}/standard-classrooms?${params}`);
-      const j = await r.json();
-      setItems(j.items ?? []);
-    } finally {
-      setLoading(false);
-    }
-  }
+    if (activeFilter.template) params.set('template', activeFilter.template);
+    if (activeFilter.q) params.set('q', activeFilter.q);
+    return `${apiBase}/standard-classrooms?${params}`;
+  }, [apiBase, activeFilter]);
 
-  useEffect(() => { void load(); }, []);
+  const { data: fetchData, loading, refresh } = useFetch<{ items: Item[] }>(url);
+  const items = fetchData?.items ?? [];
+
+  function load() {
+    setActiveFilter({ ...filter });
+    setPage(1);
+    void refresh();
+  }
 
   async function save(e: React.FormEvent) {
     e.preventDefault();
@@ -54,14 +57,14 @@ export function StandardClassroomsPanel({ apiBase }: { apiBase: string }) {
       if (!r.ok || !j.ok) { setMessage(`Error: ${j.error ?? 'desconocido'}`); return; }
       setMessage('✓ Guardado.');
       setForm(EMPTY);
-      await load();
+      void refresh();
     } finally { setSaving(false); }
   }
 
   async function remove(it: Item) {
     if (!await confirm({ title: 'Eliminar aula estándar', message: `¿Eliminar aula ${it.template} — ${it.subjectName}?`, confirmLabel: 'Eliminar', tone: 'danger' })) return;
     await fetch(`${apiBase}/standard-classrooms/${it.id}`, { method: 'DELETE' });
-    await load();
+    void refresh();
   }
 
   function edit(it: Item) {
@@ -130,14 +133,14 @@ export function StandardClassroomsPanel({ apiBase }: { apiBase: string }) {
           <option value="CRIBA">CRIBA</option>
         </select>
         <input placeholder="Buscar..." value={filter.q} onChange={(e) => setFilter((p) => ({ ...p, q: e.target.value }))} />
-        <Button variant="ghost" size="sm" onClick={() => void load()} disabled={loading} loading={loading}>Filtrar</Button>
+        <Button variant="ghost" size="sm" onClick={() => load()} disabled={loading} loading={loading}>Filtrar</Button>
         <span style={{ fontSize: 'var(--fs-micro)', color: 'var(--muted)' }}>{items.length} aulas</span>
       </div>
 
       <table className="fast-table">
         <thead><tr><th>Tipo</th><th>Asignatura</th><th>Alfanumerico</th><th>Backup URL</th><th>Notas</th><th>Acciones</th></tr></thead>
         <tbody>
-          {items.map((it) => (
+          {items.slice((page - 1) * pageSize, page * pageSize).map((it) => (
             <tr key={it.id}>
               <td><strong>{it.template}</strong></td>
               <td>{it.subjectName}</td>
@@ -153,6 +156,15 @@ export function StandardClassroomsPanel({ apiBase }: { apiBase: string }) {
           {items.length === 0 && (<tr><td colSpan={6} className="muted" style={{ textAlign: 'center', padding: 16 }}>Sin aulas registradas</td></tr>)}
         </tbody>
       </table>
+      <PaginationControls
+        currentPage={page}
+        totalPages={Math.max(1, Math.ceil(items.length / pageSize))}
+        totalItems={items.length}
+        pageSize={pageSize}
+        onPageChange={setPage}
+        onPageSizeChange={(s) => { setPageSize(s); setPage(1); }}
+        label="aulas"
+      />
       </div>{/* /panel-body */}
     </article>
   );
