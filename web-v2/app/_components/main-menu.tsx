@@ -24,6 +24,7 @@ export type MainMenuSection =
   | 'analitica-moodle'
   | 'reportes'
   | 'eventos-significativos'
+  | 'directorio-personal'
   | 'design-system';
 
 const ICON_HOME = (
@@ -109,6 +110,16 @@ const ICON_USER_SEARCH = (
     <path d="M3 21v-2a4 4 0 014-4h4a4 4 0 014 4v2" />
     <circle cx="19" cy="11" r="3" />
     <line x1="21.5" y1="13.5" x2="23" y2="15" />
+  </svg>
+);
+
+const ICON_DIRECTORY = (
+  <svg viewBox="0 0 24 24" fill="none" stroke="currentColor" strokeWidth="2" strokeLinecap="round" strokeLinejoin="round">
+    <path d="M17 21v-2a4 4 0 00-4-4H5a4 4 0 00-4 4v2" />
+    <circle cx="9" cy="7" r="4" />
+    <path d="M23 21v-2a4 4 0 00-3-3.87M16 3.13a4 4 0 010 7.75" />
+    <line x1="19" y1="12" x2="23" y2="12" />
+    <line x1="21" y1="10" x2="21" y2="14" />
   </svg>
 );
 
@@ -224,6 +235,7 @@ const NAV_ITEMS: NavItem[] = [
   { href: '/docentes', label: 'Docentes', section: 'docentes', icon: ICON_USERS, group: 'docentes' },
   { href: '/centros-universitarios', label: 'Centros Universitarios', section: 'centros-universitarios', icon: ICON_BUILDING, group: 'docentes' },
   { href: '/recargos-nocturnos', label: 'Recargos Nocturnos', section: 'recargos-nocturnos', icon: ICON_MOON, group: 'docentes' },
+  { href: '/directorio-personal', label: 'Directorio Personal', section: 'directorio-personal', icon: ICON_DIRECTORY, group: 'docentes' },
 
   // Operaciones
   { href: '/rpaca', label: 'Carga RPACA', section: 'rpaca', icon: ICON_UPLOAD, group: 'operaciones' },
